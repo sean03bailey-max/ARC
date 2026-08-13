@@ -1,0 +1,1180 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Core - ODS</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=DM+Sans:wght@800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #24191a;
+      --paper: #fffdf8;
+      --red: #982036;
+      --line: #d8d1c9;
+      --muted: #74696a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      width: 100%;
+      color: var(--ink);
+      font-family: "Libre Franklin", sans-serif;
+    }
+
+    .tracker-shell {
+      width: 100%;
+      min-height: calc(100 * min(var(--vh, 1vh), 1vh));
+      position: relative;
+      overflow: hidden;
+      padding: 40px 24px;
+      isolation: isolate;
+    }
+
+    .tracker-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background: linear-gradient(112deg, #fffaf3 0%, #d85a55 22%, #a91628 48%, #d34a48 67%, #fff8f0 100%);
+      filter: blur(18px);
+      transform: scale(1.06);
+    }
+
+    .tracker-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(ellipse at 38% 45%, rgba(105,8,18,.34), transparent 28%),
+        radial-gradient(ellipse at 58% 76%, rgba(255,255,255,.28), transparent 25%),
+        repeating-linear-gradient(118deg, rgba(255,255,255,.035) 0 1px, rgba(90,0,10,.025) 1px 3px);
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+    }
+
+    .app-frame {
+      width: 100%;
+      max-width: 1160px;
+      margin: 0 auto;
+      animation: enter .65s ease-out both;
+    }
+
+    .sheet {
+      background: rgba(255,253,248,.97);
+      border: 1px solid rgba(90,20,28,.2);
+      box-shadow: 0 24px 60px rgba(72,4,16,.33), 0 3px 0 rgba(255,255,255,.35) inset;
+    }
+
+    .tracker-title { font-family: "Source Serif 4", Georgia, serif; }
+    .core-wordmark {
+      font-family: "DM Sans", sans-serif;
+      font-weight: 800;
+      font-size: 24px;
+      letter-spacing: .075em;
+      text-transform: uppercase;
+      line-height: 1.05;
+      margin: 0 0 10px;
+      color: rgb(152, 32, 54);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.32fr 1fr auto;
+      border: 1px solid #bcb4ae;
+    }
+
+    .meta-cell {
+      min-height: 48px;
+      padding: 10px 14px;
+      border-right: 1px solid #bcb4ae;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: #f0eeea;
+    }
+
+    .meta-cell:last-child { border-right: 0; }
+
+    .meta-label {
+      color: #6b5e60;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid #b7afaa;
+    }
+
+    .tracker-table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .tracker-table th {
+      padding: 11px 12px;
+      background: #982036;
+      border-right: 1px solid rgba(255,255,255,.4);
+      color: #fffdf8;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .045em;
+      line-height: 1.25;
+      text-align: left;
+      text-transform: uppercase;
+    }
+
+    .tracker-table th:last-child { border-right: 0; }
+
+    .tracker-table td {
+      padding: 10px 12px;
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      vertical-align: middle;
+      font-size: 13px;
+      transition: background .18s ease;
+    }
+
+    .tracker-table td:last-child { border-right: 0; }
+    .tracker-table tbody tr:hover td { background: #fff5f3; }
+
+    .cell-stack { display: flex; flex-direction: column; gap: 9px; min-height: 30px; justify-content: center; }
+
+    .line-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+    }
+
+    .cell-stack .line-item:not(:last-child) {
+      padding-bottom: 9px;
+      border-bottom: 1px dashed rgba(152,32,54,.16);
+    }
+
+    .tracker-table td.deliverable-cell {
+      line-height: 1.45;
+      outline: 0;
+      vertical-align: top;
+    }
+    .deliverable-cell ol,
+    .deliverable-cell ul {
+      margin: 0;
+      padding-left: 20px;
+      list-style-position: outside;
+    }
+    .deliverable-cell ol { list-style-type: decimal; }
+    .deliverable-cell ul { list-style-type: disc; }
+    .deliverable-cell li {
+      display: list-item;
+      line-height: 1.3;
+      margin-bottom: 9px;
+    }
+    .deliverable-cell li:last-child { margin-bottom: 0; }
+    .deliverable-cell li::marker { color: var(--red); font-weight: 800; }
+
+    .line-text { flex: 1 1 auto; outline: 0; min-width: 0; }
+    .line-item .status-badge { width: 100%; }
+
+    .officer-cell {
+      font-weight: 800;
+      letter-spacing: -.015em;
+      color: #3b2426;
+    }
+
+    .lead { background: #fde9a7; }
+    .internal { background: #fee6a1; }
+    .external { background: #fee3a0; }
+    .secretariat { background: #f9e0a1; }
+    .finance { background: #f6dfa1; }
+    .media { background: #f4dda2; }
+    .fundraising { background: #dceab0; }
+    .safe { background: #d4e6b0; }
+    .community { background: #cbe3b3; }
+    .design { background: #c5dfb3; }
+    .formation { background: #bfdbb3; }
+    .recruitment { background: #b6d7b1; }
+    .deployment { background: #add3af; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      width: 100%;
+      min-width: 104px;
+      padding: 5px 10px;
+      border: 0;
+      border-radius: 999px;
+      appearance: none;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .not-started { color: #6c6664; background: #eeece9; }
+    .blocked { color: #a23537; background: #f9d9d7; }
+    .in-progress { color: #896414; background: #fff0b8; }
+    .completed { color: #2f7b48; background: #d8f2dc; }
+
+    .deadline-cell { color: #51494a; font-weight: 600; }
+    .remarks-cell { color: #74696a; }
+
+    .format-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 10px;
+      margin: -2px 0 14px;
+      border: 1px solid #d9d0c9;
+      border-radius: 10px;
+      background: #fbf7f2;
+      width: fit-content;
+    }
+    .format-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      background: transparent;
+      color: #591925;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease;
+    }
+    .format-btn svg { width: 15px; height: 15px; }
+    .format-btn:hover { background: #fff; border-color: rgba(152,32,54,.25); }
+    .format-btn.is-active { background: rgb(152, 32, 54); color: #fff; }
+    .format-btn[disabled] { opacity: .4; cursor: not-allowed; }
+    .format-btn[disabled]:hover { background: transparent; border-color: transparent; }
+    .format-divider { width: 1px; height: 20px; background: #d9d0c9; margin: 0 4px; }
+
+    .add-row-wrap { display: flex; justify-content: center; gap: 10px; margin-top: 16px; }
+
+    .add-row-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: 1px solid rgba(152,32,54,.35);
+      border-radius: 999px;
+      background: #fff;
+      color: #591925;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .add-row-button:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(105,17,32,.18); }
+    .add-row-button svg { width: 16px; height: 16px; }
+    .remove-row-button { color: #a9233a; border-color: rgba(169,35,58,.35); }
+    .remove-row-button:hover { box-shadow: 0 8px 18px rgba(169,35,58,.18); }
+    .save-button, .nav-button { transition: transform .18s ease, box-shadow .18s ease; }
+
+    .save-button:hover, .nav-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(105,17,32,.22);
+    }
+
+    .nav-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(152,32,54,.35);
+      border-radius: 3px;
+      text-decoration: none;
+    }
+
+    .coming-soon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed rgba(152,32,54,.4);
+      border-radius: 3px;
+      background: transparent;
+      color: rgba(152,32,54,.55);
+      cursor: default;
+    }
+
+    button:focus-visible,
+    select:focus-visible {
+      outline: 3px solid #f6c6cd;
+      outline-offset: 3px;
+    }
+
+    .password-widget {
+      display: flex;
+      align-items: center;
+    }
+
+    .password-toggle {
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(152,32,54,.35);
+      border-radius: 3px;
+      background: #fff;
+      color: rgb(152, 32, 54);
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+    }
+    .password-toggle:hover { transform: translateY(-2px); }
+    .password-toggle.is-unlocked { background: #27704c; border-color: #27704c; color: #fff; }
+    .password-toggle svg { width: 16px; height: 16px; }
+
+    .password-panel {
+      width: 0;
+      overflow: hidden;
+      transition: width .25s ease, margin-left .25s ease;
+      margin-left: 0;
+    }
+    .password-widget.is-open .password-panel { width: var(--pw-width, 200px); margin-left: .5rem; }
+
+    .password-input {
+      width: 100%;
+      height: 34px;
+      padding: 0 .7rem;
+      border: 1px solid rgba(152,32,54,.35);
+      border-radius: 8px;
+      background: #fffdfb;
+      color: #3a1720;
+      font-weight: 700;
+      font-size: 12.5px;
+      outline: 0;
+      transition: box-shadow .18s ease;
+    }
+    .password-input:not(:placeholder-shown) {
+      box-shadow: 0 0 0 3px rgba(152,32,54,.14), 0 6px 14px rgba(89,25,37,.18);
+    }
+    .password-input.is-wrong { animation: pw-shake .32s ease; border-color: #c23b48; }
+    @keyframes pw-shake {
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    .lock-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translate(-50%, 12px);
+      background: #591925;
+      color: #fff;
+      padding: .6rem 1rem;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 50;
+      box-shadow: 0 10px 24px rgba(0,0,0,.25);
+    }
+    .lock-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+    [contenteditable="false"] { cursor: not-allowed; }
+    select.status-badge:disabled { cursor: not-allowed; opacity: .75; }
+    .add-row-button[disabled] { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* Small "Saved" / "Saving..." status pill, added for sync feedback */
+    #syncStatus {
+      font-size: 11px;
+      font-weight: 700;
+      color: #74696a;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-left: 12px;
+    }
+    #syncStatus.saving { color: #896414; }
+    #syncStatus.error { color: #a23537; }
+
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 720px) {
+      .tracker-shell { padding: 18px 12px; }
+      .sheet-header { padding: 26px 22px 20px !important; }
+      .sheet-body { padding: 20px 22px !important; }
+      .meta-grid { grid-template-columns: 1fr 1fr; }
+      .meta-cell:nth-child(2) { border-right: 0; }
+      .meta-cell:nth-child(3),
+      .meta-cell:nth-child(4) { border-top: 1px solid #bcb4ae; }
+      .meta-cell:nth-child(4) { border-right: 0; }
+    }
+
+    @media (max-width: 460px) {
+      .nav-button span { display: none; }
+    }
+
+    @media print {
+      .tracker-shell { min-height: auto; padding: 0; background: #fff !important; }
+      .tracker-shell::before,
+      .tracker-shell::after,
+      .save-button,
+      .nav-button,
+      .coming-soon-button,
+      .password-widget,
+      .format-toolbar,
+      .add-row-wrap { display: none !important; }
+      .app-frame { max-width: none; }
+      .sheet { box-shadow: none; border: 1px solid #999; }
+    }
+  </style>
+ </head>
+ <body data-template-id="__page-root" style="background: rgb(143, 31, 50);">
+  <div class="tracker-shell">
+   <main class="app-frame" aria-labelledby="tracker-title">
+    <section class="sheet rounded-[22px] overflow-hidden" aria-label="Officer deliverables tracker">
+     <header class="sheet-header px-9 pt-9 pb-7 border-b border-stone-200">
+      <div class="flex flex-col gap-7 sm:flex-row sm:items-start sm:justify-between">
+       <div>
+        <div class="flex items-center gap-2 mb-3">
+         <img id="orgLogo" src="assets/logo.png" alt="ACRCY logo" style="height:34px;width:auto;object-fit:contain;" onerror="this.style.display='none'">
+         <p data-template-id="organization-name" class="core-wordmark">CORE</p>
+        </div>
+        <h1 id="tracker-title" data-template-id="tracker-title" class="canva-text tracker-title font-bold leading-tight" style="color: rgb(40, 25, 27); font-weight: 700; font-style: normal; font-size: 28px;">Officers' Deliverables System</h1>
+        <p data-template-id="tracker-description" class="canva-text mt-3 max-w-2xl leading-relaxed" style="color: rgb(108, 97, 97); font-weight: 400; font-style: normal; font-size: 14px; line-height: 1.5;">A clear monthly view of committee commitments, progress, and key deadlines.</p>
+        <span id="syncStatus"><i data-lucide="check-circle-2" aria-hidden="true" class="w-3.5 h-3.5"></i><span id="syncStatusText">Synced</span></span>
+       </div>
+       <div class="flex shrink-0 flex-col items-end gap-2">
+        <div class="flex items-center gap-2">
+         <a href="index.html" class="nav-button px-4 py-3 text-sm font-bold" style="color: rgb(152, 32, 54); font-weight: 700; font-size: 13px;"><i data-lucide="arrow-left" aria-hidden="true" class="w-4 h-4"></i><span>Back to Nexus</span></a>
+         <button type="button" class="coming-soon-button px-4 py-3 text-sm font-bold" disabled aria-label="Coming soon"><span>Coming Soon</span></button>
+         <button data-template-id="save-image-button" type="button" id="saveImageButton" class="canva-button save-button inline-flex shrink-0 items-center justify-center gap-2 rounded-sm px-4 py-3 text-sm font-bold" style="background: rgb(152, 32, 54); color: rgb(255, 255, 255); font-weight: 700; font-size: 13px;"> <i data-lucide="download" aria-hidden="true" class="w-4 h-4"></i> <span>Save image</span> </button>
+        </div>
+        <div class="password-widget" id="passwordWidget">
+         <button id="passwordToggle" class="password-toggle" type="button" aria-expanded="false" aria-label="Unlock editing"><i data-lucide="plus" aria-hidden="true"></i></button>
+         <div class="password-panel"><input id="passwordInput" type="password" class="password-input" placeholder="Input Password" autocomplete="off" spellcheck="false"></div>
+        </div>
+       </div>
+      </div>
+     </header>
+     <div class="sheet-body px-9 py-6">
+      <section class="meta-grid mb-6" aria-label="Tracker update details">
+       <div class="meta-cell">
+        <span data-template-id="month-label" class="canva-text meta-label" style="color: rgb(107, 94, 96); font-weight: 800; font-style: normal; font-size: 10px;">Month</span> <span data-template-id="month-value" contenteditable="true" spellcheck="true" class="canva-text text-sm font-bold" style="color: rgb(47, 37, 38); font-weight: 700; font-style: normal; font-size: 14px;">May 2026</span>
+       </div>
+       <div class="meta-cell">
+        <span data-template-id="updated-label" class="canva-text meta-label" style="color: rgb(107, 94, 96); font-weight: 800; font-style: normal; font-size: 10px;">Last updated</span> <span data-template-id="updated-value" contenteditable="true" spellcheck="true" class="canva-text text-sm font-bold" style="color: rgb(47, 37, 38); font-weight: 700; font-style: normal; font-size: 14px;">May 29, 2026</span>
+       </div>
+       <div class="meta-cell">
+        <span data-template-id="updated-by-label" class="canva-text meta-label" style="color: rgb(107, 94, 96); font-weight: 800; font-style: normal; font-size: 10px;">Updated by</span> <span data-template-id="updated-by-value" contenteditable="true" spellcheck="true" class="canva-text text-sm font-bold" style="color: rgb(47, 37, 38); font-weight: 700; font-style: normal; font-size: 14px;">ACRCY Secretariat</span>
+       </div>
+       <div class="meta-cell justify-center">
+        <i data-lucide="clipboard-check" aria-hidden="true" class="w-5 h-5 text-[#982036]"></i>
+       </div>
+      </section>
+      <div id="formatToolbar" class="format-toolbar" role="toolbar" aria-label="Text formatting">
+       <button type="button" class="format-btn" data-format="bold" aria-label="Bold" data-requires-unlock><i data-lucide="bold" aria-hidden="true"></i></button>
+       <button type="button" class="format-btn" data-format="italic" aria-label="Italic" data-requires-unlock><i data-lucide="italic" aria-hidden="true"></i></button>
+       <button type="button" class="format-btn" data-format="underline" aria-label="Underline" data-requires-unlock><i data-lucide="underline" aria-hidden="true"></i></button>
+       <button type="button" class="format-btn" data-format="strikeThrough" aria-label="Strikethrough" data-requires-unlock><i data-lucide="strikethrough" aria-hidden="true"></i></button>
+       <span class="format-divider" aria-hidden="true"></span>
+       <button type="button" class="format-btn" data-format="insertOrderedList" aria-label="Numbered list" data-requires-unlock><i data-lucide="list-ordered" aria-hidden="true"></i></button>
+       <button type="button" class="format-btn" data-format="insertUnorderedList" aria-label="Bulleted list" data-requires-unlock><i data-lucide="list" aria-hidden="true"></i></button>
+      </div>
+      <div class="table-wrap">
+       <table class="tracker-table">
+        <caption class="sr-only">
+         Officer and committee deliverables tracker
+        </caption>
+        <thead>
+         <tr>
+          <th data-template-id="header-officer" class="canva-text w-[22%]" style="background: rgb(152, 32, 54); color: rgb(255, 253, 248); font-weight: 800; font-style: normal; font-size: 11px;">Officer / Committee</th>
+          <th data-template-id="header-deliverable" class="canva-text w-[26%]" style="background: rgb(152, 32, 54); color: rgb(255, 253, 248); font-weight: 800; font-style: normal; font-size: 11px;">Deliverable</th>
+          <th data-template-id="header-status" class="canva-text w-[15%]" style="background: rgb(152, 32, 54); color: rgb(255, 253, 248); font-weight: 800; font-style: normal; font-size: 11px;">Status</th>
+          <th data-template-id="header-deadline" class="canva-text w-[18%]" style="background: rgb(152, 32, 54); color: rgb(255, 253, 248); font-weight: 800; font-style: normal; font-size: 11px;">Deadline</th>
+          <th data-template-id="header-remarks" class="canva-text w-[19%]" style="background: rgb(152, 32, 54); color: rgb(255, 253, 248); font-weight: 800; font-style: normal; font-size: 11px;">Additional remarks</th>
+         </tr>
+        </thead>
+        <tbody>
+         <tr>
+          <td data-template-id="officer-lead" contenteditable="true" spellcheck="true" class="officer-cell lead">Lead</td>
+          <td data-template-id="deliverable-lead" contenteditable="true" spellcheck="true" class="deliverable-cell"><ol><li>Monthly leadership report</li><li>Officer performance review</li><li>Strategic planning update</li></ol></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-lead-1" class="status-badge in-progress" aria-label="Lead status 1"><option>Not Started</option><option>Blocked</option><option selected>In Progress</option><option>Completed</option></select></div><div class="line-item"><select data-template-id="status-lead-2" class="status-badge not-started" aria-label="Lead status 2"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div><div class="line-item"><select data-template-id="status-lead-3" class="status-badge not-started" aria-label="Lead status 3"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-lead-1" contenteditable="true" spellcheck="true" class="line-text deadline-text">Monday, May 4, 2026</span></div><div class="line-item"><span data-template-id="deadline-lead-2" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 10, 2026</span></div><div class="line-item"><span data-template-id="deadline-lead-3" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 15, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-lead-1" contenteditable="true" spellcheck="true" class="line-text remarks-text">For review</span></div><div class="line-item"><span data-template-id="remarks-lead-2" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div><div class="line-item"><span data-template-id="remarks-lead-3" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-internal-affairs" contenteditable="true" spellcheck="true" class="officer-cell internal">Internal Affairs</td>
+          <td data-template-id="deliverable-internal-affairs" contenteditable="true" spellcheck="true" class="deliverable-cell">Officer coordination brief</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-internal-affairs" class="status-badge completed" aria-label="Internal Affairs status"><option>Not Started</option><option>Blocked</option><option>In Progress</option><option selected>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-internal-affairs" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 8, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-internal-affairs" contenteditable="true" spellcheck="true" class="line-text remarks-text">Submitted</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-external-relations" contenteditable="true" spellcheck="true" class="officer-cell external">External Relations</td>
+          <td data-template-id="deliverable-external-relations" contenteditable="true" spellcheck="true" class="deliverable-cell">Partner outreach list</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-external-relations" class="status-badge blocked" aria-label="External Relations status"><option>Not Started</option><option selected>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-external-relations" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 12, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-external-relations" contenteditable="true" spellcheck="true" class="line-text remarks-text">Awaiting confirmation</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-secretariat" contenteditable="true" spellcheck="true" class="officer-cell secretariat">Secretariat</td>
+          <td data-template-id="deliverable-secretariat" contenteditable="true" spellcheck="true" class="deliverable-cell">Meeting minutes and files</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-secretariat" class="status-badge not-started" aria-label="Secretariat status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-secretariat" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 15, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-secretariat" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-finance" contenteditable="true" spellcheck="true" class="officer-cell finance">Finance</td>
+          <td data-template-id="deliverable-finance" contenteditable="true" spellcheck="true" class="deliverable-cell">Monthly budget update</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-finance" class="status-badge not-started" aria-label="Finance status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-finance" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 16, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-finance" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-media-and-communications" contenteditable="true" spellcheck="true" class="officer-cell media">Media &amp; Communications</td>
+          <td data-template-id="deliverable-media-and-communications" contenteditable="true" spellcheck="true" class="deliverable-cell">Content calendar</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-media-and-communications" class="status-badge not-started" aria-label="Media &amp; Communications status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-media-and-communications" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 18, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-media-and-communications" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-fundraising" contenteditable="true" spellcheck="true" class="officer-cell fundraising">Fundraising</td>
+          <td data-template-id="deliverable-fundraising" contenteditable="true" spellcheck="true" class="deliverable-cell">Fundraising proposal</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-fundraising" class="status-badge not-started" aria-label="Fundraising status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-fundraising" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 20, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-fundraising" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-safe-space" contenteditable="true" spellcheck="true" class="officer-cell safe">Safe Space</td>
+          <td data-template-id="deliverable-safe-space" contenteditable="true" spellcheck="true" class="deliverable-cell">Safety protocol check</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-safe-space" class="status-badge not-started" aria-label="Safe Space status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-safe-space" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 22, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-safe-space" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-community-engagement" contenteditable="true" spellcheck="true" class="officer-cell community">Community Engagement</td>
+          <td data-template-id="deliverable-community-engagement" contenteditable="true" spellcheck="true" class="deliverable-cell">Community activity plan</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-community-engagement" class="status-badge not-started" aria-label="Community Engagement status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-community-engagement" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 24, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-community-engagement" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-design-and-innovation" contenteditable="true" spellcheck="true" class="officer-cell design">Design &amp; Innovation</td>
+          <td data-template-id="deliverable-design-and-innovation" contenteditable="true" spellcheck="true" class="deliverable-cell">Campaign design kit</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-design-and-innovation" class="status-badge not-started" aria-label="Design &amp; Innovation status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-design-and-innovation" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 26, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-design-and-innovation" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-formation" contenteditable="true" spellcheck="true" class="officer-cell formation">Formation</td>
+          <td data-template-id="deliverable-formation" contenteditable="true" spellcheck="true" class="deliverable-cell">Formation session outline</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-formation" class="status-badge not-started" aria-label="Formation status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-formation" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 28, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-formation" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-recruitment" contenteditable="true" spellcheck="true" class="officer-cell recruitment">Recruitment</td>
+          <td data-template-id="deliverable-recruitment" contenteditable="true" spellcheck="true" class="deliverable-cell">Membership recruitment plan</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-recruitment" class="status-badge not-started" aria-label="Recruitment status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-recruitment" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 30, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-recruitment" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+         </tr>
+         <tr>
+          <td data-template-id="officer-deployment" contenteditable="true" spellcheck="true" class="officer-cell deployment">Deployment</td>
+          <td data-template-id="deliverable-deployment" contenteditable="true" spellcheck="true" class="deliverable-cell">Event logistics deployment plan</td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-deployment" class="status-badge not-started" aria-label="Deployment status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-deployment" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 31, 2026</span></div></div></td>
+          <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-deployment" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+         </tr>
+
+        </tbody>
+       </table>
+      </div>
+      <div class="add-row-wrap">
+       <button id="addRowButton" type="button" class="add-row-button" data-requires-unlock><i data-lucide="plus" aria-hidden="true" class="w-4 h-4"></i><span>Add Row</span></button>
+       <button id="removeRowButton" type="button" class="add-row-button remove-row-button" data-requires-unlock><i data-lucide="minus" aria-hidden="true" class="w-4 h-4"></i><span>Remove Row</span></button>
+      </div>
+      <footer class="mt-5 flex items-center gap-2 text-xs text-stone-500">
+       <i data-lucide="info" aria-hidden="true" class="w-3.5 h-3.5"></i>
+       <p data-template-id="tracker-footnote" class="canva-text" style="color: rgb(116, 105, 106); font-weight: 400; font-style: normal; font-size: 12px;">Status updates are reviewed during the officers' monthly coordination meeting. Edits save automatically and sync for everyone within a few seconds.</p>
+      </footer>
+     </div>
+    </section>
+   </main>
+  </div>
+  <script>
+    // ---------- Status badge styling ----------
+    const statusStyles = {
+      "Not Started": { className: "not-started", background: "#eeece9", color: "#6c6664" },
+      "Blocked": { className: "blocked", background: "#f9d9d7", color: "#a23537" },
+      "In Progress": { className: "in-progress", background: "#fff0b8", color: "#896414" },
+      "Completed": { className: "completed", background: "#d8f2dc", color: "#2f7b48" }
+    };
+
+    function applyStatusStyle(select) {
+      const style = statusStyles[select.value] || statusStyles["Not Started"];
+      select.classList.remove("not-started", "blocked", "in-progress", "completed");
+      select.classList.add(style.className);
+      select.style.background = style.background;
+      select.style.color = style.color;
+    }
+
+    document.querySelectorAll("select.status-badge").forEach((select) => {
+      applyStatusStyle(select);
+    });
+
+    // ---------- Shared, multi-user persistence via /api/state ----------
+    function applyRemoteValue(id, value) {
+      const el = document.querySelector(`[data-template-id="${id}"]`);
+      if (!el) return;
+
+      // Don't clobber a field the user is actively typing into right now.
+      if (document.activeElement === el) return;
+
+      if (el.tagName === "SELECT") {
+        if (el.value !== value) {
+          el.value = value;
+          applyStatusStyle(el);
+        }
+      } else if (el.innerHTML !== value) {
+        el.innerHTML = value;
+      }
+    }
+
+    function wireEditableField(el) {
+      el.addEventListener("blur", () => {
+        saveField(el.dataset.templateId, el.innerHTML);
+      });
+    }
+
+    function wireStatusSelect(el) {
+      el.addEventListener("change", () => {
+        applyStatusStyle(el);
+        saveField(el.dataset.templateId, el.value);
+      });
+    }
+
+    // ---------- Keep Status / Deadline / Remarks counts matched to the
+    // Deliverable list's item count ----------
+    // A row's deliverable cell may hold plain text (1 implicit item) or a
+    // real <ol>/<ul> from the formatting toolbar — whichever it is, the
+    // Status, Deadline, and Remarks columns should always show exactly as
+    // many stacked boxes as there are deliverables in that row.
+    function getRowSlug(tr) {
+      const officerCell = tr.querySelector(".officer-cell");
+      if (officerCell && officerCell.dataset.templateId) {
+        return officerCell.dataset.templateId.replace(/^officer-/, "");
+      }
+      return tr.dataset.customRow || "";
+    }
+
+    function countDeliverableItems(deliverableCell) {
+      const items = deliverableCell.querySelectorAll(":scope > ol > li, :scope > ul > li");
+      return items.length > 0 ? items.length : 1;
+    }
+
+    function makeLineItem(kind, slug, index) {
+      const div = document.createElement("div");
+      div.className = "line-item";
+      const fieldId = `${kind}-${slug}-${index}`;
+
+      if (kind === "status") {
+        div.innerHTML = statusSelectMarkup(fieldId, `${slug} status ${index}`);
+        const select = div.querySelector("select");
+        wireStatusSelect(select);
+      } else {
+        const span = document.createElement("span");
+        span.dataset.templateId = fieldId;
+        span.contentEditable = "true";
+        span.spellcheck = true;
+        span.className = kind === "deadline" ? "line-text deadline-text" : "line-text remarks-text";
+        span.textContent = kind === "deadline" ? "Set a date" : "—";
+        div.appendChild(span);
+        wireEditableField(span);
+      }
+      applyLockToRow(div);
+      return div;
+    }
+
+    function syncRowCounts(tr) {
+      const cells = tr.children; // 0 officer, 1 deliverable, 2 status, 3 deadline, 4 remarks
+      const deliverableCell = cells[1];
+      if (!deliverableCell) return;
+      const count = countDeliverableItems(deliverableCell);
+      const slug = getRowSlug(tr);
+      if (!slug) return;
+
+      [["status", cells[2]], ["deadline", cells[3]], ["remarks", cells[4]]].forEach(([kind, cell]) => {
+        const stack = cell && cell.querySelector(".cell-stack");
+        if (!stack) return;
+        let items = [...stack.children];
+        while (items.length < count) {
+          const el = makeLineItem(kind, slug, items.length + 1);
+          stack.appendChild(el);
+          items.push(el);
+        }
+        while (items.length > count) {
+          items.pop().remove();
+        }
+      });
+      lucide.createIcons();
+    }
+
+    function wireDeliverableField(el) {
+      wireEditableField(el);
+      let debounceTimer;
+      el.addEventListener("input", () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          const tr = el.closest("tr");
+          if (tr) syncRowCounts(tr);
+        }, 400);
+      });
+    }
+
+    // ---------- Password lock ----------
+    const CORRECT_PASSWORD = "arc143";
+    let editLocked = true;
+
+    const passwordWidget = document.getElementById("passwordWidget");
+    const passwordToggle = document.getElementById("passwordToggle");
+    const passwordInput = document.getElementById("passwordInput");
+    const backToNexusLink = document.querySelector(".nav-button");
+    const saveImageButtonEl = document.getElementById("saveImageButton");
+
+    function flashLockedNotice(message) {
+      let toast = document.getElementById("lockToast");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "lockToast";
+        toast.className = "lock-toast";
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message || "Unlock editing to make changes.";
+      toast.classList.add("is-visible");
+      clearTimeout(flashLockedNotice._t);
+      flashLockedNotice._t = setTimeout(() => toast.classList.remove("is-visible"), 2200);
+    }
+
+    // Applies the current lock state to one row (or any subtree). Called
+    // once per row at build time and again whenever the lock toggles.
+    function applyLockToRow(scope) {
+      scope.querySelectorAll("[contenteditable]").forEach((el) => {
+        el.setAttribute("contenteditable", editLocked ? "false" : "true");
+      });
+      scope.querySelectorAll("select[data-template-id]").forEach((el) => {
+        el.disabled = editLocked;
+      });
+      scope.querySelectorAll("[data-requires-unlock]").forEach((el) => {
+        el.disabled = editLocked;
+      });
+    }
+
+    function updateLockUI() {
+      passwordToggle.classList.toggle("is-unlocked", !editLocked);
+      passwordToggle.setAttribute("aria-label", editLocked ? "Unlock editing" : "Lock editing");
+      passwordToggle.innerHTML = editLocked
+        ? '<i data-lucide="plus" aria-hidden="true"></i>'
+        : '<i data-lucide="unlock" aria-hidden="true"></i>';
+      lucide.createIcons();
+    }
+
+    function collapsePasswordWidget() {
+      passwordWidget.classList.remove("is-open");
+      passwordToggle.setAttribute("aria-expanded", "false");
+      passwordInput.value = "";
+      passwordInput.blur();
+    }
+
+    function openPasswordWidget() {
+      const w = backToNexusLink.offsetWidth + saveImageButtonEl.offsetWidth + 8;
+      passwordWidget.style.setProperty("--pw-width", `${w}px`);
+      passwordWidget.classList.add("is-open");
+      passwordToggle.setAttribute("aria-expanded", "true");
+      passwordInput.focus({ preventScroll: true });
+    }
+
+    function setEditLocked(locked) {
+      editLocked = locked;
+      applyLockToRow(document);
+      updateLockUI();
+    }
+
+    passwordToggle.addEventListener("click", () => {
+      if (editLocked) {
+        openPasswordWidget();
+      } else {
+        setEditLocked(true);
+        collapsePasswordWidget();
+      }
+    });
+
+    passwordInput.addEventListener("input", () => {
+      if (passwordInput.value === CORRECT_PASSWORD) {
+        setEditLocked(false);
+        collapsePasswordWidget();
+      }
+    });
+
+    passwordInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && passwordInput.value && passwordInput.value !== CORRECT_PASSWORD) {
+        passwordInput.classList.add("is-wrong");
+        setTimeout(() => passwordInput.classList.remove("is-wrong"), 350);
+        passwordInput.value = "";
+      }
+      if (event.key === "Escape") collapsePasswordWidget();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (passwordWidget.classList.contains("is-open") && !passwordWidget.contains(event.target)) {
+        collapsePasswordWidget();
+      }
+    });
+
+    // Native contenteditable="false" / disabled selects silently ignore
+    // interaction with no feedback — this delegated listener (on the
+    // sheet, which is never itself disabled) gives the same "unlock
+    // editing" nudge Nexus shows.
+    document.querySelector(".sheet").addEventListener("mousedown", (event) => {
+      if (!editLocked) return;
+      if (passwordWidget.contains(event.target)) return;
+      const target = event.target.closest("[contenteditable], select[data-template-id], .officer-cell");
+      if (target) flashLockedNotice();
+    });
+
+    // ---------- Add Row (extra committee rows, cycling the same palette) ----------
+    const PALETTE_CLASSES = ["lead", "internal", "external", "secretariat", "finance", "media",
+      "fundraising", "safe", "community", "design", "formation", "recruitment", "deployment"];
+    const tbodyEl = document.querySelector(".tracker-table tbody");
+    let customRows = []; // [{ slug, colorClass }], persisted as one field
+
+    function statusSelectMarkup(fieldId, ariaLabel) {
+      return `<select data-template-id="${fieldId}" class="status-badge not-started" aria-label="${ariaLabel}">
+        <option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option>
+      </select>`;
+    }
+
+    function buildCustomRow({ slug, colorClass }, { placeholders = true } = {}) {
+      const tr = document.createElement("tr");
+      tr.dataset.customRow = slug;
+      tr.innerHTML = `
+        <td data-template-id="officer-${slug}" contenteditable="true" spellcheck="true" class="officer-cell ${colorClass}">${placeholders ? "New Committee" : ""}</td>
+        <td data-template-id="deliverable-${slug}" contenteditable="true" spellcheck="true" class="deliverable-cell">${placeholders ? "New deliverable" : ""}</td>
+        <td><div class="cell-stack"><div class="line-item">${statusSelectMarkup(`status-${slug}`, "New committee status")}</div></div></td>
+        <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-${slug}" contenteditable="true" spellcheck="true" class="line-text deadline-text">${placeholders ? "Set a date" : ""}</span></div></div></td>
+        <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-${slug}" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
+      `;
+      tr.querySelectorAll("[data-template-id][contenteditable='true']").forEach((el) => {
+        if (el.dataset.templateId.startsWith("deliverable-")) wireDeliverableField(el);
+        else wireEditableField(el);
+      });
+      tr.querySelectorAll("select[data-template-id]").forEach(wireStatusSelect);
+      applyLockToRow(tr);
+      syncRowCounts(tr);
+      return tr;
+    }
+
+    function persistCustomRows() {
+      saveField("customRows", JSON.stringify(customRows));
+    }
+
+    document.getElementById("addRowButton").addEventListener("click", () => {
+      if (editLocked) { flashLockedNotice(); return; }
+      const colorClass = PALETTE_CLASSES[tbodyEl.querySelectorAll("tr").length % PALETTE_CLASSES.length];
+      const slug = `custom-${Date.now().toString(36)}`;
+      const record = { slug, colorClass };
+      customRows.push(record);
+      tbodyEl.appendChild(buildCustomRow(record));
+      lucide.createIcons();
+      persistCustomRows();
+    });
+
+    // Removes the most recently added row. Only rows created with "Add
+    // Row" can be removed this way — the original committee rows and the
+    // Deployment row stay put, since they're the tracker's fixed structure.
+    document.getElementById("removeRowButton").addEventListener("click", () => {
+      if (editLocked) { flashLockedNotice(); return; }
+      if (!customRows.length) { flashLockedNotice("No added rows left to remove."); return; }
+      const record = customRows.pop();
+      const tr = tbodyEl.querySelector(`tr[data-custom-row="${record.slug}"]`);
+      if (tr) tr.remove();
+      persistCustomRows();
+    });
+
+    // ---------- Text formatting toolbar ----------
+    // Uses the (deprecated-but-still-broadly-supported) execCommand API,
+    // which is the simplest way to apply rich formatting inside an
+    // existing contenteditable cell without building a full editor.
+    const formatToolbar = document.getElementById("formatToolbar");
+    const FORMAT_COMMANDS = ["bold", "italic", "underline", "strikeThrough", "insertOrderedList", "insertUnorderedList"];
+
+    // Keep the current text selection alive when a toolbar button is
+    // pressed — a normal mousedown would blur the contenteditable cell
+    // and lose the selection before the click handler even runs.
+    formatToolbar.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+    });
+
+    formatToolbar.querySelectorAll(".format-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (editLocked) { flashLockedNotice(); return; }
+        const active = document.activeElement;
+        if (!active || !active.isContentEditable) {
+          flashLockedNotice("Click into a text field, then use formatting.");
+          return;
+        }
+        document.execCommand(btn.dataset.format, false, null);
+        active.focus();
+        if (active.dataset.templateId) {
+          saveField(active.dataset.templateId, active.innerHTML);
+          if (active.dataset.templateId.startsWith("deliverable-")) {
+            const tr = active.closest("tr");
+            if (tr) syncRowCounts(tr);
+          }
+        }
+        updateFormatToolbarState();
+      });
+    });
+
+    function updateFormatToolbarState() {
+      FORMAT_COMMANDS.forEach((cmd) => {
+        const btn = formatToolbar.querySelector(`[data-format="${cmd}"]`);
+        if (!btn) return;
+        let active = false;
+        try { active = document.queryCommandState(cmd); } catch (err) { /* unsupported in this browser */ }
+        btn.classList.toggle("is-active", active);
+      });
+    }
+
+    document.addEventListener("selectionchange", () => {
+      if (document.activeElement && document.activeElement.isContentEditable) {
+        updateFormatToolbarState();
+      }
+    });
+
+    // ---------- Shared, multi-user persistence via /api/state ----------
+    const syncStatusEl = document.getElementById("syncStatus");
+    const syncStatusTextEl = document.getElementById("syncStatusText");
+
+    function setSyncStatus(state) {
+      syncStatusEl.classList.remove("saving", "error");
+      if (state === "saving") {
+        syncStatusEl.classList.add("saving");
+        syncStatusTextEl.textContent = "Saving…";
+      } else if (state === "error") {
+        syncStatusEl.classList.add("error");
+        syncStatusTextEl.textContent = "Sync failed — retrying";
+      } else {
+        syncStatusTextEl.textContent = "Synced";
+      }
+    }
+
+    // Save a single field's value to the server. Sending one field at a
+    // time (rather than the whole table) means two officers editing
+    // different cells at once don't overwrite each other.
+    async function saveField(field, value) {
+      setSyncStatus("saving");
+      try {
+        const res = await fetch("/api/state?app=core", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ field, value })
+        });
+        if (!res.ok) throw new Error("Save failed");
+        setSyncStatus("synced");
+      } catch (err) {
+        console.error(err);
+        setSyncStatus("error");
+      }
+    }
+
+    async function loadState() {
+      try {
+        const res = await fetch("/api/state?app=core");
+        if (!res.ok) throw new Error("Load failed");
+        const data = await res.json();
+
+        // Rebuild any Add Row rows first so their fields exist in the DOM
+        // before we apply the field-by-field values below.
+        if (typeof data.customRows === "string") {
+          try {
+            const savedRows = JSON.parse(data.customRows);
+            if (Array.isArray(savedRows)) {
+              savedRows.forEach((record) => {
+                if (tbodyEl.querySelector(`tr[data-custom-row="${record.slug}"]`)) return;
+                customRows.push(record);
+                tbodyEl.appendChild(buildCustomRow(record, { placeholders: false }));
+              });
+              lucide.createIcons();
+            }
+          } catch (err) {
+            console.error("Could not parse saved rows:", err);
+          }
+        }
+
+        Object.entries(data).forEach(([id, value]) => {
+          if (id === "customRows") return;
+          applyRemoteValue(id, value);
+        });
+        document.querySelectorAll(".tracker-table tbody tr").forEach(syncRowCounts);
+        setSyncStatus("synced");
+      } catch (err) {
+        console.error(err);
+        setSyncStatus("error");
+      }
+    }
+
+    // Save editable text cells when the user clicks away (blur).
+    // Deliverable cells get extra wiring so edits (especially toggling a
+    // numbered/bulleted list) keep Status/Deadline/Remarks in sync.
+    document.querySelectorAll("[data-template-id][contenteditable='true']").forEach((el) => {
+      if (el.dataset.templateId.startsWith("deliverable-")) wireDeliverableField(el);
+      else wireEditableField(el);
+    });
+
+    // Save dropdown status changes immediately.
+    document.querySelectorAll("select[data-template-id]").forEach(wireStatusSelect);
+
+    // One-time sanity sweep: make sure every row's Status/Deadline/Remarks
+    // count already matches its Deliverable list, in case the static
+    // markup and the live count ever drift.
+    document.querySelectorAll(".tracker-table tbody tr").forEach(syncRowCounts);
+
+    // Load current state on page open, then poll periodically so
+    // other officers' edits show up without a manual refresh.
+    loadState();
+    setInterval(loadState, 5000);
+
+    // ---------- Save image ----------
+    // Collects every CSS rule the page is actually using — including the
+    // Tailwind Play CDN's runtime-generated utility classes, which it can
+    // inject via a regular <style> tag OR via a constructable stylesheet
+    // (document.adoptedStyleSheets) depending on version. html2canvas only
+    // reads plain <style>/<link> tags, so if Tailwind used the constructable
+    // route, every gap/flex/padding utility on the page would silently be
+    // invisible to the export — which is what was breaking this button.
+    // Re-serializing everything into one <style> tag in the clone sidesteps
+    // that entirely, regardless of how the browser or Tailwind injected it.
+    function collectAllCssText() {
+      let css = "";
+      const sheets = [...document.styleSheets, ...(document.adoptedStyleSheets || [])];
+      for (const sheet of sheets) {
+        try {
+          const rules = sheet.cssRules || sheet.rules;
+          if (!rules) continue;
+          for (const rule of rules) css += rule.cssText + "\n";
+        } catch (err) {
+          // Cross-origin sheet (e.g. Google Fonts) — the browser already
+          // applied it live; nothing more we can pull from script here.
+        }
+      }
+      return css;
+    }
+
+    document.getElementById("saveImageButton").addEventListener("click", async () => {
+      const button = document.getElementById("saveImageButton");
+      if (typeof html2canvas !== "function") {
+        alert("The image export library didn't load (check your connection) — please try again.");
+        return;
+      }
+      button.disabled = true;
+      button.style.opacity = "0.7";
+
+      try {
+        const allCss = collectAllCssText();
+        const canvas = await html2canvas(document.querySelector(".tracker-shell"), {
+          // Solid fallback instead of null — avoids the washed-out /
+          // see-through look if any layer fails to render.
+          backgroundColor: "#8f1f32",
+          scale: 2,
+          useCORS: true,
+          imageTimeout: 15000,
+          onclone: (clonedDoc) => {
+            const style = clonedDoc.createElement("style");
+            style.textContent = allCss + `
+              /* html2canvas doesn't support CSS filter(blur) or
+                 mix-blend-mode — that combo caused the faded look.
+                 Strip them just for this snapshot. */
+              .tracker-shell::before { filter: none !important; transform: none !important; }
+              .tracker-shell::after { display: none !important; }
+              *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+              }
+              .tracker-table td {
+                vertical-align: middle !important;
+              }
+            `;
+            clonedDoc.head.appendChild(style);
+
+            // Belt-and-suspenders: some browsers still report a mid-animation
+            // opacity via getComputedStyle in a fresh clone even with
+            // "animation: none" injected above, since the clone briefly
+            // re-triggers the keyframes before the stylesheet is parsed.
+            // Force full opacity directly on the element too.
+            const frame = clonedDoc.querySelector(".app-frame");
+            if (frame) {
+              frame.style.animation = "none";
+              frame.style.opacity = "1";
+              frame.style.transform = "none";
+            }
+
+            // Hide UI chrome that shouldn't appear in the exported image.
+            const btn = clonedDoc.getElementById("saveImageButton");
+            if (btn) btn.style.display = "none";
+            const sync = clonedDoc.getElementById("syncStatus");
+            if (sync) sync.style.display = "none";
+            const addRow = clonedDoc.getElementById("addRowButton");
+            if (addRow) addRow.closest(".add-row-wrap")?.style.setProperty("display", "none");
+            clonedDoc.querySelectorAll(".nav-button, .password-widget, .coming-soon-button").forEach((n) => { n.style.display = "none"; });
+
+            // html2canvas can't rasterize native <select> elements — it
+            // draws them empty. Swap each one for a plain span with the
+            // same text and the same styling, just for this snapshot.
+            clonedDoc.querySelectorAll("select.status-badge").forEach((select) => {
+              const span = clonedDoc.createElement("span");
+              span.textContent = select.options[select.selectedIndex].text;
+              span.className = select.className;
+              span.setAttribute("style", select.getAttribute("style") || "");
+              // Plain block-level centering instead of flexbox — html2canvas
+              // renders inline-flex/align-items unreliably, which was
+              // pushing the badge text off-center.
+              span.style.display = "inline-block";
+              span.style.textAlign = "center";
+              span.style.verticalAlign = "middle";
+              select.replaceWith(span);
+            });
+          }
+        });
+
+        const link = document.createElement("a");
+        link.download = "officers-deliverables-system.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      } catch (err) {
+        console.error("Save image failed:", err);
+        alert("Couldn't export the image in this browser. Check the console for details, or try again.");
+      } finally {
+        button.disabled = false;
+        button.style.opacity = "1";
+      }
+    });
+
+    applyLockToRow(document);
+    updateLockUI();
+    lucide.createIcons();
+  </script>
+</body></html>
