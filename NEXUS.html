@@ -595,7 +595,14 @@
       box-shadow: 0 15px 40px rgba(0,0,0,.35);
     }
 
-    .expand-dialog { position: relative; width: min(100%, 460px); text-align: center; }
+    .expand-dialog {
+      position: relative;
+      width: min(90%, 1000px);
+      height: min(85vh, 720px);
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+    }
     .expand-close {
       position: absolute;
       top: .6rem;
@@ -616,9 +623,9 @@
     .expand-close:hover { background: var(--maroon); color: #fff; }
     .expand-modal-image {
       width: 100%;
-      aspect-ratio: 1 / 1;
+      height: auto;
       max-height: 60vh;
-      border: 2px solid #171717;
+      display: block;
       border-radius: 10px;
       background-color: #6b101f;
       background-size: contain;
@@ -651,11 +658,32 @@
 
     .expand-split {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      min-height: 480px;
+      grid-template-columns: minmax(320px, 1fr) minmax(400px, 1.3fr);
+      gap: clamp(1.5rem, 3vw, 2.5rem);
+      min-height: 520px;
       max-width: 1600px;
       margin: 0 auto;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      align-items: stretch;
+    }
+
+    .expand-card {
+      background: #fff;
+      border: 2px solid #171717;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .expand-qr-card {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      min-width: 320px;
+      max-width: 100%;
     }
 
     .expand-qr {
@@ -663,25 +691,33 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 100%;
+      height: 100%;
       background: #6b101f;
-      border: 2px solid #171717;
-      border-radius: 10px;
       overflow: hidden;
-      min-width: 0;
     }
 
     .expand-qr img {
-      max-width: 100%;
-      max-height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
       display: block;
     }
 
     .expand-qr .expand-modal-image {
-      max-width: 100%;
+      width: 100%;
+      height: 100%;
       max-height: 100%;
-      object-fit: contain;
+      aspect-ratio: auto;
+      border: none;
+      border-radius: 0;
       background: rgba(255,255,255,.78);
+      object-fit: contain;
+    }
+
+    .expand-editor-card {
+      min-width: 400px;
+      flex: 1;
     }
 
     .expand-editor {
@@ -689,7 +725,47 @@
       flex-direction: column;
       gap: .6rem;
       overflow: auto;
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+      height: 100%;
+      padding: 1.5rem 1.5rem 1rem;
+      position: relative;
     }
+
+    .expand-save-btn {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .45rem;
+      height: 36px;
+      padding: 0 .75rem;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      background: var(--maroon);
+      color: #fff;
+      font-family: "Libre Franklin", sans-serif;
+      font-weight: 800;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 var(--shadow-ink);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+      z-index: 10;
+    }
+    .expand-save-btn:hover, .expand-save-btn:focus-visible {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0 var(--shadow-ink);
+    }
+    .expand-save-btn:active {
+      transform: translate(0, 0);
+      box-shadow: 2px 2px 0 var(--shadow-ink);
+    }
+    .expand-save-btn svg { width: 15px; height: 15px; }
 
     .expand-field {
       display: flex;
@@ -758,7 +834,6 @@
     .expand-rich {
       flex: 1;
       min-height: 140px;
-      max-height: 280px;
       overflow: auto;
       padding: .5rem;
       border: 1px solid rgba(122,35,49,.2);
@@ -772,27 +847,48 @@
     }
     .expand-rich:focus { border-color: var(--maroon); box-shadow: 0 0 0 3px rgba(122,35,49,.15); }
     .expand-rich p { margin: 0 0 .5em; }
-    .expand-rich h1 { font-size: 1.5em; font-weight: 900; margin: .6em 0 .3em; color: var(--maroon-dark); }
-    .expand-rich h2 { font-size: 1.25em; font-weight: 800; margin: .5em 0 .3em; color: var(--maroon-dark); }
-    .expand-rich ul, .expand-rich ol { padding-left: 1.5rem; margin: .5em 0; }
-    .expand-rich li { margin: .2em 0; }
+    .expand-rich h1 { font-size: 2em; font-weight: 900; margin: .8em 0 .4em; color: var(--maroon-dark); line-height: 1.2; }
+    .expand-rich h2 { font-size: 1.5em; font-weight: 800; margin: .7em 0 .35em; color: var(--maroon-dark); line-height: 1.25; }
+    .expand-rich ul, .expand-rich ol { padding-left: 1.5rem; margin: .5em 0; list-style-position: outside; }
+    .expand-rich ul { list-style-type: disc; }
+    .expand-rich ol { list-style-type: decimal; }
+    .expand-rich li { margin: .25em 0; }
+    .expand-rich li::marker { color: var(--maroon); font-weight: 800; }
 
-    .expand-actions { display: flex; justify-content: flex-end; margin-top: .3rem; }
-
-    .expand-save-btn {
+    /* Resizable stretch handle for the expanded container */
+    .expand-resize-handle {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      width: 24px;
+      height: 24px;
       display: inline-flex;
       align-items: center;
-      gap: .35rem;
-      padding: .5rem 1rem;
+      justify-content: center;
+      border: 1px solid rgba(122,35,49,.35);
       border-radius: 6px;
-      font-weight: 800;
-      font-size: .82rem;
-      transition: transform .12s ease, box-shadow .12s ease;
+      background: #fff;
+      color: var(--maroon-dark);
+      cursor: nwse-resize;
+      z-index: 30;
+      opacity: .55;
+      transition: opacity .18s ease, background .18s ease, color .18s ease;
     }
-    .expand-save-btn svg { width: 15px; height: 15px; }
+    .expand-resize-handle:hover {
+      opacity: 1;
+      background: var(--maroon);
+      color: #fff;
+    }
+    .expand-resize-handle svg { width: 13px; height: 13px; }
+    body.resizing { user-select: none; }
 
     @media (max-width: 760px) {
       .qr-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .expand-dialog {
+        width: min(95%, 700px);
+        height: min(85vh, 780px);
+      }
+      .expand-split { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 520px) {
@@ -856,46 +952,54 @@
    </section>
   </div>
 
-  <div id="expand-modal" class="confirmation-layer" role="presentation">
-   <section class="confirmation-dialog expand-dialog" role="dialog" aria-modal="true" aria-labelledby="expand-modal-title">
-    <button id="expand-close-button" class="expand-close" type="button" aria-label="Close">&times;</button>
-    <div class="expand-split">
-      <div class="expand-qr">
-        <img id="expand-modal-image" class="expand-modal-image" aria-hidden="true" alt="QR code">
-      </div>
-      <div class="expand-editor">
-        <h2 id="expand-modal-title" style="color:#591925;font-weight:800;font-size:22px;margin:0 0 .4rem;"></h2>
-        <div class="expand-field">
-          <label style="display:block;font-size:.7rem;font-weight:700;color:#6c6166;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem;">Title</label>
-          <input id="expand-title" type="text" class="expand-input" placeholder="Resource title" spellcheck="true">
-        </div>
-        <div class="expand-field">
-          <label style="display:block;font-size:.7rem;font-weight:700;color:#6c6166;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem;">URL</label>
-          <input id="expand-url" type="url" class="expand-input" placeholder="https://">
-        </div>
-        <div class="expand-field expand-rich-field">
-          <label style="display:block;font-size:.7rem;font-weight:700;color:#6c6166;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem;">Description</label>
-          <div class="expand-toolbar" role="toolbar" aria-label="Formatting" data-requires-unlock>
-            <button type="button" class="expand-format-btn" data-format="bold" aria-label="Bold" title="Bold (Ctrl+B)"><i data-lucide="bold" aria-hidden="true"></i></button>
-            <button type="button" class="expand-format-btn" data-format="italic" aria-label="Italic" title="Italic (Ctrl+I)"><i data-lucide="italic" aria-hidden="true"></i></button>
-            <button type="button" class="expand-format-btn" data-format="underline" aria-label="Underline" title="Underline (Ctrl+U)"><i data-lucide="underline" aria-hidden="true"></i></button>
-            <button type="button" class="expand-format-btn" data-format="strikeThrough" aria-label="Strikethrough" title="Strikethrough"><i data-lucide="strikethrough" aria-hidden="true"></i></button>
-            <span class="expand-toolbar-divider" aria-hidden="true"></span>
-            <button type="button" class="expand-format-btn" data-format="insertOrderedList" aria-label="Numbered list"><i data-lucide="list-ordered" aria-hidden="true"></i></button>
-            <button type="button" class="expand-format-btn" data-format="insertUnorderedList" aria-label="Bulleted list"><i data-lucide="list" aria-hidden="true"></i></button>
-            <span class="expand-toolbar-divider" aria-hidden="true"></span>
-            <button type="button" class="expand-format-btn" data-format="formatBlock" data-value="H1" aria-label="Heading 1" title="Heading 1" style="font-weight:800;font-size:.75rem;">H1</button>
-            <button type="button" class="expand-format-btn" data-format="formatBlock" data-value="H2" aria-label="Heading 2" title="Heading 2" style="font-weight:800;font-size:.7rem;">H2</button>
-          </div>
-          <div id="expand-rich" class="expand-rich" contenteditable="true" spellcheck="true" style="min-height:140px;max-height:280px;overflow:auto;padding:.5rem;border:1px solid rgba(122,35,49,.2);border-radius:6px;background:#fff;color:#3a1720;font-family:'DM Sans',sans-serif;font-size:.82rem;line-height:1.5;outline:none;"></div>
-        </div>
-        <div class="expand-actions">
-          <button id="expand-save" type="button" class="expand-save-btn arc-action" style="padding:.5rem 1rem;font-weight:800;font-size:.82rem;"><i data-lucide="download" aria-hidden="true"></i><span>Save & Export</span></button>
-        </div>
-      </div>
-    </div>
-   </section>
-  </div>
+<div id="expand-modal" class="confirmation-layer" role="presentation">
+    <section class="confirmation-dialog expand-dialog" role="dialog" aria-modal="true" aria-labelledby="expand-modal-title">
+     <button id="expand-close-button" class="expand-close" type="button" aria-label="Close">&times;</button>
+     <button id="expand-resize-handle" class="expand-resize-handle" type="button" aria-label="Resize expanded view" title="Drag to resize"><i data-lucide="maximize-2" aria-hidden="true"></i></button>
+     <div class="expand-split">
+       <div class="expand-card expand-qr-card">
+         <div class="expand-qr">
+           <img id="expand-modal-image" class="expand-modal-image" aria-hidden="true" alt="QR code">
+         </div>
+       </div>
+<div class="expand-card expand-editor-card">
+          <div class="expand-editor">
+            <button id="expand-save" type="button" class="expand-save-btn" aria-label="Save & Export"><i data-lucide="download" aria-hidden="true"></i><span>Save</span></button>
+           <h2 id="expand-modal-title" style="color:#591925;font-weight:800;font-size:22px;margin:0 0 .4rem;"></h2>
+           <div class="expand-field">
+             <label style="display:block;font-size:.7rem;font-weight:700;color:#6c6166;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem;">Title</label>
+             <input id="expand-title" type="text" class="expand-input" placeholder="Resource title" spellcheck="true">
+           </div>
+           <div class="expand-field">
+             <label style="display:block;font-size:.7rem;font-weight:700;color:#6c6166;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem;">URL</label>
+             <input id="expand-url" type="url" class="expand-input" placeholder="https://">
+           </div>
+           <div class="expand-field expand-rich-field">
+             <label style="display:block;font-size:.7rem;font-weight:700;color:#6c6166;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem;">Description</label>
+             <div class="expand-toolbar" role="toolbar" aria-label="Formatting" data-requires-unlock>
+               <button type="button" class="expand-format-btn" data-format="bold" aria-label="Bold" title="Bold (Ctrl+B)"><i data-lucide="bold" aria-hidden="true"></i></button>
+               <button type="button" class="expand-format-btn" data-format="italic" aria-label="Italic" title="Italic (Ctrl+I)"><i data-lucide="italic" aria-hidden="true"></i></button>
+               <button type="button" class="expand-format-btn" data-format="underline" aria-label="Underline" title="Underline (Ctrl+U)"><i data-lucide="underline" aria-hidden="true"></i></button>
+               <button type="button" class="expand-format-btn" data-format="strikeThrough" aria-label="Strikethrough" title="Strikethrough"><i data-lucide="strikethrough" aria-hidden="true"></i></button>
+               <span class="expand-toolbar-divider" aria-hidden="true"></span>
+               <button type="button" class="expand-format-btn" data-format="justifyLeft" aria-label="Align Left" title="Align Left"><i data-lucide="align-left" aria-hidden="true"></i></button>
+               <button type="button" class="expand-format-btn" data-format="justifyCenter" aria-label="Align Center" title="Align Center"><i data-lucide="align-center" aria-hidden="true"></i></button>
+               <button type="button" class="expand-format-btn" data-format="justifyRight" aria-label="Align Right" title="Align Right"><i data-lucide="align-right" aria-hidden="true"></i></button>
+               <button type="button" class="expand-format-btn" data-format="justifyFull" aria-label="Justify" title="Justify"><i data-lucide="align-justify" aria-hidden="true"></i></button>
+               <span class="expand-toolbar-divider" aria-hidden="true"></span>
+               <button type="button" class="expand-format-btn" data-format="insertOrderedList" aria-label="Numbered list"><i data-lucide="list-ordered" aria-hidden="true"></i></button>
+               <button type="button" class="expand-format-btn" data-format="insertUnorderedList" aria-label="Bulleted list"><i data-lucide="list" aria-hidden="true"></i></button>
+               <span class="expand-toolbar-divider" aria-hidden="true"></span>
+               <button type="button" class="expand-format-btn" data-format="formatBlock" data-value="H1" aria-label="Heading 1" title="Heading 1" style="font-weight:800;font-size:.75rem;">H1</button>
+               <button type="button" class="expand-format-btn" data-format="formatBlock" data-value="H2" aria-label="Heading 2" title="Heading 2" style="font-weight:800;font-size:.7rem;">H2</button>
+             </div>
+             <div id="expand-rich" class="expand-rich" contenteditable="true" spellcheck="true" style="min-height:140px;overflow:auto;padding:.5rem;border:1px solid rgba(122,35,49,.2);border-radius:6px;background:#fff;color:#3a1720;font-family:'DM Sans',sans-serif;font-size:.82rem;line-height:1.5;outline:none;"></div>
+           </div>
+         </div>
+       </div>
+     </div>
+    </section>
+   </div>
 
   <template id="resource-template">
    <article class="resource-item">
@@ -934,6 +1038,8 @@
     const expandModalImage = document.getElementById('expand-modal-image');
     const expandModalTitle = document.getElementById('expand-modal-title');
     const expandModalLink = document.getElementById('expand-modal-link');
+    const expandDialog = document.querySelector('.expand-dialog');
+    const resizeHandle = document.getElementById('expand-resize-handle');
     const syncPill = document.getElementById('sync-pill');
     const syncPillText = document.getElementById('sync-pill-text');
 
@@ -1020,6 +1126,10 @@
       const expandToolbar = document.querySelector('.expand-toolbar');
       if (expandToolbar) {
         expandToolbar.style.display = locked ? 'none' : 'flex';
+      }
+      // Toggle resize handle visibility based on lock state
+      if (resizeHandle) {
+        resizeHandle.style.display = locked ? 'none' : 'inline-flex';
       }
     }
 
@@ -1633,7 +1743,12 @@
       if (event.target === deleteModal) closeDeleteModal();
     });
 
-    function closeExpandModal() { expandModal.classList.remove('is-open'); }
+    function closeExpandModal() {
+      expandCurrentCard = null;
+      expandDialog.style.width = '';
+      expandDialog.style.height = '';
+      expandModal.classList.remove('is-open');
+    }
     expandCloseButton.addEventListener('click', closeExpandModal);
     expandModal.addEventListener('click', event => {
       if (event.target === expandModal) closeExpandModal();
@@ -1652,26 +1767,17 @@
       const img = expandModalImage;
       img.src = image || '';
       img.style.display = image ? 'block' : 'none';
-      if (image) {
-        // Adaptive QR sizing: measure image and adjust container
-        const tempImg = new Image();
-        tempImg.onload = () => {
-          const aspectRatio = tempImg.naturalWidth / tempImg.naturalHeight;
-          const qrContainer = document.querySelector('.expand-qr');
-          if (qrContainer) {
-            // Set max dimensions based on viewport
-            const maxSize = Math.min(window.innerWidth * 0.4, window.innerHeight * 0.6);
-            if (aspectRatio >= 1) {
-              qrContainer.style.width = `${maxSize}px`;
-              qrContainer.style.height = `${maxSize / aspectRatio}px`;
-            } else {
-              qrContainer.style.height = `${maxSize}px`;
-              qrContainer.style.width = `${maxSize * aspectRatio}px`;
-            }
-          }
-        };
-        tempImg.src = image;
+      // CSS handles QR container aspect-ratio and image object-fit scaling.
+      // Reset any previously-set inline dimensions so the grid can lay out
+      // naturally again.
+      const qrContainer = document.querySelector('.expand-qr');
+      if (qrContainer) {
+        qrContainer.style.width = '';
+        qrContainer.style.height = '';
       }
+      // Reset dialog to default dimensions each time it opens
+      expandDialog.style.width = '';
+      expandDialog.style.height = '';
       const title = card.querySelector('.resource-title')?.textContent.trim() || '';
       const url = getCardUrl(card);
       const rich = card.dataset.rich || '';
@@ -1698,22 +1804,91 @@
         scheduleSave();
       }
       expandCurrentCard = null;
+      expandDialog.style.width = '';
+      expandDialog.style.height = '';
       expandModal.classList.remove('is-open');
     }
 
+    // -------- Resizable stretch handle for the expanded modal --------
+    let isResizing = false;
+    let resizeStartX = 0, resizeStartY = 0;
+    let resizeStartW = 0, resizeStartH = 0;
+    const MIN_W = 600, MAX_W = window.innerWidth * 0.95;
+    const MIN_H = 480, MAX_H = window.innerHeight * 0.9;
+
+    function applySize(w, h) {
+      expandDialog.style.width = `${Math.round(w)}px`;
+      expandDialog.style.height = `${Math.round(h)}px`;
+    }
+
+    if (resizeHandle) {
+      resizeHandle.addEventListener('mousedown', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (editLocked) { flashLockedNotice(); return; }
+        isResizing = true;
+        document.body.classList.add('resizing');
+        resizeStartX = e.clientX;
+        resizeStartY = e.clientY;
+        const rect = expandDialog.getBoundingClientRect();
+        resizeStartW = rect.width;
+        resizeStartH = rect.height;
+        document.body.style.cursor = 'nwse-resize';
+      });
+    }
+
+    document.addEventListener('mousemove', e => {
+      if (!isResizing) return;
+      const newW = Math.min(MAX_W, Math.max(MIN_W, resizeStartW + (e.clientX - resizeStartX)));
+      const newH = Math.min(MAX_H, Math.max(MIN_H, resizeStartH + (e.clientY - resizeStartY)));
+      applySize(newW, newH);
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!isResizing) return;
+      isResizing = false;
+      document.body.classList.remove('resizing');
+      document.body.style.cursor = '';
+      lucide.createIcons();
+    });
+
     // Toolbar format commands
-    const EXPAND_FORMAT_COMMANDS = ['bold', 'italic', 'underline', 'strikeThrough', 'insertOrderedList', 'insertUnorderedList'];
+    const EXPAND_FORMAT_COMMANDS = ['bold', 'italic', 'underline', 'strikeThrough', 'insertOrderedList', 'insertUnorderedList', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'];
+
+    // Helper to check if current selection has a specific block format
+    function isFormatActive(formatTag) {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return false;
+      const range = sel.getRangeAt(0);
+      let node = range.startContainer;
+      if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+      while (node && node !== document.getElementById('expand-rich')) {
+        if (node.tagName && node.tagName.toLowerCase() === formatTag.toLowerCase()) {
+          return true;
+        }
+        node = node.parentElement;
+      }
+      return false;
+    }
+
     document.querySelectorAll('.expand-format-btn[data-format]').forEach(btn => {
       btn.addEventListener('mousedown', e => e.preventDefault()); // keep selection
       btn.addEventListener('click', () => {
         const format = btn.dataset.format;
         const value = btn.dataset.value;
+        const richEl = document.getElementById('expand-rich');
+
         if (format === 'formatBlock' && value) {
-          document.execCommand('formatBlock', false, value);
+          // Toggle behavior for H1/H2: if already active, revert to paragraph
+          if (isFormatActive(value)) {
+            document.execCommand('formatBlock', false, 'p');
+          } else {
+            document.execCommand('formatBlock', false, value);
+          }
         } else if (EXPAND_FORMAT_COMMANDS.includes(format)) {
           document.execCommand(format, false, null);
         }
-        document.getElementById('expand-rich').focus();
+        richEl.focus();
       });
     });
 
@@ -1722,7 +1897,7 @@
       expandCurrentCard = expandCurrentCard; // no-op, just reference
     });
 
-    // Save & Export expanded view
+// Save & Export expanded view
     document.getElementById('expand-save').addEventListener('click', async () => {
       if (!expandCurrentCard) return;
       const btn = document.getElementById('expand-save');
@@ -1739,19 +1914,27 @@
         const liveSpace = expandCurrentCard.querySelector('.qr-space');
         const spaceRect = liveSpace ? liveSpace.getBoundingClientRect() : null;
 
+        // Pre-measure title and URL input dimensions for accurate export
+        const liveTitle = document.getElementById('expand-title');
+        const liveUrl = document.getElementById('expand-url');
+        const titleRect = liveTitle ? liveTitle.getBoundingClientRect() : null;
+        const urlRect = liveUrl ? liveUrl.getBoundingClientRect() : null;
+
         btn.disabled = true;
         btn.style.opacity = '0.7';
 
-const resourceEl = document.querySelector('.expand-split');
+        const resourceEl = document.querySelector('.expand-split');
         const canvas = await html2canvas(resourceEl, {
-          backgroundColor: '#6b101f',
+          backgroundColor: null,
           scale: 2,
           useCORS: true,
           imageTimeout: 15000,
+          logging: false,
           onclone: (clonedDoc, el) => {
             // Remove modal chrome
-            el.querySelectorAll('.expand-close, .expand-save-btn, .expand-actions').forEach(n => n.style.display = 'none');
+            el.querySelectorAll('.expand-close, .expand-resize-handle').forEach(n => n.style.display = 'none');
             el.querySelectorAll('.action-cluster, .expand-button').forEach(n => n.style.display = 'none');
+            el.querySelectorAll('.expand-save-btn').forEach(n => n.style.display = 'none');
 
             const clonedSpace = el.querySelector('.qr-space');
             if (clonedSpace && spaceRect) {
@@ -1786,33 +1969,31 @@ const resourceEl = document.querySelector('.expand-split');
               expandImg.replaceWith(bg);
             }
 
-            // Replace title with styled div - ensure proper centering
-            el.querySelectorAll('.resource-title').forEach(n => {
-              n.style.border = '1px solid transparent';
-              n.style.textAlign = 'center';
-              n.style.width = '100%';
-            });
-
-            el.querySelectorAll('.resource-url-input').forEach(n => {
+            // Replace title input with styled div - match live dimensions exactly
+            el.querySelectorAll('.expand-input').forEach(n => {
+              const isTitle = n.id === 'expand-title';
+              const isUrl = n.id === 'expand-url';
               const span = clonedDoc.createElement('div');
-              span.textContent = n.value || 'No link added';
-              const liveInput = document.querySelector('.resource-url-input');
-              const inputH = liveInput ? liveInput.getBoundingClientRect().height : 24;
+              span.textContent = n.value || (isUrl ? 'No link added' : 'New Resource');
+              const liveInput = isTitle ? liveTitle : liveUrl;
+              const rect = isTitle ? titleRect : urlRect;
+              const h = rect ? rect.height : (liveInput ? liveInput.getBoundingClientRect().height : 44);
+              const fs = window.getComputedStyle(liveInput).fontSize;
               span.style.cssText = `
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 box-sizing: border-box;
                 width: 100%;
-                height: ${inputH}px;
-                line-height: ${inputH}px;
-                padding: 0 .46rem;
+                height: ${h}px;
+                line-height: ${h}px;
+                padding: 0 .75rem;
                 border: 1px solid transparent;
                 border-radius: 6px;
                 color: #3a1720;
                 background: rgba(255,255,255,.72);
                 font-family: "DM Sans", sans-serif;
-                font-size: .72rem;
+                font-size: ${fs};
                 font-weight: 700;
                 text-align: center;
                 white-space: nowrap;
@@ -1822,6 +2003,7 @@ const resourceEl = document.querySelector('.expand-split');
               n.replaceWith(span);
             });
 
+            // Replace expand-rich with a styled div for proper rendering
             el.querySelectorAll('.expand-rich').forEach(n => {
               const div = clonedDoc.createElement('div');
               div.innerHTML = n.innerHTML;
@@ -1839,19 +2021,37 @@ const resourceEl = document.querySelector('.expand-split');
               n.replaceWith(div);
             });
 
-            el.querySelectorAll('.expand-toolbar').forEach(n => n.style.display = 'flex');
-
+            // Ensure the split layout renders correctly
             const splitEl = el.querySelector('.expand-split');
             if (splitEl) {
               splitEl.style.gap = '2rem';
               splitEl.style.padding = '0';
             }
+            // Style the cards for export - preserve rounded corners, no white bleed
+            el.querySelectorAll('.expand-card').forEach(card => {
+              card.style.border = '2px solid #171717';
+              card.style.borderRadius = '10px';
+              card.style.background = '#fff';
+              card.style.boxShadow = 'none';
+              card.style.overflow = 'hidden';
+            });
             el.querySelectorAll('.expand-qr').forEach(qr => {
               qr.style.padding = '0';
               qr.style.border = 'none';
+              qr.style.borderRadius = '10px 10px 0 0';
+              qr.style.background = '#6b101f';
+              qr.style.overflow = 'hidden';
             });
             el.querySelectorAll('.expand-editor').forEach(ed => {
-              ed.style.padding = '0';
+              ed.style.padding = '1.5rem 1.5rem 1rem';
+            });
+            el.querySelectorAll('.expand-toolbar').forEach(n => n.style.display = 'none');
+
+            // Ensure expand-modal-image in QR card has correct border-radius
+            el.querySelectorAll('#expand-modal-image').forEach(img => {
+              if (img.style) {
+                img.style.borderRadius = '8px 8px 0 0';
+              }
             });
           }
         });
