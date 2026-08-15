@@ -1539,12 +1539,32 @@
 
         button.disabled = true;
         try {
+          // Pre-measure this card's URL input height so the cloned input
+          // gets the correct height (fixes bug where it used another card's).
+          const cardUrlInput = card.querySelector('.resource-url-input');
+          const cardUrlRect = cardUrlInput ? cardUrlInput.getBoundingClientRect() : null;
+
           const canvas = await html2canvas(card.querySelector('.qr-card'), {
             backgroundColor: null,
             scale: 2,
             useCORS: true,
             imageTimeout: 15000,
             onclone: (clonedDoc, el) => {
+              // Kill animations/transitions in the cloned document — the
+              // .sheet enter animation lives on an ancestor but can still
+              // affect the cloned subtree when html2canvas re-parses CSS.
+              const style = clonedDoc.createElement('style');
+              style.textContent = `*, *::before, *::after { animation: none !important; transition: none !important; }`;
+              clonedDoc.head.appendChild(style);
+
+              // Force .sheet to final state if it's in the cloned tree.
+              const sheet = el.querySelector('.sheet');
+              if (sheet) {
+                sheet.style.animation = 'none';
+                sheet.style.opacity = '1';
+                sheet.style.transform = 'none';
+              }
+
               el.querySelectorAll('.action-cluster, .expand-button').forEach(n => n.style.display = 'none');
 
               const clonedSpace = el.querySelector('.qr-space');
@@ -1579,9 +1599,9 @@
               el.querySelectorAll('.resource-url-input').forEach(n => {
                 const span = clonedDoc.createElement('div');
                 span.textContent = n.value || 'No link added';
-                // Fix vertical alignment: measure live input height and apply explicitly
-                const liveInput = document.querySelector('.resource-url-input');
-                const inputH = liveInput ? liveInput.getBoundingClientRect().height : 24;
+                // Use this card's own measured rect (fixes bug where it used
+                // another card's input height).
+                const inputH = cardUrlRect ? cardUrlRect.height : 24;
                 span.style.cssText = `
                   display: block;
                   box-sizing: border-box;
@@ -1667,12 +1687,35 @@
           return space ? space.getBoundingClientRect() : null;
         });
 
+        // Build parallel array of live .resource-url-input rects so each cloned
+        // input gets its own card's height (fixes the bug where all inputs used
+        // the first card's height).
+        const urlInputRects = allCards().map(c => {
+          const input = c.querySelector('.resource-url-input');
+          return input ? input.getBoundingClientRect() : null;
+        });
+
         const canvas = await html2canvas(document.querySelector('.board-shell'), {
           backgroundColor: '#0a0203',
           scale: 2,
           useCORS: true,
           imageTimeout: 15000,
           onclone: (clonedDoc, el) => {
+            // Kill all animations/transitions in the cloned document so the
+            // enter animation (.sheet { animation: enter .65s ... }) doesn't
+            // re-trigger and capture mid-fade.
+            const style = clonedDoc.createElement('style');
+            style.textContent = `*, *::before, *::after { animation: none !important; transition: none !important; }`;
+            clonedDoc.head.appendChild(style);
+
+            // Force .sheet to its final visible state (bypass enter animation).
+            const sheet = el.querySelector('.sheet');
+            if (sheet) {
+              sheet.style.animation = 'none';
+              sheet.style.opacity = '1';
+              sheet.style.transform = 'none';
+            }
+
             el.querySelectorAll('.header-actions, .password-row, .add-resource-wrap, .status-region, .action-cluster, .expand-button').forEach(n => {
               n.style.display = 'none';
             });
@@ -1697,11 +1740,13 @@
               img.replaceWith(bg);
             });
 
-            el.querySelectorAll('.resource-url-input').forEach(n => {
+            el.querySelectorAll('.resource-url-input').forEach((n, i) => {
               const span = clonedDoc.createElement('div');
               span.textContent = n.value || 'No link added';
-              const liveInput = document.querySelector('.resource-url-input');
-              const inputH = liveInput ? liveInput.getBoundingClientRect().height : 24;
+              // Use per-card rect measured above (fixes the bug where all inputs
+              // used the first card's height).
+              const rect = urlInputRects[i];
+              const inputH = rect ? rect.height : 24;
               span.style.cssText = `
                 display: block;
                 box-sizing: border-box;
@@ -1931,6 +1976,34 @@
           imageTimeout: 15000,
           logging: false,
           onclone: (clonedDoc, el) => {
+            // Kill all animations/transitions in the cloned document.
+            const style = clonedDoc.createElement('style');
+            style.textContent = `*, *::before, *::after { animation: none !important; transition: none !important; }`;
+            clonedDoc.head.appendChild(style);
+
+            // The modal is open via .is-open class on #expand-modal. The cloned
+            // #expand-modal may not carry that class (html2canvas doesn't copy
+            // computed styles from class toggles). Force the dialog to its open,
+            // fully-visible state so the export captures the modal content, not
+            // the hidden/transitioning-out appearance.
+            const modal = el.querySelector('#expand-modal');
+            if (modal) {
+              modal.style.animation = 'none';
+              modal.style.opacity = '1';
+              modal.style.transform = 'none';
+              modal.style.display = 'flex';
+              modal.style.alignItems = 'center';
+              modal.style.justifyContent = 'center';
+            }
+            const dialog = el.querySelector('.expand-dialog');
+            if (dialog) {
+              dialog.style.animation = 'none';
+              dialog.style.opacity = '1';
+              dialog.style.transform = 'none';
+              dialog.style.display = 'flex';
+              dialog.style.flexDirection = 'column';
+            }
+
             // Remove modal chrome
             el.querySelectorAll('.expand-close, .expand-resize-handle').forEach(n => n.style.display = 'none');
             el.querySelectorAll('.action-cluster, .expand-button').forEach(n => n.style.display = 'none');
@@ -1998,7 +2071,7 @@
                 text-align: center;
                 white-space: nowrap;
                 overflow: hidden;
-                text-overflow: ellipsis;
+                text-overflow: ellipsis.
               `;
               n.replaceWith(span);
             });
