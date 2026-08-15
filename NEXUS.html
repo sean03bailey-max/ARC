@@ -1051,6 +1051,7 @@
 
     let cardAwaitingDeletion = null;
     let saveTimer = null;
+    let expandSaveTimer = null;
 
     // ---------- Password lock ----------
     const CORRECT_PASSWORD = 'arc143';
@@ -1212,7 +1213,8 @@
         id: card.dataset.cardId,
         title: getTitle(card),
         url: getCardUrl(card),
-        image: card.dataset.image || ''
+        image: card.dataset.image || '',
+        rich: card.dataset.rich || ''
       }));
     }
 
@@ -1236,6 +1238,19 @@
     function scheduleSave() {
       clearTimeout(saveTimer);
       saveTimer = setTimeout(persistBoard, 700);
+    }
+
+    function scheduleExpandSave() {
+      clearTimeout(expandSaveTimer);
+      expandSaveTimer = setTimeout(() => {
+        if (expandCurrentCard) {
+          expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value.trim() || 'New Resource';
+          expandCurrentCard.querySelector('.resource-url-input').value = document.getElementById('expand-url').value.trim();
+          expandCurrentCard.dataset.rich = document.getElementById('expand-rich').innerHTML;
+          updateUrlClickable(expandCurrentCard.querySelector('.resource-url-input'));
+          scheduleSave();
+        }
+      }, 700);
     }
 
     // ---------- Tagline (separate small field, not part of the board array) ----------
@@ -1279,6 +1294,9 @@
       card.dataset.cardId = record.id || makeId();
       card.querySelector('.resource-title').textContent = record.title || 'New Resource';
       card.querySelector('.resource-url-input').value = record.url || '';
+      if (record.rich) {
+        card.dataset.rich = record.rich;
+      }
       if (record.image) {
         applyImageToCard(card, record.image, { persist: false });
       }
@@ -1789,10 +1807,7 @@
     });
 
     function closeExpandModal() {
-      expandCurrentCard = null;
-      expandDialog.style.width = '';
-      expandDialog.style.height = '';
-      expandModal.classList.remove('is-open');
+      closeExpandEditor();
     }
     expandCloseButton.addEventListener('click', closeExpandModal);
     expandModal.addEventListener('click', event => {
@@ -1934,6 +1949,8 @@
           document.execCommand(format, false, null);
         }
         richEl.focus();
+        // Trigger auto-save after formatting changes
+        scheduleExpandSave();
       });
     });
 
@@ -2144,18 +2161,25 @@
       }
     });
 
-    // Sync editor fields on input (for live preview)
+    // Sync editor fields on input (for live preview) + debounced auto-save
     document.getElementById('expand-title').addEventListener('input', () => {
-      if (expandCurrentCard) expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value;
+      if (expandCurrentCard) {
+        expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value;
+        scheduleExpandSave();
+      }
     });
     document.getElementById('expand-url').addEventListener('input', () => {
       if (expandCurrentCard) {
         expandCurrentCard.querySelector('.resource-url-input').value = document.getElementById('expand-url').value;
         updateUrlClickable(expandCurrentCard.querySelector('.resource-url-input'));
+        scheduleExpandSave();
       }
     });
     document.getElementById('expand-rich').addEventListener('input', () => {
-      if (expandCurrentCard) expandCurrentCard.dataset.rich = document.getElementById('expand-rich').innerHTML;
+      if (expandCurrentCard) {
+        expandCurrentCard.dataset.rich = document.getElementById('expand-rich').innerHTML;
+        scheduleExpandSave();
+      }
     });
 
     // Also update the original expand action to use the new editor
