@@ -1,12 +1,16 @@
-# ACRCY Hub — Nexus + Core
+# ARC — Homepage + Nexus + Core
 
-One deployment, two pages:
+One deployment, three pages:
 
-- **Nexus** (`index.html`) — the QR resource board. This is the landing page.
+- **Homepage** (`index.html`) — the landing page. Links out to Nexus, the
+  external Tracker, and Core.
+- **Nexus** (`NEXUS.html`) — the QR resource board.
 - **Core** (`core.html`) — the officers' deliverables tracker.
 
-Each has a button in its header that jumps to the other, so you only ever
-need to share one link.
+Nexus and Core each have a "Back"/"Open" button in their header pointing at
+the Homepage or each other, plus a **Tracker** button that opens
+`https://red-cross-scheduler.vercel.app/` (a separate site/deployment) in a
+new tab, so you only ever need to share one link.
 
 Both pages save through the same serverless function, `api/state.js`, into
 one Upstash Redis database — Nexus and Core use separate keys inside it

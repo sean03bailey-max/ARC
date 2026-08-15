@@ -9,7 +9,7 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=DM+Sans:wght@800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=Poppins:wght@800;900&family=DM+Sans:wght@800&display=swap" rel="stylesheet">
   <style>
     :root {
       --ink: #24191a;
@@ -17,6 +17,30 @@
       --red: #982036;
       --line: #d8d1c9;
       --muted: #74696a;
+      --rule: #171717;
+      --shadow-ink: #101010;
+    }
+
+    /* Shared design language, matching the Homepage: sharp corners, a
+       hard offset shadow instead of a soft blurred one, and a small
+       "lift" toward the viewer on hover/focus. .arc-action is for
+       full-size buttons/links; .arc-action-sm is the same language
+       scaled down for compact icon-only controls (logo badge, password
+       toggle) so the shadow doesn't overpower a small element. */
+    .arc-action, .arc-action-sm {
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+    .arc-action { box-shadow: 5px 5px 0 var(--shadow-ink); }
+    .arc-action:hover, .arc-action:focus-visible {
+      transform: translate(-3px, -3px);
+      box-shadow: 9px 9px 0 var(--shadow-ink);
+    }
+    .arc-action-sm { box-shadow: 3px 3px 0 var(--shadow-ink); }
+    .arc-action-sm:hover, .arc-action-sm:focus-visible, .arc-action-sm:focus-within {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 var(--shadow-ink);
     }
 
     * { box-sizing: border-box; }
@@ -62,27 +86,123 @@
 
     .app-frame {
       width: 100%;
-      max-width: 1160px;
+      max-width: 1170px;
       margin: 0 auto;
       animation: enter .65s ease-out both;
     }
 
     .sheet {
       background: rgba(255,253,248,.97);
-      border: 1px solid rgba(90,20,28,.2);
-      box-shadow: 0 24px 60px rgba(72,4,16,.33), 0 3px 0 rgba(255,255,255,.35) inset;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 22px 48px rgba(20,2,7,.16), 0 4px 10px rgba(20,2,7,.08);
     }
 
-    .tracker-title { font-family: "Source Serif 4", Georgia, serif; }
-    .core-wordmark {
-      font-family: "DM Sans", sans-serif;
-      font-weight: 800;
-      font-size: 24px;
-      letter-spacing: .075em;
-      text-transform: uppercase;
+    .page-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .9rem;
+    }
+
+    .brand-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: .4rem;
+    }
+
+    .brand-top {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .brand-sub {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+      margin-left: calc(56px + .6rem);
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      flex: 0 0 auto;
+      padding: 7px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .logo-badge img { width: 100%; height: 100%; object-fit: contain; }
+
+    .page-heading {
+      margin: 0;
+      font-family: "Poppins", "DM Sans", sans-serif;
+      font-weight: 900;
+      font-size: 34px;
+      letter-spacing: -.01em;
       line-height: 1.05;
-      margin: 0 0 10px;
-      color: rgb(152, 32, 54);
+    }
+
+    .page-subtitle {
+      max-width: 460px;
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      margin-left: auto;
+    }
+
+    .icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .icon-button svg { width: 17px; height: 17px; }
+
+    .password-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: .6rem;
+    }
+
+    .nav-button, .save-button, .tracker-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .45rem;
+      height: 42px;
+      padding: 0 .9rem;
+      font-weight: 800;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .nav-button svg, .save-button svg, .tracker-button svg, .icon-button svg { width: 17px; height: 17px; }
+
+    .tracker-button {
+      border-color: #07133f !important;
+      background: #07133f;
+      color: #fff;
     }
 
     .meta-grid {
@@ -264,7 +384,8 @@
     .format-btn[disabled]:hover { background: transparent; border-color: transparent; }
     .format-divider { width: 1px; height: 20px; background: #d9d0c9; margin: 0 4px; }
 
-    .add-row-wrap { display: flex; justify-content: center; gap: 10px; margin-top: 16px; }
+    .add-row-wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; }
+    .add-row-controls { display: flex; flex-wrap: wrap; gap: 10px; }
 
     .add-row-button {
       display: inline-flex;
@@ -284,33 +405,14 @@
     .add-row-button svg { width: 16px; height: 16px; }
     .remove-row-button { color: #a9233a; border-color: rgba(169,35,58,.35); }
     .remove-row-button:hover { box-shadow: 0 8px 18px rgba(169,35,58,.18); }
-    .save-button, .nav-button { transition: transform .18s ease, box-shadow .18s ease; }
-
-    .save-button:hover, .nav-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 18px rgba(105,17,32,.22);
-    }
-
-    .nav-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid rgba(152,32,54,.35);
-      border-radius: 3px;
-      text-decoration: none;
-    }
 
     .coming-soon-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px dashed rgba(152,32,54,.4);
-      border-radius: 3px;
-      background: transparent;
-      color: rgba(152,32,54,.55);
-      cursor: default;
+      border-style: dashed;
+      color: rgba(89,25,37,.55);
+      cursor: not-allowed;
+      pointer-events: none;
     }
-
+    .coming-soon-button:hover { transform: none; box-shadow: none; }
     button:focus-visible,
     select:focus-visible {
       outline: 3px solid #f6c6cd;
@@ -329,15 +431,11 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(152,32,54,.35);
-      border-radius: 3px;
       background: #fff;
       color: rgb(152, 32, 54);
       cursor: pointer;
-      transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
     }
-    .password-toggle:hover { transform: translateY(-2px); }
-    .password-toggle.is-unlocked { background: #27704c; border-color: #27704c; color: #fff; }
+    .password-toggle.is-unlocked { background: #27704c; border-color: #27704c !important; color: #fff; }
     .password-toggle svg { width: 16px; height: 16px; }
 
     .password-panel {
@@ -423,7 +521,13 @@
     }
 
     @media (max-width: 460px) {
-      .nav-button span { display: none; }
+      .nav-button span, .tracker-button span, .save-button span { display: none; }
+    }
+
+    @media (max-width: 640px) {
+      .logo-badge { width: 48px; height: 48px; }
+      .brand-sub { margin-left: calc(48px + .6rem); }
+      .page-heading { font-size: 28px; }
     }
 
     @media print {
@@ -432,7 +536,8 @@
       .tracker-shell::after,
       .save-button,
       .nav-button,
-      .coming-soon-button,
+      .tracker-button,
+      .icon-button,
       .password-widget,
       .format-toolbar,
       .add-row-wrap { display: none !important; }
@@ -444,28 +549,30 @@
  <body data-template-id="__page-root" style="background: rgb(143, 31, 50);">
   <div class="tracker-shell">
    <main class="app-frame" aria-labelledby="tracker-title">
-    <section class="sheet rounded-[22px] overflow-hidden" aria-label="Officer deliverables tracker">
-     <header class="sheet-header px-9 pt-9 pb-7 border-b border-stone-200">
-      <div class="flex flex-col gap-7 sm:flex-row sm:items-start sm:justify-between">
-       <div>
-        <div class="flex items-center gap-2 mb-3">
-         <img id="orgLogo" src="assets/logo.png" alt="ACRCY logo" style="height:34px;width:auto;object-fit:contain;" onerror="this.style.display='none'">
-         <p data-template-id="organization-name" class="core-wordmark">CORE</p>
+    <section class="sheet" aria-label="Officer deliverables tracker">
+     <header class="sheet-header px-9 pt-9 pb-6 border-b border-stone-200">
+      <div class="page-header">
+       <div class="brand-group">
+        <div class="brand-top">
+         <span class="logo-badge arc-action-sm"><img id="orgLogo" src="assets/logo.png" alt="ACRCY logo" onerror="this.closest('.logo-badge').style.display='none'"></span>
+         <h1 id="tracker-title" class="page-heading" style="color: rgb(152, 32, 54);">CORE</h1>
         </div>
-        <h1 id="tracker-title" data-template-id="tracker-title" class="canva-text tracker-title font-bold leading-tight" style="color: rgb(40, 25, 27); font-weight: 700; font-style: normal; font-size: 28px;">Officers' Deliverables System</h1>
-        <p data-template-id="tracker-description" class="canva-text mt-3 max-w-2xl leading-relaxed" style="color: rgb(108, 97, 97); font-weight: 400; font-style: normal; font-size: 14px; line-height: 1.5;">A clear monthly view of committee commitments, progress, and key deadlines.</p>
-        <span id="syncStatus"><i data-lucide="check-circle-2" aria-hidden="true" class="w-3.5 h-3.5"></i><span id="syncStatusText">Synced</span></span>
+        <div class="brand-sub">
+         <p class="page-subtitle" style="color: #6c6166;">Officers' Deliverables System — a clear monthly view of committee commitments, progress, and key deadlines.</p>
+         <span id="syncStatus"><i data-lucide="check-circle-2" aria-hidden="true" width="16" height="16"></i><span id="syncStatusText">Synced</span></span>
+        </div>
        </div>
-       <div class="flex shrink-0 flex-col items-end gap-2">
-        <div class="flex items-center gap-2">
-         <a href="index.html" class="nav-button px-4 py-3 text-sm font-bold" style="color: rgb(152, 32, 54); font-weight: 700; font-size: 13px;"><i data-lucide="arrow-left" aria-hidden="true" class="w-4 h-4"></i><span>Back to Nexus</span></a>
-         <button type="button" class="coming-soon-button px-4 py-3 text-sm font-bold" disabled aria-label="Coming soon"><span>Coming Soon</span></button>
-         <button data-template-id="save-image-button" type="button" id="saveImageButton" class="canva-button save-button inline-flex shrink-0 items-center justify-center gap-2 rounded-sm px-4 py-3 text-sm font-bold" style="background: rgb(152, 32, 54); color: rgb(255, 255, 255); font-weight: 700; font-size: 13px;"> <i data-lucide="download" aria-hidden="true" class="w-4 h-4"></i> <span>Save image</span> </button>
+<div class="header-actions">
+         <a href="index.html" class="icon-button arc-action-sm" aria-label="Home" style="background:#fff;color:rgb(152,32,54);"><i data-lucide="home" aria-hidden="true" width="18" height="18"></i></a>
+         <a href="NEXUS.html" class="nav-button arc-action" style="color: rgb(7, 19, 63); background: #fffdf8;"><i data-lucide="qr-code" aria-hidden="true" width="18" height="18"></i><span>NEXUS</span></a>
+         <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="tracker-button arc-action"><i data-lucide="clipboard-list" aria-hidden="true" width="18" height="18"></i><span>Tracker</span></a>
+         <button data-template-id="save-image-button" type="button" id="saveImageButton" class="save-button arc-action" style="background: rgb(152, 32, 54); color: rgb(255, 255, 255);"> <i data-lucide="download" aria-hidden="true" width="18" height="18"></i> <span>Save image</span> </button>
         </div>
-        <div class="password-widget" id="passwordWidget">
-         <button id="passwordToggle" class="password-toggle" type="button" aria-expanded="false" aria-label="Unlock editing"><i data-lucide="plus" aria-hidden="true"></i></button>
-         <div class="password-panel"><input id="passwordInput" type="password" class="password-input" placeholder="Input Password" autocomplete="off" spellcheck="false"></div>
-        </div>
+      </div>
+      <div class="password-row">
+       <div class="password-widget" id="passwordWidget">
+        <button id="passwordToggle" class="password-toggle arc-action-sm" type="button" aria-expanded="false" aria-label="Unlock editing"><i data-lucide="plus" aria-hidden="true" width="18" height="18"></i></button>
+        <div class="password-panel"><input id="passwordInput" type="password" class="password-input" placeholder="Input Password" autocomplete="off" spellcheck="false"></div>
        </div>
       </div>
      </header>
@@ -480,19 +587,19 @@
        <div class="meta-cell">
         <span data-template-id="updated-by-label" class="canva-text meta-label" style="color: rgb(107, 94, 96); font-weight: 800; font-style: normal; font-size: 10px;">Updated by</span> <span data-template-id="updated-by-value" contenteditable="true" spellcheck="true" class="canva-text text-sm font-bold" style="color: rgb(47, 37, 38); font-weight: 700; font-style: normal; font-size: 14px;">ACRCY Secretariat</span>
        </div>
-       <div class="meta-cell justify-center">
-        <i data-lucide="clipboard-check" aria-hidden="true" class="w-5 h-5 text-[#982036]"></i>
-       </div>
+<div class="meta-cell justify-center">
+         <i data-lucide="clipboard-check" aria-hidden="true" width="20" height="20" class="text-[#982036]"></i>
+        </div>
       </section>
-      <div id="formatToolbar" class="format-toolbar" role="toolbar" aria-label="Text formatting">
-       <button type="button" class="format-btn" data-format="bold" aria-label="Bold" data-requires-unlock><i data-lucide="bold" aria-hidden="true"></i></button>
-       <button type="button" class="format-btn" data-format="italic" aria-label="Italic" data-requires-unlock><i data-lucide="italic" aria-hidden="true"></i></button>
-       <button type="button" class="format-btn" data-format="underline" aria-label="Underline" data-requires-unlock><i data-lucide="underline" aria-hidden="true"></i></button>
-       <button type="button" class="format-btn" data-format="strikeThrough" aria-label="Strikethrough" data-requires-unlock><i data-lucide="strikethrough" aria-hidden="true"></i></button>
-       <span class="format-divider" aria-hidden="true"></span>
-       <button type="button" class="format-btn" data-format="insertOrderedList" aria-label="Numbered list" data-requires-unlock><i data-lucide="list-ordered" aria-hidden="true"></i></button>
-       <button type="button" class="format-btn" data-format="insertUnorderedList" aria-label="Bulleted list" data-requires-unlock><i data-lucide="list" aria-hidden="true"></i></button>
-      </div>
+<div id="formatToolbar" class="format-toolbar" role="toolbar" aria-label="Text formatting">
+        <button type="button" class="format-btn" data-format="bold" aria-label="Bold" data-requires-unlock><i data-lucide="bold" aria-hidden="true" width="16" height="16"></i></button>
+        <button type="button" class="format-btn" data-format="italic" aria-label="Italic" data-requires-unlock><i data-lucide="italic" aria-hidden="true" width="16" height="16"></i></button>
+        <button type="button" class="format-btn" data-format="underline" aria-label="Underline" data-requires-unlock><i data-lucide="underline" aria-hidden="true" width="16" height="16"></i></button>
+        <button type="button" class="format-btn" data-format="strikeThrough" aria-label="Strikethrough" data-requires-unlock><i data-lucide="strikethrough" aria-hidden="true" width="16" height="16"></i></button>
+        <span class="format-divider" aria-hidden="true"></span>
+        <button type="button" class="format-btn" data-format="insertOrderedList" aria-label="Numbered list" data-requires-unlock><i data-lucide="list-ordered" aria-hidden="true" width="16" height="16"></i></button>
+        <button type="button" class="format-btn" data-format="insertUnorderedList" aria-label="Bulleted list" data-requires-unlock><i data-lucide="list" aria-hidden="true" width="16" height="16"></i></button>
+       </div>
       <div class="table-wrap">
        <table class="tracker-table">
         <caption class="sr-only">
@@ -604,11 +711,14 @@
        </table>
       </div>
       <div class="add-row-wrap">
-       <button id="addRowButton" type="button" class="add-row-button" data-requires-unlock><i data-lucide="plus" aria-hidden="true" class="w-4 h-4"></i><span>Add Row</span></button>
-       <button id="removeRowButton" type="button" class="add-row-button remove-row-button" data-requires-unlock><i data-lucide="minus" aria-hidden="true" class="w-4 h-4"></i><span>Remove Row</span></button>
-      </div>
-      <footer class="mt-5 flex items-center gap-2 text-xs text-stone-500">
-       <i data-lucide="info" aria-hidden="true" class="w-3.5 h-3.5"></i>
+<div class="add-row-controls">
+         <button id="addRowButton" type="button" class="add-row-button" data-requires-unlock><i data-lucide="plus" aria-hidden="true" width="16" height="16"></i><span>Add Row</span></button>
+         <button id="removeRowButton" type="button" class="add-row-button remove-row-button" data-requires-unlock><i data-lucide="minus" aria-hidden="true" width="16" height="16"></i><span>Remove Row</span></button>
+        </div>
+        <button type="button" class="add-row-button coming-soon-button" disabled aria-disabled="true" aria-label="Coming soon"><span>Coming Soon</span></button>
+       </div>
+       <footer class="mt-5 flex items-center gap-2 text-xs text-stone-500">
+        <i data-lucide="info" aria-hidden="true" width="14" height="14"></i>
        <p data-template-id="tracker-footnote" class="canva-text" style="color: rgb(116, 105, 106); font-weight: 400; font-style: normal; font-size: 12px;">Status updates are reviewed during the officers' monthly coordination meeting. Edits save automatically and sync for everyone within a few seconds.</p>
       </footer>
      </div>
@@ -752,7 +862,9 @@
     const passwordWidget = document.getElementById("passwordWidget");
     const passwordToggle = document.getElementById("passwordToggle");
     const passwordInput = document.getElementById("passwordInput");
-    const backToNexusLink = document.querySelector(".nav-button");
+    const homeLinkEl = document.querySelector(".icon-button");
+    const crossNavLink = document.querySelector(".nav-button");
+    const trackerLinkEl = document.querySelector(".tracker-button");
     const saveImageButtonEl = document.getElementById("saveImageButton");
 
     function flashLockedNotice(message) {
@@ -787,8 +899,8 @@
       passwordToggle.classList.toggle("is-unlocked", !editLocked);
       passwordToggle.setAttribute("aria-label", editLocked ? "Unlock editing" : "Lock editing");
       passwordToggle.innerHTML = editLocked
-        ? '<i data-lucide="plus" aria-hidden="true"></i>'
-        : '<i data-lucide="unlock" aria-hidden="true"></i>';
+        ? '<i data-lucide="plus" aria-hidden="true" width="18" height="18"></i>'
+        : '<i data-lucide="unlock" aria-hidden="true" width="18" height="18"></i>';
       lucide.createIcons();
     }
 
@@ -800,7 +912,7 @@
     }
 
     function openPasswordWidget() {
-      const w = backToNexusLink.offsetWidth + saveImageButtonEl.offsetWidth + 8;
+      const w = homeLinkEl.offsetWidth + crossNavLink.offsetWidth + trackerLinkEl.offsetWidth + saveImageButtonEl.offsetWidth + 22;
       passwordWidget.style.setProperty("--pw-width", `${w}px`);
       passwordWidget.classList.add("is-open");
       passwordToggle.setAttribute("aria-expanded", "true");
@@ -1093,69 +1205,103 @@
       button.disabled = true;
       button.style.opacity = "0.7";
 
-      try {
+try {
+        // Pre-measure live geometry for accurate clone layout (html2canvas clone layout is unpredictable)
+        const liveStacks = [...document.querySelectorAll(".cell-stack")].map((stack) => {
+          const items = [...stack.querySelectorAll(".line-item")];
+          return {
+            stackH: stack.offsetHeight,
+            items: items.map((item) => ({
+              itemH: item.offsetHeight,
+              children: [...item.children].map((ch) => ({ h: ch.offsetHeight }))
+            }))
+          };
+        });
+
         const allCss = collectAllCssText();
         const canvas = await html2canvas(document.querySelector(".tracker-shell"), {
-          // Solid fallback instead of null — avoids the washed-out /
-          // see-through look if any layer fails to render.
-          backgroundColor: "#8f1f32",
-          scale: 2,
-          useCORS: true,
-          imageTimeout: 15000,
+          backgroundColor: "#8f1f32", scale: 2, useCORS: true, imageTimeout: 15000,
           onclone: (clonedDoc) => {
             const style = clonedDoc.createElement("style");
             style.textContent = allCss + `
-              /* html2canvas doesn't support CSS filter(blur) or
-                 mix-blend-mode — that combo caused the faded look.
-                 Strip them just for this snapshot. */
               .tracker-shell::before { filter: none !important; transform: none !important; }
               .tracker-shell::after { display: none !important; }
-              *, *::before, *::after {
-                animation: none !important;
-                transition: none !important;
-              }
-              .tracker-table td {
-                vertical-align: middle !important;
-              }
+              *, *::before, *::after { animation: none !important; transition: none !important; }
+              .tracker-table td { vertical-align: middle !important; }
+              .tracker-table td.deliverable-cell { vertical-align: top !important; }
             `;
             clonedDoc.head.appendChild(style);
 
-            // Belt-and-suspenders: some browsers still report a mid-animation
-            // opacity via getComputedStyle in a fresh clone even with
-            // "animation: none" injected above, since the clone briefly
-            // re-triggers the keyframes before the stylesheet is parsed.
-            // Force full opacity directly on the element too.
             const frame = clonedDoc.querySelector(".app-frame");
-            if (frame) {
-              frame.style.animation = "none";
-              frame.style.opacity = "1";
-              frame.style.transform = "none";
-            }
+            if (frame) { frame.style.animation = "none"; frame.style.opacity = "1"; frame.style.transform = "none"; }
 
-            // Hide UI chrome that shouldn't appear in the exported image.
-            const btn = clonedDoc.getElementById("saveImageButton");
-            if (btn) btn.style.display = "none";
-            const sync = clonedDoc.getElementById("syncStatus");
-            if (sync) sync.style.display = "none";
-            const addRow = clonedDoc.getElementById("addRowButton");
-            if (addRow) addRow.closest(".add-row-wrap")?.style.setProperty("display", "none");
-            clonedDoc.querySelectorAll(".nav-button, .password-widget, .coming-soon-button").forEach((n) => { n.style.display = "none"; });
+            const btn = clonedDoc.getElementById("saveImageButton"); if (btn) btn.style.display = "none";
+            const sync = clonedDoc.getElementById("syncStatus"); if (sync) sync.style.display = "none";
+            const addRow = clonedDoc.getElementById("addRowButton"); if (addRow) addRow.closest(".add-row-wrap")?.style.setProperty("display", "none");
+            clonedDoc.querySelectorAll(".nav-button, .password-widget, .tracker-button, .icon-button").forEach((n) => { n.style.display = "none"; });
 
-            // html2canvas can't rasterize native <select> elements — it
-            // draws them empty. Swap each one for a plain span with the
-            // same text and the same styling, just for this snapshot.
+            // 1) Explicit list markers (html2canvas doesn't render ::marker)
+            clonedDoc.querySelectorAll("td.deliverable-cell ol, td.deliverable-cell ul").forEach((list) => {
+              const isOl = list.tagName === "OL";
+              const items = list.querySelectorAll("li");
+              const frag = clonedDoc.createDocumentFragment();
+              const lh = 1.45;
+              items.forEach((li, idx) => {
+                const row = clonedDoc.createElement("div");
+                row.style.cssText = "position:relative;padding-left:20px;line-height:" + lh + ";margin:0 0 9px;";
+                const marker = clonedDoc.createElement("span");
+                marker.textContent = isOl ? (idx + 1) + "." : "\u2022";
+                marker.style.cssText = "position:absolute;left:0;top:0;color:#982036;font-weight:800;line-height:" + lh + ";";
+                row.appendChild(marker);
+                while (li.firstChild) row.appendChild(li.firstChild);
+                frag.appendChild(row);
+              });
+              list.replaceWith(frag);
+            });
+
+            // 2) Badge swap with INLINED computed styles (single pass)
             clonedDoc.querySelectorAll("select.status-badge").forEach((select) => {
+              const cs = getComputedStyle(select);
               const span = clonedDoc.createElement("span");
               span.textContent = select.options[select.selectedIndex].text;
-              span.className = select.className;
-              span.setAttribute("style", select.getAttribute("style") || "");
-              // Plain block-level centering instead of flexbox — html2canvas
-              // renders inline-flex/align-items unreliably, which was
-              // pushing the badge text off-center.
-              span.style.display = "inline-block";
-              span.style.textAlign = "center";
-              span.style.verticalAlign = "middle";
+              span.style.cssText = `
+                display:inline-block;text-align:center;vertical-align:middle;width:100%;min-width:104px;padding:5px 10px;
+                border:0;border-radius:999px;appearance:none;cursor:default;font-size:11px;font-weight:800;line-height:1;
+                white-space:nowrap;color:${cs.color};background:${cs.backgroundColor};font-family:"Libre Franklin",sans-serif;
+              `.replace(/\s+/g, " ").trim();
               select.replaceWith(span);
+            });
+
+// 3) Flatten cell-stack to block layout with line-height centering (html2canvas handles this reliably)
+            clonedDoc.querySelectorAll(".cell-stack").forEach((stack, stackIdx) => {
+              const live = liveStacks[stackIdx];
+              if (!live) return;
+              const items = stack.querySelectorAll(".line-item");
+              const gap = 9;
+              stack.style.cssText = "display:block;";
+              items.forEach((item, idx) => {
+                const li = live.items[idx];
+                if (!li) return;
+                const itemH = li.itemH || 30;
+                item.style.cssText = "display:block;height:" + itemH + "px;line-height:" + itemH + "px;";
+                const children = [...item.children];
+                children.forEach((ch) => {
+                  ch.style.display = "inline-block";
+                  ch.style.verticalAlign = "middle";
+                  ch.style.lineHeight = "normal";
+                });
+                if (idx < items.length - 1) {
+                  item.style.marginBottom = gap + "px";
+                  item.style.borderBottom = "1px dashed rgba(152,32,54,.16)";
+                  item.style.paddingBottom = "9px";
+                }
+              });
+            });
+                if (idx < items.length - 1) {
+                  item.style.borderBottom = "1px dashed rgba(152,32,54,.16)";
+                  item.style.paddingBottom = "9px";
+                }
+              });
             });
           }
         });
