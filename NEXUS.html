@@ -296,12 +296,12 @@
       transition: width .25s ease, margin-left .25s ease;
       margin-left: 0;
     }
-    .password-widget.is-open .password-panel { width: var(--pw-width, 220px); margin-left: .5rem; }
+    .password-widget.is-open .password-panel { width: var(--pw-width, 180px); margin-left: .5rem; }
 
     .password-input {
       width: 100%;
       height: 38px;
-      padding: 0 .8rem;
+      padding: 0 .6rem;
       border: 1px solid rgba(122,35,49,.35);
       border-radius: 10px;
       background: #fff;
@@ -1112,8 +1112,8 @@
     }
 
     function openPasswordWidget() {
-      const w = homeLink.offsetWidth + coreLink.offsetWidth + trackerLink.offsetWidth + saveBoardButton.offsetWidth + 22; // header-actions gap
-      passwordWidget.style.setProperty('--pw-width', `${w}px`);
+      const compactWidth = 200;
+      passwordWidget.style.setProperty('--pw-width', `${compactWidth}px`);
       passwordWidget.classList.add('is-open');
       passwordToggle.setAttribute('aria-expanded', 'true');
       passwordInput.focus({ preventScroll: true });
