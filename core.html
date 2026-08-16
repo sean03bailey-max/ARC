@@ -494,19 +494,22 @@
     .deployment { background: #add3af; }
 
     .status-badge {
-      display: inline-flex;
+      display: flex;
       align-items: center;
+      justify-content: center;
+      text-align: center;
       gap: 5px;
       width: 100%;
       min-width: 104px;
-      padding: 5px 10px;
+      min-height: 26px;
+      padding: 6px 10px;
       border: 0;
       border-radius: 999px;
       appearance: none;
       cursor: pointer;
       font-size: 11px;
       font-weight: 800;
-      line-height: 1;
+      line-height: 1.4;
       white-space: nowrap;
     }
 
@@ -1522,11 +1525,14 @@ try {
             clonedDoc.querySelectorAll("select.status-badge").forEach((select) => {
               const cs = getComputedStyle(select);
               const span = clonedDoc.createElement("span");
+              span.className = "status-badge-clone";
               span.textContent = select.options[select.selectedIndex].text;
               span.style.cssText = `
-                display:inline-block;text-align:center;vertical-align:middle;width:100%;min-width:104px;padding:5px 10px;
-                border:0;border-radius:999px;appearance:none;cursor:default;font-size:11px;font-weight:800;line-height:1;
-                white-space:nowrap;color:${cs.color};background:${cs.backgroundColor};font-family:"Libre Franklin",sans-serif;
+                display:inline-block;text-align:center;vertical-align:middle;box-sizing:border-box;
+                width:100%;min-width:104px;min-height:26px;padding:0 10px 12px;
+                border:0;border-radius:999px;appearance:none;cursor:default;font-size:11px;font-weight:800;
+                line-height:1.4;white-space:nowrap;color:${cs.color};background:${cs.backgroundColor};
+                font-family:"Libre Franklin",sans-serif;
               `.replace(/\s+/g, " ").trim();
               select.replaceWith(span);
             });
@@ -1545,6 +1551,13 @@ try {
                 item.style.cssText = "display:block;height:" + itemH + "px;line-height:" + itemH + "px;";
                 const children = [...item.children];
                 children.forEach((ch) => {
+                  if (ch.classList && ch.classList.contains("status-badge-clone")) {
+                    // Preserve the badge's own centered block + line-height so
+                    // descenders aren't clipped by the parent line-height trick.
+                    ch.style.display = "inline-block";
+                    ch.style.verticalAlign = "middle";
+                    return;
+                  }
                   ch.style.display = "inline-block";
                   ch.style.verticalAlign = "middle";
                   ch.style.lineHeight = "normal";
