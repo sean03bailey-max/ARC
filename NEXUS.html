@@ -128,6 +128,7 @@
     }
 
     .logo-wrap {
+      position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -137,9 +138,171 @@
       padding: 7px;
       overflow: hidden;
       background: #fff;
+      border-radius: 8px;
+    }
+    .logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
+    .logo-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(89, 25, 37, 0.35);
+      opacity: 0;
+      transition: opacity 200ms ease;
+      z-index: 1;
+      pointer-events: none;
+      border-radius: 8px;
+    }
+    .logo-wrap::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 200ms ease, transform 200ms ease;
+      z-index: 2;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .logo-wrap:hover::before,
+    .logo-wrap:focus-within::before {
+      opacity: 1;
+    }
+    .logo-wrap:hover::after,
+    .logo-wrap:focus-within::after {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .logo-wrap .help-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      width: 20px;
+      height: 20px;
+      color: var(--maroon-dark);
+      z-index: 3;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease, transform 200ms ease;
+    }
+    .logo-wrap:hover .help-icon,
+    .logo-wrap:focus-within .help-icon {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
     }
 
-    .logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
+    /* Help Modal (NEXUS) */
+    .help-modal-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: rgba(5, 5, 6, 0.8);
+      backdrop-filter: blur(4px);
+    }
+    .help-modal-layer.is-open { display: flex; }
+    .help-modal {
+      width: min(92vw, 560px);
+      max-height: 85vh;
+      overflow-y: auto;
+      background: #1a0a0d;
+      border: 2px solid #9d3345;
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.5), 0 0 0 1px rgba(157,51,69,.3);
+      animation: modal-enter 0.3s cubic-bezier(.22,.8,.3,1) both;
+      color: #fdf1ee;
+    }
+    @keyframes modal-enter {
+      from { opacity: 0; transform: translateY(16px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .help-modal::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(157,51,69,.15) 1px, transparent 1.5px);
+      background-size: 20px 20px;
+      opacity: 0.4;
+      pointer-events: none;
+      border-radius: 10px;
+      z-index: 0;
+    }
+    .help-modal-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(157,51,69,.25);
+    }
+    .help-modal-title {
+      margin: 0;
+      font-family: "Poppins", "DM Sans", sans-serif;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: -.01em;
+      color: #fffdfb;
+    }
+    .help-modal-close {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(157,51,69,.3);
+      border-radius: 8px;
+      background: rgba(255,255,255,.05);
+      color: #fdf1ee;
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+    }
+    .help-modal-close:hover { background: var(--maroon); color: #fff; border-color: var(--maroon); }
+    .help-modal-close svg { width: 20px; height: 20px; }
+    .help-modal-body {
+      position: relative;
+      z-index: 1;
+      padding: 1.5rem;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .help-modal-body h3 {
+      margin: 1.25rem 0 .5rem;
+      font-family: "Poppins", "DM Sans", sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      color: #fffdfb;
+      text-transform: uppercase;
+      letter-spacing: .02em;
+    }
+    .help-modal-body h3:first-child { margin-top: 0; }
+    .help-modal-body p { margin: .5rem 0; }
+    .help-modal-body ul { margin: .5rem 0 1rem 1.25rem; }
+    .help-modal-body li { margin: .35rem 0; }
+    .help-modal-body strong { color: #fffdfb; }
+    .help-modal-body .kbd {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(157,51,69,.3);
+      font-family: "Libre Franklin", sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
 
     .page-heading {
       min-width: 0;
@@ -667,6 +830,7 @@
       width: 100%;
       height: 100%;
       align-items: stretch;
+      contain: layout style;
     }
 
     .expand-card {
@@ -677,6 +841,10 @@
       display: flex;
       flex-direction: column;
       height: 100%;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+      contain: layout style paint;
     }
 
     .expand-qr-card {
@@ -702,6 +870,8 @@
       height: 100%;
       object-fit: contain;
       display: block;
+      max-width: 100%;
+      max-height: 100%;
     }
 
     .expand-qr .expand-modal-image {
@@ -718,6 +888,9 @@
     .expand-editor-card {
       min-width: 400px;
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
 
     .expand-editor {
@@ -731,6 +904,7 @@
       height: 100%;
       padding: 1.5rem 1.5rem 1rem;
       position: relative;
+      box-sizing: border-box;
     }
 
     .expand-save-btn {
@@ -888,7 +1062,18 @@
         width: min(95%, 700px);
         height: min(85vh, 780px);
       }
-      .expand-split { grid-template-columns: 1fr; }
+      .expand-split { 
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        min-height: auto;
+      }
+      .expand-qr-card {
+        aspect-ratio: 1 / 1;
+        max-height: 45vh;
+      }
+      .expand-editor-card {
+        min-width: 0;
+      }
     }
 
     @media (max-width: 520px) {
@@ -899,6 +1084,37 @@
       .qr-grid { grid-template-columns: minmax(0, 330px); justify-content: center; }
       .brand-sub { margin-left: calc(48px + .6rem); }
       .header-actions { margin-left: 0; width: 100%; justify-content: flex-end; }
+      
+      .expand-dialog {
+        width: 100%;
+        height: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        min-height: 100vh;
+      }
+      .expand-split {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        gap: 1rem;
+        min-height: 100%;
+      }
+      .expand-qr-card {
+        aspect-ratio: 1 / 1;
+        max-height: 50vh;
+        min-width: 0;
+      }
+      .expand-editor {
+        padding: 1rem;
+        min-height: 0;
+      }
+      .expand-save-btn {
+        position: static;
+        margin-bottom: .5rem;
+        align-self: flex-start;
+      }
+      .expand-resize-handle {
+        display: none !important;
+      }
     }
   </style>
  </head>
@@ -907,10 +1123,10 @@
    <section class="sheet">
     <header class="board-header">
      <div class="brand-group">
-      <div class="brand-top">
-       <div class="logo-wrap arc-action-sm"><img src="assets/logo.png" alt="Ateneo College Red Cross Youth Council emblem"></div>
-       <h1 class="page-heading">NEXUS</h1>
-      </div>
+<div class="brand-top">
+        <div class="logo-wrap arc-action-sm" tabindex="0" role="button" aria-label="Open NEXUS help guide" aria-expanded="false" aria-controls="helpModal"><img src="assets/logo.png" alt="Ateneo College Red Cross Youth Council emblem"><i class="help-icon" data-lucide="help-circle" aria-hidden="true"></i></div>
+        <h1 class="page-heading">NEXUS</h1>
+       </div>
       <div class="brand-sub">
        <p id="board-tagline" class="page-subtitle" data-template-id="tagline" contenteditable="false" spellcheck="true">Scan less, find faster — every ACRCY link and QR code, one board.</p>
        <p id="sync-pill" class="sync-pill"><i data-lucide="check-circle-2" aria-hidden="true"></i><span id="sync-pill-text">Synced</span></p>
@@ -1001,6 +1217,53 @@
     </section>
    </div>
 
+  <!-- Help Modal -->
+  <div class="help-modal-layer" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+    <div class="help-modal">
+      <header class="help-modal-header">
+        <h2 class="help-modal-title" id="helpModalTitle">How to Use NEXUS</h2>
+        <button class="help-modal-close" id="helpModalClose" aria-label="Close help"><i data-lucide="x" aria-hidden="true"></i></button>
+      </header>
+      <div class="help-modal-body">
+        <h3>Getting Started</h3>
+        <p>NEXUS is your shared QR-code resource board. Every card holds a QR image, a title, a URL, and an optional rich-text description. All changes sync automatically across all users.</p>
+
+        <h3>Adding & Managing Resources</h3>
+        <ul>
+          <li>Click <strong>Add Resource</strong> to create a new card.</li>
+          <li>Click or drag a QR image onto the dotted square to upload.</li>
+          <li>Click the title or URL to edit them directly on the card.</li>
+          <li>Use the action buttons on each card: <span class="kbd">←</span> <span class="kbd">→</span> reorder, <span class="kbd">⎘</span> copy URL, <span class="kbd">⬇</span> save QR as image, <span class="kbd">🗑</span> delete.</li>
+        </ul>
+
+        <h3>Expanding Cards (Rich Editor)</h3>
+        <ul>
+          <li>Click the <span class="kbd">⛶</span> (expand) button on any card to open the full editor.</li>
+          <li>Edit the title, URL, and a rich-text description with formatting: <strong>Bold</strong>, <em>Italic</em>, <u>Underline</u>, lists, headings, alignment.</li>
+          <li>Click <strong>Save</strong> in the expanded view to persist changes.</li>
+          <li>Drag the resize handle (bottom-right) to adjust the modal size on desktop.</li>
+        </ul>
+
+        <h3>Board Actions</h3>
+        <ul>
+          <li><strong>Save Board</strong> — exports the entire board as a PNG image.</li>
+          <li><strong>Home</strong> — returns to the ARC homepage.</li>
+          <li><strong>CORE / Tracker</strong> — navigate to the other modules.</li>
+        </ul>
+
+        <h3>Editing Lock</h3>
+        <p>Click the <span class="kbd">+</span> button (top-right) and enter the password to unlock editing. When locked, all inputs and actions are disabled but viewing works normally.</p>
+
+        <h3>Keyboard Shortcuts</h3>
+        <ul>
+          <li><span class="kbd">Esc</span> — close any open modal</li>
+          <li><span class="kbd">Ctrl+B / I / U</span> — bold / italic / underline in rich editor</li>
+          <li><span class="kbd">Enter</span> on card — expand card</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <template id="resource-template">
    <article class="resource-item">
     <div class="qr-card">
@@ -1037,11 +1300,15 @@
     const expandCloseButton = document.getElementById('expand-close-button');
     const expandModalImage = document.getElementById('expand-modal-image');
     const expandModalTitle = document.getElementById('expand-modal-title');
-    const expandModalLink = document.getElementById('expand-modal-link');
     const expandDialog = document.querySelector('.expand-dialog');
     const resizeHandle = document.getElementById('expand-resize-handle');
     const syncPill = document.getElementById('sync-pill');
     const syncPillText = document.getElementById('sync-pill-text');
+
+    // Help Modal elements
+    const helpModal = document.getElementById('helpModal');
+    const helpModalClose = document.getElementById('helpModalClose');
+    const logoButton = document.querySelector('.logo-wrap[aria-controls="helpModal"]');
 
     const DEFAULT_CARDS = [
       { title: 'Emergency Contacts', url: 'https://redcross.org.ph/', image: '' },
@@ -1816,6 +2083,39 @@
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && deleteModal.classList.contains('is-open')) closeDeleteModal();
       if (event.key === 'Escape' && expandModal.classList.contains('is-open')) closeExpandModal();
+      if (event.key === 'Escape' && helpModal.classList.contains('is-open')) closeHelpModal();
+    });
+
+    // -------- Help Modal Functionality --------
+    function openHelpModal() {
+      helpModal.classList.add('is-open');
+      logoButton.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+      lucide.createIcons();
+      helpModalClose.focus({ preventScroll: true });
+    }
+
+    function closeHelpModal() {
+      helpModal.classList.remove('is-open');
+      logoButton.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    logoButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      openHelpModal();
+    });
+
+    logoButton.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openHelpModal();
+      }
+    });
+
+    helpModalClose.addEventListener('click', closeHelpModal);
+    helpModal.addEventListener('click', event => {
+      if (event.target === helpModal) closeHelpModal();
     });
 
     // -------- Expanded Editor Functionality --------
@@ -1869,7 +2169,7 @@
       expandModal.classList.remove('is-open');
     }
 
-    // -------- Resizable stretch handle for the expanded modal --------
+    // -------- Resizable stretch handle for the expanded modal (desktop only) --------
     let isResizing = false;
     let resizeStartX = 0, resizeStartY = 0;
     let resizeStartW = 0, resizeStartH = 0;
@@ -1881,8 +2181,13 @@
       expandDialog.style.height = `${Math.round(h)}px`;
     }
 
+    function isMobile() {
+      return window.innerWidth <= 760;
+    }
+
     if (resizeHandle) {
       resizeHandle.addEventListener('mousedown', e => {
+        if (isMobile()) return;
         e.preventDefault();
         e.stopPropagation();
         if (editLocked) { flashLockedNotice(); return; }

@@ -118,6 +118,193 @@
       .signature-watermark { width: 84px; opacity: .3; }
     }
 
+    /* Logo hover overlay & modal (Homepage) */
+    .arc-logo {
+      position: relative;
+      overflow: hidden;
+    }
+    .arc-logo::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(7, 19, 63, 0.35);
+      opacity: 0;
+      transition: opacity 200ms ease;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .arc-logo::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 200ms ease, transform 200ms ease;
+      z-index: 2;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .arc-logo:hover::before,
+    .arc-logo:focus-within::before {
+      opacity: 1;
+    }
+    .arc-logo:hover::after,
+    .arc-logo:focus-within::after {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .arc-logo .info-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      width: 22px;
+      height: 22px;
+      color: var(--navy);
+      z-index: 3;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease, transform 200ms ease;
+    }
+    .arc-logo:hover .info-icon,
+    .arc-logo:focus-within .info-icon {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .guide-modal-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: rgba(7, 19, 63, 0.7);
+      backdrop-filter: blur(4px);
+    }
+    .guide-modal-layer.is-open { display: flex; }
+    .guide-modal {
+      width: min(92vw, 520px);
+      max-height: 85vh;
+      overflow-y: auto;
+      background: var(--paper);
+      border: 2px solid var(--rule);
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(7,19,63,.3), 0 0 0 1px rgba(7,19,63,.1);
+      animation: modal-enter 0.3s cubic-bezier(.22,.8,.3,1) both;
+    }
+    @keyframes modal-enter {
+      from { opacity: 0; transform: translateY(16px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .guide-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(7,19,63,.12);
+      background: linear-gradient(180deg, rgba(7,19,63,.04), transparent);
+    }
+    .guide-modal-title {
+      margin: 0;
+      font-family: "Poppins", "DM Sans", sans-serif;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: -.01em;
+      color: var(--navy);
+    }
+    .guide-modal-close {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(7,19,63,.15);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--navy);
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+    }
+    .guide-modal-close:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .guide-modal-close svg { width: 20px; height: 20px; }
+    .guide-modal-body {
+      padding: 1.5rem;
+      line-height: 1.7;
+      color: #3a3a4a;
+    }
+    .guide-modal-body h3 {
+      margin: 1.25rem 0 .5rem;
+      font-family: "Poppins", "DM Sans", sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--navy);
+      text-transform: uppercase;
+      letter-spacing: .02em;
+    }
+    .guide-modal-body h3:first-child { margin-top: 0; }
+    .guide-modal-body p { margin: .5rem 0; font-size: 14px; }
+    .guide-modal-body ul { margin: .5rem 0 1rem 1.25rem; font-size: 14px; }
+    .guide-modal-body li { margin: .35rem 0; }
+    .guide-module { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    .guide-module.nexus { background: rgba(223,23,29,.12); color: var(--red); border: 1px solid rgba(223,23,29,.25); }
+    .guide-module.tracker { background: rgba(7,19,63,.12); color: var(--navy); border: 1px solid rgba(7,19,63,.25); }
+    .guide-module.core { background: rgba(223,23,29,.12); color: var(--red); border: 1px solid rgba(223,23,29,.25); }
+
+    /* Morphing password button (Homepage) */
+    .password-widget {
+      position: relative;
+    }
+    .password-toggle {
+      position: relative;
+      transition: transform 180ms ease, box-shadow 180ms ease, background-color 0.3s ease, width 250ms cubic-bezier(.22,.8,.3,1), padding 250ms cubic-bezier(.22,.8,.3,1), min-width 250ms cubic-bezier(.22,.8,.3,1);
+    }
+    .password-toggle.morphing {
+      min-width: 0 !important;
+      width: 48px !important;
+      padding: 0 !important;
+      justify-content: center;
+    }
+    .password-toggle.morphing span { display: none; }
+    .password-toggle.is-input-mode {
+      min-width: 0 !important;
+      width: 280px !important;
+      padding: 0 12px !important;
+      background: #fff !important;
+      color: var(--navy) !important;
+      justify-content: flex-start;
+    }
+    .password-toggle.is-input-mode .password-input-inline {
+      display: block !important;
+      width: 100% !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+    .password-input-inline {
+      display: none;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      color: var(--navy);
+      font-family: "DM Sans", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      outline: none;
+      padding: 0;
+      text-align: left;
+    }
+    .password-input-inline::placeholder { color: rgba(7,19,63,.4); }
+
     /* Password widget (matches NEXUS/CORE design language) */
     .password-row {
       width: 100%;
@@ -147,7 +334,7 @@
       border: 1px solid var(--rule);
       border-radius: 6px;
       box-shadow: 5px 5px 0 var(--ink);
-      transition: transform 180ms ease, box-shadow 180ms ease, background-color 0.3s ease;
+      transition: transform 180ms ease, box-shadow 180ms ease, background-color 0.3s ease, width 250ms cubic-bezier(.22,.8,.3,1), padding 250ms cubic-bezier(.22,.8,.3,1), min-width 250ms cubic-bezier(.22,.8,.3,1);
       font-family: "DM Sans", sans-serif;
       font-size: 14px;
       font-weight: 700;
@@ -159,12 +346,27 @@
       transform: translate(-3px, -3px);
       box-shadow: 9px 9px 0 var(--ink);
     }
+    .password-toggle:active {
+      transform: translate(1px, 1px);
+      box-shadow: 3px 3px 0 var(--ink);
+      transition-duration: 90ms;
+    }
     .password-toggle.is-unlocked { background: #fff !important; border-color: var(--rule) !important; color: var(--navy) !important; box-shadow: 5px 5px 0 var(--ink); }
     .password-toggle svg { width: 18px; height: 18px; flex-shrink: 0; }
 
-    /* Intermittent bounce animation for locked state */
+    /* Intermittent bounce animation for locked state.
+       Paused on hover/interaction so the bounce never fights the
+       hover-lift, press, or the morph-into-input transition. */
     .password-toggle.bounce {
       animation: pw-bounce 4s ease-in-out infinite;
+    }
+    .password-toggle.bounce:hover,
+    .password-toggle.bounce:focus-visible,
+    .password-toggle.bounce.morphing,
+    .password-toggle.bounce.is-input-mode,
+    .password-toggle.bounce:active {
+      animation-play-state: paused;
+      animation: none;
     }
     @keyframes pw-bounce {
       0%, 100% { transform: translateY(0); }
@@ -176,36 +378,7 @@
       30% { transform: translateY(0); }
     }
 
-    .password-panel {
-      width: 0;
-      overflow: hidden;
-      transition: width .25s ease, margin .25s ease;
-      margin: 0;
-      text-align: center;
-    }
-    .password-widget.is-open .password-panel { 
-      width: var(--pw-width, 220px); 
-      margin: 0 auto;
-    }
-
-    .password-input {
-      width: 100%;
-      height: 48px;
-      padding: 0 1rem;
-      border: 1px solid rgba(223,23,29,.35);
-      border-radius: 6px;
-      background: #fff;
-      color: var(--navy);
-      font-weight: 700;
-      font-size: 14px;
-      outline: 0;
-      transition: box-shadow .18s ease;
-      text-align: center;
-    }
-    .password-input:not(:placeholder-shown) {
-      box-shadow: 0 0 0 3px rgba(223,23,29,.14), 0 8px 18px rgba(223,23,29,.18);
-    }
-    .password-input.is-wrong { animation: pw-shake .32s ease; border-color: #ff8f9a; }
+    /* Inline input shake animation (morphing password button) */
     @keyframes pw-shake {
       25% { transform: translateX(-4px); }
       75% { transform: translateX(4px); }
@@ -242,47 +415,71 @@
   </style>
  </head>
  <body class="w-full overflow-x-hidden" style="background: rgb(255, 253, 248);">
-  <main class="arc-dot-field relative flex min-h-screen w-full items-center justify-center overflow-hidden px-5 py-12 sm:px-8">
+<main class="arc-dot-field relative flex min-h-screen w-full items-center justify-center overflow-hidden px-5 py-12 sm:px-8">
    <div class="arc-wash absolute inset-0"></div>
    <section class="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center text-center">
     <div class="page-filterable">
      <div class="rise-in flex justify-center">
-      <div class="arc-logo flex h-36 w-36 items-center justify-center bg-white p-3 sm:h-44 sm:w-44">
+      <div class="arc-logo flex h-36 w-36 items-center justify-center bg-white p-3 sm:h-44 sm:w-44" tabindex="0" role="button" aria-label="Open platform guide" aria-expanded="false" aria-controls="guideModal">
        <img loading="lazy" class="h-full w-full object-contain" src="assets/logo.png" alt="Ateneo de Naga College Red Cross Youth Council logo">
+       <i class="info-icon" data-lucide="info" aria-hidden="true"></i>
       </div>
      </div>
-<p class="rise-in rise-delay-1 mt-7 w-full text-base font-bold uppercase tracking-[0.15em] sm:text-lg text-center" style="color: rgb(223, 23, 29);">Ateneo de Naga College Red Cross Youth Council</p>
-      <div class="rise-in rise-delay-2 mt-8 h-px w-16 bg-[#df171d] mx-auto"></div>
-     <h1 class="rise-in rise-delay-2 mt-7 max-w-3xl" style="color: rgb(7, 19, 63); font-weight: 900; font-size: 38px; letter-spacing: -0.02rem; line-height: 1.05;">Welcome to ARC</h1>
-     <p class="rise-in rise-delay-3 mt-5 max-w-2xl leading-relaxed" style="color: rgb(76, 83, 103); font-size: 19px; line-height: 1.6;">Your central space for council operations, shared deliverables, and quick-access files that help us efficiently serve with purpose.</p>
-    </div>
-    <div class="password-row rise-in rise-delay-4 mt-10">
-      <div class="password-widget" id="passwordWidget">
-        <button id="passwordToggle" class="password-toggle bounce arc-action" type="button" aria-expanded="false" aria-label="Unlock access" style="background:#df171d;color:#fff;"><i data-lucide="lock" aria-hidden="true" width="18" height="18"></i><span>Unlock</span></button>
-        <div class="password-panel"><input id="passwordInput" type="password" class="password-input" placeholder="Input Password" autocomplete="off" spellcheck="false"></div>
+     <p class="rise-in rise-delay-1 mt-7 w-full text-base font-bold uppercase tracking-[0.15em] sm:text-lg text-center" style="color: rgb(223, 23, 29);">Ateneo de Naga College Red Cross Youth Council</p>
+       <div class="rise-in rise-delay-2 mt-8 h-px w-16 bg-[#df171d] mx-auto"></div>
+      <h1 class="rise-in rise-delay-2 mt-7 max-w-3xl" style="color: rgb(7, 19, 63); font-weight: 900; font-size: 38px; letter-spacing: -0.02rem; line-height: 1.05;">Welcome to ARC</h1>
+      <p class="rise-in rise-delay-3 mt-5 max-w-2xl leading-relaxed" style="color: rgb(76, 83, 103); font-size: 19px; line-height: 1.6;">Your central space for council operations, shared deliverables, and quick-access files that help us efficiently serve with purpose.</p>
+     </div>
+<div class="password-row rise-in rise-delay-4 mt-10">
+       <div class="password-widget" id="passwordWidget">
+         <button id="passwordToggle" class="password-toggle bounce arc-action" type="button" aria-expanded="false" aria-label="Unlock access" style="background:#df171d;color:#fff;">
+           <i data-lucide="lock" aria-hidden="true" width="18" height="18"></i>
+           <span>Unlock</span>
+           <input type="password" class="password-input-inline" placeholder="Input Password" autocomplete="off" spellcheck="false" aria-label="Password">
+         </button>
+       </div>
       </div>
+     <div class="page-filterable">
+      <nav class="rise-in rise-delay-4 mt-6 flex w-full flex-col justify-center gap-3 sm:flex-row sm:flex-wrap" aria-label="ARC destinations">
+       <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="NEXUS.html" style="background: rgb(223, 23, 29); color: rgb(255, 255, 255);">
+        <i data-lucide="qr-code" width="18" height="18" aria-hidden="true"></i>
+        <span>NEXUS</span>
+       </a>
+       <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" style="background: rgb(7, 19, 63); color: rgb(255, 255, 255);">
+        <i data-lucide="clipboard-list" width="18" height="18" aria-hidden="true"></i>
+        <span>Tracker</span>
+       </a>
+       <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-[14px] text-sm font-bold uppercase tracking-[0.08em]" href="core.html" style="background: rgb(255, 253, 248); color: rgb(7, 19, 63);">
+        <i data-lucide="list-checks" width="18" height="18" aria-hidden="true"></i>
+        <span>CORE</span>
+       </a>
+      </nav>
+      <footer class="rise-in rise-delay-4 mt-12">
+       <p class="text-xs font-bold uppercase tracking-[0.15em]" style="color: rgb(7, 19, 63); letter-spacing: 0.1rem;">Always First • Always Ready • Always There</p>
+      </footer>
+     </div>
+    </section>
+
+    <!-- Guide Modal -->
+    <div class="guide-modal-layer" id="guideModal" role="dialog" aria-modal="true" aria-labelledby="guideModalTitle">
+     <div class="guide-modal">
+      <header class="guide-modal-header">
+       <h2 class="guide-modal-title" id="guideModalTitle">The Web App</h2>
+       <button class="guide-modal-close" id="guideModalClose" aria-label="Close guide"><i data-lucide="x" aria-hidden="true"></i></button>
+      </header>
+      <div class="guide-modal-body">
+       <p>ARC is the central digital workspace for the Ateneo de Naga College Red Cross Youth Council. It unifies three purpose-built modules into a single platform:</p>
+       <h3><span class="guide-module nexus">NEXUS</span> — Resource Board</h3>
+       <p>A visual QR-code board for sharing links, documents, and resources. Upload QR images, add rich-text descriptions, organize cards, and export boards as images for offline use.</p>
+       <h3><span class="guide-module tracker">TRACKER</span> — Scheduler</h3>
+       <p>External scheduling system (red-cross-scheduler.vercel.app) for managing volunteer shifts, event timetables, and availability tracking.</p>
+       <h3><span class="guide-module core">CORE</span> — Deliverables Tracker</h3>
+       <p>A structured monthly tracker for officer and committee deliverables. Manage status (Not Started → In Progress → Completed), deadlines, and remarks with real-time multi-user sync.</p>
+       <p style="margin-top: 1rem; font-size: 13px; color: #6b6b7a;">Click any module button below to navigate. Use the <strong>Unlock</strong> button to access editing features on NEXUS and CORE.</p>
+      </div>
+     </div>
     </div>
-    <div class="page-filterable">
-     <nav class="rise-in rise-delay-4 mt-6 flex w-full flex-col justify-center gap-3 sm:flex-row sm:flex-wrap" aria-label="ARC destinations">
-      <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="NEXUS.html" style="background: rgb(223, 23, 29); color: rgb(255, 255, 255);">
-       <i data-lucide="qr-code" width="18" height="18" aria-hidden="true"></i>
-       <span>NEXUS</span>
-      </a>
-      <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" style="background: rgb(7, 19, 63); color: rgb(255, 255, 255);">
-       <i data-lucide="clipboard-list" width="18" height="18" aria-hidden="true"></i>
-       <span>Tracker</span>
-      </a>
-      <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-[14px] text-sm font-bold uppercase tracking-[0.08em]" href="core.html" style="background: rgb(255, 253, 248); color: rgb(7, 19, 63);">
-       <i data-lucide="list-checks" width="18" height="18" aria-hidden="true"></i>
-       <span>CORE</span>
-      </a>
-     </nav>
-     <footer class="rise-in rise-delay-4 mt-12">
-      <p class="text-xs font-bold uppercase tracking-[0.15em]" style="color: rgb(7, 19, 63); letter-spacing: 0.1rem;">Always First • Always Ready • Always There</p>
-     </footer>
-    </div>
-   </section>
-  </main>
+   </main>
   <img class="signature-watermark" src="assets/signature-watermark.png" alt="" aria-hidden="true">
   <script>
     // ---------- Homepage Authentication & Grayscale Lock ----------
@@ -291,9 +488,14 @@
 
     const passwordWidget = document.getElementById("passwordWidget");
     const passwordToggle = document.getElementById("passwordToggle");
-    const passwordInput = document.getElementById("passwordInput");
+    const passwordInputInline = passwordToggle.querySelector(".password-input-inline");
     const navButtons = document.querySelectorAll("nav a.arc-action");
     const pageFilterable = document.querySelectorAll(".page-filterable");
+
+    // Guide Modal elements
+    const guideModal = document.getElementById("guideModal");
+    const guideModalClose = document.getElementById("guideModalClose");
+    const logoButton = document.querySelector(".arc-logo[aria-controls='guideModal']");
 
     function flashLockedNotice(message) {
       let toast = document.getElementById("lockToast");
@@ -312,27 +514,66 @@
     function updateLockUI() {
       passwordToggle.classList.toggle("is-unlocked", !isLocked);
       passwordToggle.setAttribute("aria-label", isLocked ? "Unlock access" : "Lock access");
-      passwordToggle.innerHTML = isLocked
-        ? '<i data-lucide="lock" aria-hidden="true" width="18" height="18"></i><span>Unlock</span>'
-        : '<i data-lucide="unlock" aria-hidden="true" width="18" height="18"></i><span>Lock</span>';
+      
+      if (isLocked) {
+        passwordToggle.innerHTML = '<i data-lucide="lock" aria-hidden="true" width="18" height="18"></i><span>Unlock</span><input type="password" class="password-input-inline" placeholder="Input Password" autocomplete="off" spellcheck="false" aria-label="Password">';
+      } else {
+        passwordToggle.innerHTML = '<i data-lucide="unlock" aria-hidden="true" width="18" height="18"></i><span>Lock</span><input type="password" class="password-input-inline" placeholder="Input Password" autocomplete="off" spellcheck="false" aria-label="Password">';
+      }
       passwordToggle.classList.toggle("bounce", isLocked);
+      passwordToggle.classList.remove("is-input-mode", "morphing");
       lucide.createIcons();
+      // Re-bind inline input after innerHTML replacement
+      const newInlineInput = passwordToggle.querySelector(".password-input-inline");
+      if (newInlineInput) bindInlineInput(newInlineInput);
+    }
+
+    function bindInlineInput(inputEl) {
+      inputEl.addEventListener("input", () => {
+        if (inputEl.value === CORRECT_PASSWORD) {
+          setLocked(false);
+          inputEl.value = "";
+          showStatus("Access unlocked.");
+        }
+      });
+      inputEl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && inputEl.value && inputEl.value !== CORRECT_PASSWORD) {
+          inputEl.classList.add("is-wrong");
+          setTimeout(() => inputEl.classList.remove("is-wrong"), 350);
+          inputEl.value = "";
+        }
+        if (event.key === "Escape") {
+          collapsePasswordWidget();
+          inputEl.blur();
+        }
+      });
     }
 
     function collapsePasswordWidget() {
       passwordWidget.classList.remove("is-open");
       passwordToggle.setAttribute("aria-expanded", "false");
-      passwordInput.value = "";
-      passwordInput.blur();
+      passwordToggle.classList.remove("is-input-mode", "morphing");
+      const currentInlineInput = passwordToggle.querySelector(".password-input-inline");
+      if (currentInlineInput) {
+        currentInlineInput.value = "";
+        currentInlineInput.blur();
+      }
     }
 
     function openPasswordWidget() {
-      // Compact fixed width for the input (more sleek than full nav group width)
-      const compactWidth = 320;
-      passwordWidget.style.setProperty("--pw-width", `${compactWidth}px`);
-      passwordWidget.classList.add("is-open");
-      passwordToggle.setAttribute("aria-expanded", "true");
-      passwordInput.focus({ preventScroll: true });
+      // Morph the button into input mode inline
+      passwordToggle.classList.add("morphing");
+      // Wait for morph animation, then switch to input mode
+      setTimeout(() => {
+        passwordToggle.classList.remove("morphing");
+        passwordToggle.classList.add("is-input-mode");
+        passwordToggle.setAttribute("aria-expanded", "true");
+        passwordWidget.classList.add("is-open");
+        const inlineInput = passwordToggle.querySelector(".password-input-inline");
+        if (inlineInput) {
+          inlineInput.focus({ preventScroll: true });
+        }
+      }, 180);
     }
 
     function setLocked(locked) {
@@ -370,7 +611,10 @@
       setLocked(isLocked);
     }
 
-    passwordToggle.addEventListener("click", () => {
+    passwordToggle.addEventListener("click", (e) => {
+      // Don't trigger if clicking the inline input
+      if (e.target.classList.contains("password-input-inline")) return;
+      
       if (isLocked) {
         openPasswordWidget();
       } else {
@@ -380,26 +624,13 @@
       }
     });
 
-    passwordInput.addEventListener("input", () => {
-      if (passwordInput.value === CORRECT_PASSWORD) {
-        setLocked(false);
-        collapsePasswordWidget();
-        showStatus("Access unlocked.");
-      }
-    });
-
-    passwordInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && passwordInput.value && passwordInput.value !== CORRECT_PASSWORD) {
-        passwordInput.classList.add("is-wrong");
-        setTimeout(() => passwordInput.classList.remove("is-wrong"), 350);
-        passwordInput.value = "";
-      }
-      if (event.key === "Escape") collapsePasswordWidget();
-    });
-
     document.addEventListener("click", (event) => {
       if (passwordWidget.classList.contains("is-open") && !passwordWidget.contains(event.target)) {
         collapsePasswordWidget();
+      }
+      // Close guide modal on overlay click
+      if (guideModal.classList.contains("is-open") && event.target === guideModal) {
+        closeGuideModal();
       }
     });
 
@@ -413,6 +644,40 @@
       });
     });
 
+    // Guide Modal functions
+    function openGuideModal() {
+      guideModal.classList.add("is-open");
+      logoButton.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
+      guideModalClose.focus({ preventScroll: true });
+    }
+
+    function closeGuideModal() {
+      guideModal.classList.remove("is-open");
+      logoButton.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
+    }
+
+    logoButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      openGuideModal();
+    });
+
+    logoButton.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openGuideModal();
+      }
+    });
+
+    guideModalClose.addEventListener("click", closeGuideModal);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && guideModal.classList.contains("is-open")) {
+        closeGuideModal();
+      }
+    });
+
     function showStatus(message) {
       flashLockedNotice(message);
     }
@@ -421,6 +686,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
       checkAuthState();
+      if (passwordInputInline) bindInlineInput(passwordInputInline);
     });
   </script>
  </body>

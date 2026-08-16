@@ -128,6 +128,7 @@
     }
 
     .logo-badge {
+      position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -137,8 +138,172 @@
       padding: 7px;
       background: #fff;
       overflow: hidden;
+      border-radius: 8px;
     }
     .logo-badge img { width: 100%; height: 100%; object-fit: contain; }
+    .logo-badge::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(152, 32, 54, 0.35);
+      opacity: 0;
+      transition: opacity 200ms ease;
+      z-index: 1;
+      pointer-events: none;
+      border-radius: 8px;
+    }
+    .logo-badge::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 200ms ease, transform 200ms ease;
+      z-index: 2;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .logo-badge:hover::before,
+    .logo-badge:focus-within::before {
+      opacity: 1;
+    }
+    .logo-badge:hover::after,
+    .logo-badge:focus-within::after {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .logo-badge .help-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      width: 20px;
+      height: 20px;
+      color: var(--red);
+      z-index: 3;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease, transform 200ms ease;
+    }
+    .logo-badge:hover .help-icon,
+    .logo-badge:focus-within .help-icon {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* Help Modal (CORE) */
+    .help-modal-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: rgba(7, 19, 63, 0.7);
+      backdrop-filter: blur(4px);
+    }
+    .help-modal-layer.is-open { display: flex; }
+    .help-modal {
+      width: min(92vw, 560px);
+      max-height: 85vh;
+      overflow-y: auto;
+      background: var(--paper);
+      border: 2px solid var(--rule);
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(7,19,63,.3), 0 0 0 1px rgba(7,19,63,.1);
+      animation: modal-enter 0.3s cubic-bezier(.22,.8,.3,1) both;
+      color: var(--ink);
+    }
+    @keyframes modal-enter {
+      from { opacity: 0; transform: translateY(16px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .help-modal::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(152,32,54,.12) 1px, transparent 1.5px);
+      background-size: 20px 20px;
+      opacity: 0.4;
+      pointer-events: none;
+      border-radius: 10px;
+      z-index: 0;
+    }
+    .help-modal-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(7,19,63,.12);
+    }
+    .help-modal-title {
+      margin: 0;
+      font-family: "Poppins", "DM Sans", sans-serif;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: -.01em;
+      color: var(--navy);
+    }
+    .help-modal-close {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(7,19,63,.15);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--navy);
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+    }
+    .help-modal-close:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .help-modal-close svg { width: 20px; height: 20px; }
+    .help-modal-body {
+      position: relative;
+      z-index: 1;
+      padding: 1.5rem;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .help-modal-body h3 {
+      margin: 1.25rem 0 .5rem;
+      font-family: "Poppins", "DM Sans", sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--navy);
+      text-transform: uppercase;
+      letter-spacing: .02em;
+    }
+    .help-modal-body h3:first-child { margin-top: 0; }
+    .help-modal-body p { margin: .5rem 0; }
+    .help-modal-body ul { margin: .5rem 0 1rem 1.25rem; }
+    .help-modal-body li { margin: .35rem 0; }
+    .help-modal-body strong { color: var(--navy); }
+    .help-modal-body .kbd {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(152,32,54,.1);
+      border: 1px solid rgba(152,32,54,.25);
+      font-family: "Libre Franklin", sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--red);
+    }
 
     .page-heading {
       margin: 0;
@@ -345,7 +510,7 @@
       white-space: nowrap;
     }
 
-    .not-started { color: #6c6664; background: #eeece9; }
+    .not-started { color: #a23537; background: #f9d9d7; }
     .blocked { color: #a23537; background: #f9d9d7; }
     .in-progress { color: #896414; background: #fff0b8; }
     .completed { color: #2f7b48; background: #d8f2dc; }
@@ -553,10 +718,10 @@
      <header class="sheet-header px-9 pt-9 pb-6 border-b border-stone-200">
       <div class="page-header">
        <div class="brand-group">
-        <div class="brand-top">
-         <span class="logo-badge arc-action-sm"><img id="orgLogo" src="assets/logo.png" alt="ACRCY logo" onerror="this.closest('.logo-badge').style.display='none'"></span>
-         <h1 id="tracker-title" class="page-heading" style="color: rgb(152, 32, 54);">CORE</h1>
-        </div>
+<div class="brand-top">
+          <span class="logo-badge arc-action-sm" tabindex="0" role="button" aria-label="Open CORE help guide" aria-expanded="false" aria-controls="helpModal"><img id="orgLogo" src="assets/logo.png" alt="ACRCY logo" onerror="this.closest('.logo-badge').style.display='none'"><i class="help-icon" data-lucide="help-circle" aria-hidden="true"></i></span>
+          <h1 id="tracker-title" class="page-heading" style="color: rgb(152, 32, 54);">CORE</h1>
+         </div>
         <div class="brand-sub">
          <p class="page-subtitle" style="color: #6c6166;">Officers' Deliverables System — a clear monthly view of committee commitments, progress, and key deadlines.</p>
          <span id="syncStatus"><i data-lucide="check-circle-2" aria-hidden="true" width="16" height="16"></i><span id="syncStatusText">Synced</span></span>
@@ -725,10 +890,60 @@
     </section>
    </main>
   </div>
+
+  <!-- Help Modal -->
+  <div class="help-modal-layer" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+    <div class="help-modal">
+      <header class="help-modal-header">
+        <h2 class="help-modal-title" id="helpModalTitle">How to Use CORE</h2>
+        <button class="help-modal-close" id="helpModalClose" aria-label="Close help"><i data-lucide="x" aria-hidden="true"></i></button>
+      </header>
+      <div class="help-modal-body">
+        <h3>Getting Started</h3>
+        <p>CORE is the Officers' Deliverables System — a structured monthly tracker for committee commitments, progress, and deadlines. All edits sync in real-time across all officers.</p>
+
+        <h3>Tracker Layout</h3>
+        <ul>
+          <li><strong>Officer / Committee</strong> — Role or committee name (color-coded).</li>
+          <li><strong>Deliverable</strong> — Task description (supports lists, rich text).</li>
+          <li><strong>Status</strong> — Dropdown: <span class="kbd">Not Started</span>, <span class="kbd">Blocked</span>, <span class="kbd">In Progress</span>, <span class="kbd">Completed</span>.</li>
+          <li><strong>Deadline</strong> — Target date for each deliverable item.</li>
+          <li><strong>Additional Remarks</strong> — Notes, blockers, or context.</li>
+        </ul>
+
+        <h3>Editing &amp; Workflow</h3>
+        <ul>
+          <li>Click <strong>Unlock</strong> (top-right) and enter the password to enable editing.</li>
+          <li>When unlocked, click any cell to edit. Press <span class="kbd">Enter</span> to save, <span class="kbd">Esc</span> to cancel.</li>
+          <li>Use the formatting toolbar (top of table) for <strong>Bold</strong>, <em>Italic</em>, <u>Underline</u>, lists, etc.</li>
+          <li>Each deliverable can have multiple items — add list items to create stacked status/deadline/remarks rows automatically.</li>
+          <li>Click <strong>Save image</strong> to export the entire tracker as a PNG.</li>
+        </ul>
+
+        <h3>Adding &amp; Removing Rows</h3>
+        <ul>
+          <li><span class="kbd">+ Add Row</span> — Adds a new committee row (cycles through color palette).</li>
+          <li><span class="kbd">− Remove Row</span> — Deletes the last custom row.</li>
+          <li>Built-in officer rows cannot be removed.</li>
+        </ul>
+
+        <h3>Keyboard Shortcuts</h3>
+        <ul>
+          <li><span class="kbd">Esc</span> — Close modals, cancel editing</li>
+          <li><span class="kbd">Enter</span> in cell — Save and move to next</li>
+          <li><span class="kbd">Tab</span> — Navigate between cells</li>
+          <li><span class="kbd">Ctrl+B / I / U</span> — Bold / Italic / Underline (when toolbar active)</li>
+        </ul>
+
+        <h3>Data Persistence</h3>
+        <p>All changes save automatically to the shared backend. The <span class="kbd">Synced</span> pill in the header shows sync status. The <strong>Month</strong>, <strong>Last updated</strong>, and <strong>Updated by</strong> fields are editable for record-keeping.</p>
+      </div>
+    </div>
+  </div>
   <script>
     // ---------- Status badge styling ----------
     const statusStyles = {
-      "Not Started": { className: "not-started", background: "#eeece9", color: "#6c6664" },
+      "Not Started": { className: "not-started", background: "#f9d9d7", color: "#a23537" },
       "Blocked": { className: "blocked", background: "#f9d9d7", color: "#a23537" },
       "In Progress": { className: "in-progress", background: "#fff0b8", color: "#896414" },
       "Completed": { className: "completed", background: "#d8f2dc", color: "#2f7b48" }
@@ -867,6 +1082,11 @@
     const trackerLinkEl = document.querySelector(".tracker-button");
     const saveImageButtonEl = document.getElementById("saveImageButton");
 
+    // Help Modal elements
+    const helpModal = document.getElementById("helpModal");
+    const helpModalClose = document.getElementById("helpModalClose");
+    const logoButton = document.querySelector(".logo-badge[aria-controls='helpModal']");
+
     function flashLockedNotice(message) {
       let toast = document.getElementById("lockToast");
       if (!toast) {
@@ -954,6 +1174,10 @@
       if (passwordWidget.classList.contains("is-open") && !passwordWidget.contains(event.target)) {
         collapsePasswordWidget();
       }
+      // Close help modal on overlay click
+      if (helpModal.classList.contains("is-open") && event.target === helpModal) {
+        closeHelpModal();
+      }
     });
 
     // Native contenteditable="false" / disabled selects silently ignore
@@ -965,6 +1189,41 @@
       if (passwordWidget.contains(event.target)) return;
       const target = event.target.closest("[contenteditable], select[data-template-id], .officer-cell");
       if (target) flashLockedNotice();
+    });
+
+    // -------- Help Modal Functionality --------
+    function openHelpModal() {
+      helpModal.classList.add("is-open");
+      logoButton.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
+      lucide.createIcons();
+      helpModalClose.focus({ preventScroll: true });
+    }
+
+    function closeHelpModal() {
+      helpModal.classList.remove("is-open");
+      logoButton.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
+    }
+
+    logoButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      openHelpModal();
+    });
+
+    logoButton.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openHelpModal();
+      }
+    });
+
+    helpModalClose.addEventListener("click", closeHelpModal);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && helpModal.classList.contains("is-open")) {
+        closeHelpModal();
+      }
     });
 
     // ---------- Add Row (extra committee rows, cycling the same palette) ----------
@@ -1317,4 +1576,5 @@ try {
     updateLockUI();
     lucide.createIcons();
   </script>
-</body></html>
+ </body>
+</html>
