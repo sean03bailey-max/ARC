@@ -594,10 +594,14 @@
       height: calc(100% - 28px);
       object-fit: contain;
       background: rgba(255,255,255,.78);
-      transition: transform .2s ease;
+      transition: transform .2s ease, filter .2s ease-in-out;
     }
 
     .qr-space:hover .qr-image { transform: scale(1.018); }
+
+    .qr-space.is-locked.has-image { cursor: pointer; }
+    .qr-space.is-locked .qr-image { filter: blur(8px); }
+    .qr-space.is-locked .qr-image.is-revealed { filter: blur(0); }
 
     .upload-hint {
       position: relative;
@@ -872,7 +876,12 @@
       border-radius: 0;
       background: rgba(255,255,255,.78);
       object-fit: contain;
+      transition: filter .2s ease-in-out;
     }
+
+    .expand-qr.is-locked { cursor: pointer; }
+    .expand-qr.is-locked .expand-modal-image { filter: blur(8px); }
+    .expand-qr.is-locked .expand-modal-image.is-revealed { filter: blur(0); }
 
     .expand-editor-card {
       min-width: 400px;
@@ -990,6 +999,41 @@
     .expand-format-btn:hover { background: rgba(122,35,49,.1); color: var(--maroon); }
     .expand-format-btn:active { background: rgba(122,35,49,.2); }
     .expand-format-btn svg { width: 14px; height: 14px; }
+
+    /* Disabled (locked) state for the expanded editor */
+    .expand-input[readonly],
+    .expand-input:disabled {
+      opacity: .6;
+      background: #f4f0ee;
+      border-color: rgba(122,35,49,.14);
+      color: #7a6a6e;
+      cursor: not-allowed;
+    }
+    .expand-rich[contenteditable="false"] {
+      background: #fbfaf8;
+      border-color: rgba(122,35,49,.14);
+      cursor: default;
+    }
+    .expand-toolbar.is-locked {
+      opacity: .55;
+      background: #f6f2f0;
+      border-color: rgba(122,35,49,.12);
+      cursor: not-allowed;
+    }
+    .expand-toolbar.is-locked .expand-toolbar-divider { background: rgba(122,35,49,.12); }
+    .expand-format-btn:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+    .expand-format-btn:disabled:hover { background: transparent; color: var(--maroon-dark); }
+    .expand-save-btn:disabled,
+    .expand-save-btn:disabled:hover,
+    .expand-save-btn:disabled:focus-visible {
+      opacity: .5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 3px 3px 0 rgba(16,16,16,.2);
+    }
     .expand-format-btn[style*="font-weight"] { width: auto; padding: 0 .4rem; font-family: "Libre Franklin", sans-serif; }
 
     .expand-toolbar-divider {
@@ -1243,6 +1287,9 @@
         <h3>Editing Lock</h3>
         <p>Click the <span class="kbd">+</span> button (top-right) and enter the password to unlock editing. When locked, all inputs and actions are disabled but viewing works normally.</p>
 
+        <h3>QR Blur &amp; Reveal</h3>
+        <p>While editing is locked, QR codes are shown blurred to keep their contents private. Click any blurred QR (on a card or in the expanded view) to reveal it; click again to blur it back. Each QR toggles independently, and exported images are always sharp.</p>
+
         <h3>Keyboard Shortcuts</h3>
         <ul>
           <li><span class="kbd">Esc</span> — close any open modal</li>
@@ -1347,8 +1394,43 @@
       scope.querySelectorAll('[data-requires-unlock]').forEach(el => {
         el.disabled = editLocked;
       });
-      const space = scope.querySelector?.('.qr-space');
-      if (space) space.classList.toggle('is-locked', editLocked);
+      scope.querySelectorAll('.qr-space').forEach(space => {
+        space.classList.toggle('is-locked', editLocked);
+        if (editLocked) {
+          space.querySelectorAll('.qr-image.is-revealed').forEach(img => img.classList.remove('is-revealed'));
+        }
+      });
+    }
+
+    // Applies the current lock state to the Expanded Resource editor: the
+    // Title/URL inputs, the rich-text area, and the formatting toolbar.
+    // When locked the controls stay visible but read-only so the modal
+    // remains useful for viewing. The Save/Export button is always left
+    // enabled: exporting an image is a read-only action.
+    function applyExpandLockState() {
+      const locked = editLocked;
+      const titleEl = document.getElementById('expand-title');
+      const urlEl = document.getElementById('expand-url');
+      const richEl = document.getElementById('expand-rich');
+      const toolbar = document.querySelector('.expand-toolbar');
+      [titleEl, urlEl].forEach(el => {
+        if (!el) return;
+        el.disabled = locked;
+        el.readOnly = locked;
+      });
+      if (richEl) richEl.contentEditable = locked ? 'false' : 'true';
+      if (toolbar) {
+        toolbar.classList.toggle('is-locked', locked);
+        toolbar.querySelectorAll('.expand-format-btn').forEach(btn => { btn.disabled = locked; });
+      }
+      const expandQr = document.querySelector('.expand-qr');
+      if (expandQr) {
+        expandQr.classList.toggle('is-locked', locked);
+        if (locked) {
+          const modalImg = document.getElementById('expand-modal-image');
+          if (modalImg) modalImg.classList.remove('is-revealed');
+        }
+      }
     }
 
     function updateLockUI() {
@@ -1378,12 +1460,8 @@
     function setEditLocked(locked) {
       editLocked = locked;
       applyLockToRow(document);
+      applyExpandLockState();
       updateLockUI();
-      // Toggle expand toolbar visibility based on lock state
-      const expandToolbar = document.querySelector('.expand-toolbar');
-      if (expandToolbar) {
-        expandToolbar.style.display = locked ? 'none' : 'flex';
-      }
       // Toggle resize handle visibility based on lock state
       if (resizeHandle) {
         resizeHandle.style.display = locked ? 'none' : 'inline-flex';
@@ -1497,6 +1575,7 @@
     }
 
     function scheduleExpandSave() {
+      if (editLocked) return;
       clearTimeout(expandSaveTimer);
       expandSaveTimer = setTimeout(() => {
         if (expandCurrentCard) {
@@ -1624,13 +1703,29 @@
       if (!space || !picker) return;
 
       space.addEventListener('click', () => {
-        if (editLocked) { flashLockedNotice(); return; }
+        if (editLocked) {
+          const image = space.querySelector('.qr-image');
+          if (image) {
+            image.classList.toggle('is-revealed');
+            return;
+          }
+          flashLockedNotice();
+          return;
+        }
         picker.click();
       });
       space.addEventListener('keydown', event => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
-          if (editLocked) { flashLockedNotice(); return; }
+          if (editLocked) {
+            const image = space.querySelector('.qr-image');
+            if (image) {
+              image.classList.toggle('is-revealed');
+              return;
+            }
+            flashLockedNotice();
+            return;
+          }
           picker.click();
         }
       });
@@ -1861,6 +1956,7 @@
                 bg.style.backgroundSize = 'contain';
                 bg.style.backgroundPosition = 'center';
                 bg.style.backgroundRepeat = 'no-repeat';
+                bg.style.filter = 'none';
                 clonedImg.replaceWith(bg);
               }
 
@@ -2019,6 +2115,7 @@
               bg.style.backgroundSize = 'contain';
               bg.style.backgroundPosition = 'center';
               bg.style.backgroundRepeat = 'no-repeat';
+              bg.style.filter = 'none';
               img.replaceWith(bg);
             });
 
@@ -2142,17 +2239,15 @@
       document.getElementById('expand-url').value = url;
       document.getElementById('expand-rich').innerHTML = rich || '';
       expandModal.classList.add('is-open');
-      document.getElementById('expand-title').focus({ preventScroll: true });
-      lucide.createIcons();
-      // Set expand toolbar visibility based on lock state
-      const expandToolbar = document.querySelector('.expand-toolbar');
-      if (expandToolbar) {
-        expandToolbar.style.display = editLocked ? 'none' : 'flex';
+      applyExpandLockState();
+      if (!editLocked) {
+        document.getElementById('expand-title').focus({ preventScroll: true });
       }
+      lucide.createIcons();
     }
 
     function closeExpandEditor() {
-      if (expandCurrentCard) {
+      if (expandCurrentCard && !editLocked) {
         // Persist changes back to card
         expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value.trim() || 'New Resource';
         expandCurrentCard.querySelector('.resource-url-input').value = document.getElementById('expand-url').value.trim();
@@ -2164,6 +2259,19 @@
       expandDialog.style.width = '';
       expandDialog.style.height = '';
       expandModal.classList.remove('is-open');
+    }
+
+    // Click-to-reveal for the expanded modal QR: when locked, clicking the
+    // QR image toggles the blur off/on for that single QR only.
+    const expandQrElement = document.querySelector('.expand-qr');
+    if (expandQrElement) {
+      expandQrElement.addEventListener('click', (event) => {
+        if (!editLocked) return;
+        const modalImg = document.getElementById('expand-modal-image');
+        if (!modalImg || !modalImg.src) return;
+        event.preventDefault();
+        modalImg.classList.toggle('is-revealed');
+      });
     }
 
     // -------- Resizable stretch handle for the expanded modal (desktop only) --------
@@ -2236,6 +2344,7 @@
     document.querySelectorAll('.expand-format-btn[data-format]').forEach(btn => {
       btn.addEventListener('mousedown', e => e.preventDefault()); // keep selection
       btn.addEventListener('click', () => {
+        if (editLocked) { flashLockedNotice(); return; }
         const format = btn.dataset.format;
         const value = btn.dataset.value;
         const richEl = document.getElementById('expand-rich');
@@ -2267,12 +2376,15 @@
       const btn = document.getElementById('expand-save');
       btn.disabled = true;
       try {
-        // Persist current editor state to card first
-        expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value.trim() || 'New Resource';
-        expandCurrentCard.querySelector('.resource-url-input').value = document.getElementById('expand-url').value.trim();
-        expandCurrentCard.dataset.rich = document.getElementById('expand-rich').innerHTML;
-        updateUrlClickable(expandCurrentCard.querySelector('.resource-url-input'));
-        scheduleSave();
+        if (!editLocked) {
+          // Persist current editor state to card (export is allowed even when
+          // locked, but never write edits back in read-only mode).
+          expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value.trim() || 'New Resource';
+          expandCurrentCard.querySelector('.resource-url-input').value = document.getElementById('expand-url').value.trim();
+          expandCurrentCard.dataset.rich = document.getElementById('expand-rich').innerHTML;
+          updateUrlClickable(expandCurrentCard.querySelector('.resource-url-input'));
+          scheduleSave();
+        }
 
         // Measure live QR square for aspect-ratio fix
         const liveSpace = expandCurrentCard.querySelector('.qr-space');
@@ -2355,6 +2467,7 @@
               bg.style.backgroundSize = 'contain';
               bg.style.backgroundPosition = 'center';
               bg.style.backgroundRepeat = 'no-repeat';
+              bg.style.filter = 'none';
               bg.style.width = '100%';
               bg.style.height = '100%';
               bg.style.objectFit = 'contain';
@@ -2465,12 +2578,14 @@
 
     // Sync editor fields on input (for live preview) + debounced auto-save
     document.getElementById('expand-title').addEventListener('input', () => {
+      if (editLocked || !expandCurrentCard) return;
       if (expandCurrentCard) {
         expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value;
         scheduleExpandSave();
       }
     });
     document.getElementById('expand-url').addEventListener('input', () => {
+      if (editLocked || !expandCurrentCard) return;
       if (expandCurrentCard) {
         expandCurrentCard.querySelector('.resource-url-input').value = document.getElementById('expand-url').value;
         updateUrlClickable(expandCurrentCard.querySelector('.resource-url-input'));
@@ -2478,6 +2593,7 @@
       }
     });
     document.getElementById('expand-rich').addEventListener('input', () => {
+      if (editLocked || !expandCurrentCard) return;
       if (expandCurrentCard) {
         expandCurrentCard.dataset.rich = document.getElementById('expand-rich').innerHTML;
         scheduleExpandSave();
@@ -2517,7 +2633,11 @@
 
     loadBoard();
     applyLockToRow(document);
+    applyExpandLockState();
     updateLockUI();
+    if (resizeHandle) {
+      resizeHandle.style.display = editLocked ? 'none' : 'inline-flex';
+    }
     lucide.createIcons();
   </script>
  </body>

@@ -517,6 +517,7 @@
     .blocked { color: #a23537; background: #f9d9d7; }
     .in-progress { color: #896414; background: #fff0b8; }
     .completed { color: #2f7b48; background: #d8f2dc; }
+    .status-none { color: #6b6765; background: #e4e4e4; }
 
     .deadline-cell { color: #51494a; font-weight: 600; }
     .remarks-cell { color: #74696a; }
@@ -786,91 +787,91 @@
          <tr>
           <td data-template-id="officer-lead" contenteditable="true" spellcheck="true" class="officer-cell lead">Lead</td>
           <td data-template-id="deliverable-lead" contenteditable="true" spellcheck="true" class="deliverable-cell"><ol><li>Monthly leadership report</li><li>Officer performance review</li><li>Strategic planning update</li></ol></td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-lead-1" class="status-badge in-progress" aria-label="Lead status 1"><option>Not Started</option><option>Blocked</option><option selected>In Progress</option><option>Completed</option></select></div><div class="line-item"><select data-template-id="status-lead-2" class="status-badge not-started" aria-label="Lead status 2"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div><div class="line-item"><select data-template-id="status-lead-3" class="status-badge not-started" aria-label="Lead status 3"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-lead-1" class="status-badge in-progress" aria-label="Lead status 1"><option>Not Started</option><option>Blocked</option><option selected>In Progress</option><option>Completed</option><option>NONE</option></select></div><div class="line-item"><select data-template-id="status-lead-2" class="status-badge not-started" aria-label="Lead status 2"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div><div class="line-item"><select data-template-id="status-lead-3" class="status-badge not-started" aria-label="Lead status 3"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-lead-1" contenteditable="true" spellcheck="true" class="line-text deadline-text">Monday, May 4, 2026</span></div><div class="line-item"><span data-template-id="deadline-lead-2" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 10, 2026</span></div><div class="line-item"><span data-template-id="deadline-lead-3" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 15, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-lead-1" contenteditable="true" spellcheck="true" class="line-text remarks-text">For review</span></div><div class="line-item"><span data-template-id="remarks-lead-2" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div><div class="line-item"><span data-template-id="remarks-lead-3" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-internal-affairs" contenteditable="true" spellcheck="true" class="officer-cell internal">Internal Affairs</td>
           <td data-template-id="deliverable-internal-affairs" contenteditable="true" spellcheck="true" class="deliverable-cell">Officer coordination brief</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-internal-affairs" class="status-badge completed" aria-label="Internal Affairs status"><option>Not Started</option><option>Blocked</option><option>In Progress</option><option selected>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-internal-affairs" class="status-badge completed" aria-label="Internal Affairs status"><option>Not Started</option><option>Blocked</option><option>In Progress</option><option selected>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-internal-affairs" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 8, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-internal-affairs" contenteditable="true" spellcheck="true" class="line-text remarks-text">Submitted</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-external-relations" contenteditable="true" spellcheck="true" class="officer-cell external">External Relations</td>
           <td data-template-id="deliverable-external-relations" contenteditable="true" spellcheck="true" class="deliverable-cell">Partner outreach list</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-external-relations" class="status-badge blocked" aria-label="External Relations status"><option>Not Started</option><option selected>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-external-relations" class="status-badge blocked" aria-label="External Relations status"><option>Not Started</option><option selected>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-external-relations" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 12, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-external-relations" contenteditable="true" spellcheck="true" class="line-text remarks-text">Awaiting confirmation</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-secretariat" contenteditable="true" spellcheck="true" class="officer-cell secretariat">Secretariat</td>
           <td data-template-id="deliverable-secretariat" contenteditable="true" spellcheck="true" class="deliverable-cell">Meeting minutes and files</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-secretariat" class="status-badge not-started" aria-label="Secretariat status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-secretariat" class="status-badge not-started" aria-label="Secretariat status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-secretariat" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 15, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-secretariat" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-finance" contenteditable="true" spellcheck="true" class="officer-cell finance">Finance</td>
           <td data-template-id="deliverable-finance" contenteditable="true" spellcheck="true" class="deliverable-cell">Monthly budget update</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-finance" class="status-badge not-started" aria-label="Finance status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-finance" class="status-badge not-started" aria-label="Finance status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-finance" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 16, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-finance" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-media-and-communications" contenteditable="true" spellcheck="true" class="officer-cell media">Media &amp; Communications</td>
           <td data-template-id="deliverable-media-and-communications" contenteditable="true" spellcheck="true" class="deliverable-cell">Content calendar</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-media-and-communications" class="status-badge not-started" aria-label="Media &amp; Communications status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-media-and-communications" class="status-badge not-started" aria-label="Media &amp; Communications status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-media-and-communications" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 18, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-media-and-communications" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-fundraising" contenteditable="true" spellcheck="true" class="officer-cell fundraising">Fundraising</td>
           <td data-template-id="deliverable-fundraising" contenteditable="true" spellcheck="true" class="deliverable-cell">Fundraising proposal</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-fundraising" class="status-badge not-started" aria-label="Fundraising status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-fundraising" class="status-badge not-started" aria-label="Fundraising status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-fundraising" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 20, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-fundraising" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-safe-space" contenteditable="true" spellcheck="true" class="officer-cell safe">Safe Space</td>
           <td data-template-id="deliverable-safe-space" contenteditable="true" spellcheck="true" class="deliverable-cell">Safety protocol check</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-safe-space" class="status-badge not-started" aria-label="Safe Space status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-safe-space" class="status-badge not-started" aria-label="Safe Space status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-safe-space" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 22, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-safe-space" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-community-engagement" contenteditable="true" spellcheck="true" class="officer-cell community">Community Engagement</td>
           <td data-template-id="deliverable-community-engagement" contenteditable="true" spellcheck="true" class="deliverable-cell">Community activity plan</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-community-engagement" class="status-badge not-started" aria-label="Community Engagement status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-community-engagement" class="status-badge not-started" aria-label="Community Engagement status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-community-engagement" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 24, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-community-engagement" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-design-and-innovation" contenteditable="true" spellcheck="true" class="officer-cell design">Design &amp; Innovation</td>
           <td data-template-id="deliverable-design-and-innovation" contenteditable="true" spellcheck="true" class="deliverable-cell">Campaign design kit</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-design-and-innovation" class="status-badge not-started" aria-label="Design &amp; Innovation status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-design-and-innovation" class="status-badge not-started" aria-label="Design &amp; Innovation status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-design-and-innovation" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 26, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-design-and-innovation" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-formation" contenteditable="true" spellcheck="true" class="officer-cell formation">Formation</td>
           <td data-template-id="deliverable-formation" contenteditable="true" spellcheck="true" class="deliverable-cell">Formation session outline</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-formation" class="status-badge not-started" aria-label="Formation status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-formation" class="status-badge not-started" aria-label="Formation status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-formation" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 28, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-formation" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-recruitment" contenteditable="true" spellcheck="true" class="officer-cell recruitment">Recruitment</td>
           <td data-template-id="deliverable-recruitment" contenteditable="true" spellcheck="true" class="deliverable-cell">Membership recruitment plan</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-recruitment" class="status-badge not-started" aria-label="Recruitment status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-recruitment" class="status-badge not-started" aria-label="Recruitment status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-recruitment" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 30, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-recruitment" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
          </tr>
          <tr>
           <td data-template-id="officer-deployment" contenteditable="true" spellcheck="true" class="officer-cell deployment">Deployment</td>
           <td data-template-id="deliverable-deployment" contenteditable="true" spellcheck="true" class="deliverable-cell">Event logistics deployment plan</td>
-          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-deployment" class="status-badge not-started" aria-label="Deployment status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option></select></div></div></td>
+          <td><div class="cell-stack"><div class="line-item"><select data-template-id="status-deployment" class="status-badge not-started" aria-label="Deployment status"><option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option></select></div></div></td>
           <td><div class="cell-stack"><div class="line-item"><span data-template-id="deadline-deployment" contenteditable="true" spellcheck="true" class="line-text deadline-text">May 31, 2026</span></div></div></td>
           <td class="remarks-cell"><div class="cell-stack"><div class="line-item"><span data-template-id="remarks-deployment" contenteditable="true" spellcheck="true" class="line-text remarks-text">—</span></div></div></td>
          </tr>
@@ -909,7 +910,7 @@
         <ul>
           <li><strong>Officer / Committee</strong> — Role or committee name (color-coded).</li>
           <li><strong>Deliverable</strong> — Task description (supports lists, rich text).</li>
-          <li><strong>Status</strong> — Dropdown: <span class="kbd">Not Started</span>, <span class="kbd">Blocked</span>, <span class="kbd">In Progress</span>, <span class="kbd">Completed</span>.</li>
+          <li><strong>Status</strong> — Dropdown: <span class="kbd">Not Started</span>, <span class="kbd">Blocked</span>, <span class="kbd">In Progress</span>, <span class="kbd">Completed</span>, <span class="kbd">NONE</span>.</li>
           <li><strong>Deadline</strong> — Target date for each deliverable item.</li>
           <li><strong>Additional Remarks</strong> — Notes, blockers, or context.</li>
         </ul>
@@ -946,6 +947,7 @@
   <script>
     // ---------- Status badge styling ----------
     const statusStyles = {
+      "NONE": { className: "status-none", background: "#e4e4e4", color: "#6b6765" },
       "Not Started": { className: "not-started", background: "#f9d9d7", color: "#a23537" },
       "Blocked": { className: "blocked", background: "#f9d9d7", color: "#a23537" },
       "In Progress": { className: "in-progress", background: "#fff0b8", color: "#896414" },
@@ -954,7 +956,7 @@
 
     function applyStatusStyle(select) {
       const style = statusStyles[select.value] || statusStyles["Not Started"];
-      select.classList.remove("not-started", "blocked", "in-progress", "completed");
+      select.classList.remove("not-started", "blocked", "in-progress", "completed", "status-none");
       select.classList.add(style.className);
       select.style.background = style.background;
       select.style.color = style.color;
@@ -1237,7 +1239,7 @@
 
     function statusSelectMarkup(fieldId, ariaLabel) {
       return `<select data-template-id="${fieldId}" class="status-badge not-started" aria-label="${ariaLabel}">
-        <option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option>
+        <option selected>Not Started</option><option>Blocked</option><option>In Progress</option><option>Completed</option><option>NONE</option>
       </select>`;
     }
 
