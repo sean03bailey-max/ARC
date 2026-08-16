@@ -646,34 +646,19 @@
     }
     .resource-title-row .resource-title { flex: 1; min-width: 0; margin: .68rem 0 .28rem; }
 
-    .expand-button {
-      display: inline-flex;
-      flex: 0 0 auto;
+    .resource-url-input {
+      display: flex;
       align-items: center;
       justify-content: center;
-      width: 28px;
-      height: 28px;
-      margin-top: .3rem;
-      border: 1px solid rgba(122,35,49,.36);
-      border-radius: 7px;
-      color: var(--maroon-dark);
-      background: #fff;
-      cursor: pointer;
-      transition: transform .16s ease, background .16s ease, color .16s ease;
-    }
-    .expand-button:hover { color: #fff; background: var(--maroon); transform: translateY(-1px); }
-    .expand-button svg { width: 14px; height: 14px; }
-
-    .resource-url-input {
-      display: block;
-      padding: .35rem .46rem;
+      min-height: 32px;
+      padding: .4rem .46rem;
       border-color: rgba(122,35,49,.25);
       border-radius: 6px;
       color: #3a1720;
       background: rgba(255,255,255,.72);
       font-size: .72rem;
       font-weight: 700;
-      line-height: 1.3;
+      line-height: 1.4;
     }
 
     .resource-title:hover, .resource-title:focus {
@@ -698,15 +683,17 @@
     .resource-url-input.url-clickable:hover { background: #fff; }
 
     .action-cluster {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      display: flex;
+      align-items: center;
       gap: .3rem;
       margin-top: .65rem;
     }
 
     .card-action {
       display: inline-flex;
-      min-height: 32px;
+      flex: 1 1 0;
+      min-width: 0;
+      height: 32px;
       align-items: center;
       justify-content: center;
       gap: .25rem;
@@ -961,6 +948,11 @@
       font-size: .85rem;
       font-weight: 700;
       line-height: 1.3;
+    }
+    #expand-title, #expand-url {
+      text-align: center;
+      padding-left: .5rem;
+      padding-right: .5rem;
     }
     .expand-input:focus {
       border-color: var(--maroon);
@@ -1270,16 +1262,16 @@
      </div>
      <div class="resource-title-row">
       <h2 class="resource-title" contenteditable="true" spellcheck="true"></h2>
-      <button class="expand-button" type="button" data-action="expand" aria-label="Expand resource"><i data-lucide="maximize-2"></i></button>
      </div>
      <input class="resource-url-input" type="url" aria-label="Resource URL" placeholder="https://">
      <div class="action-cluster" aria-label="Resource actions">
-      <button class="card-action" type="button" data-action="left" data-requires-unlock aria-label="Move resource left"><i data-lucide="chevron-left"></i></button>
-      <button class="card-action" type="button" data-action="right" data-requires-unlock aria-label="Move resource right"><i data-lucide="chevron-right"></i></button>
-      <button class="card-action" type="button" data-action="copy" aria-label="Copy resource URL"><i data-lucide="clipboard"></i></button>
-      <button class="card-action" type="button" data-action="save" aria-label="Save resource QR card"><i data-lucide="download"></i></button>
-      <button class="card-action delete" type="button" data-action="delete" data-requires-unlock aria-label="Delete resource"><i data-lucide="trash-2"></i></button>
-     </div>
+       <button class="card-action" type="button" data-action="left" data-requires-unlock aria-label="Move resource left"><i data-lucide="chevron-left"></i></button>
+       <button class="card-action" type="button" data-action="right" data-requires-unlock aria-label="Move resource right"><i data-lucide="chevron-right"></i></button>
+       <button class="card-action" type="button" data-action="copy" aria-label="Copy resource URL"><i data-lucide="clipboard"></i></button>
+       <button class="card-action delete" type="button" data-action="delete" data-requires-unlock aria-label="Delete resource"><i data-lucide="trash-2"></i></button>
+       <button class="card-action expand-button" type="button" data-action="expand" aria-label="Expand resource"><i data-lucide="maximize-2"></i></button>
+       <button class="card-action" type="button" data-action="save" aria-label="Save resource QR card"><i data-lucide="download"></i></button>
+      </div>
     </div>
    </article>
   </template>
@@ -1884,13 +1876,21 @@
                 // Use this card's own measured rect (fixes bug where it used
                 // another card's input height).
                 const inputH = cardUrlRect ? cardUrlRect.height : 24;
+                const inputPad = cardUrlRect ? (parseFloat(getComputedStyle(n).paddingTop) || 6.4) : 6.4;
+                const lineH = 16.13; // .72rem font at 1.4 line-height
+                // Center the text block vertically with real padding and a
+                // normal line-height so descenders (g, y, p, q, j) keep full
+                // clearance. Avoids flexbox (html2canvas 1.4.1 handles it
+                // poorly) and the old `line-height: inputHpx` baseline trick
+                // that clipped descenders at the bottom edge.
+                const vPad = Math.max((inputH - lineH - 2) / 2, inputPad, 4);
                 span.style.cssText = `
                   display: block;
                   box-sizing: border-box;
                   width: 100%;
                   height: ${inputH}px;
-                  line-height: ${inputH}px;
-                  padding: 0 .46rem;
+                  line-height: 1.4;
+                  padding: ${vPad}px .46rem;
                   border: 1px solid transparent;
                   border-radius: 6px;
                   color: #3a1720;
