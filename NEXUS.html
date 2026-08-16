@@ -600,8 +600,24 @@
     .qr-space:hover .qr-image { transform: scale(1.018); }
 
     .qr-space.is-locked.has-image { cursor: pointer; }
-    .qr-space.is-locked .qr-image { filter: blur(14px); }
+    .qr-space.is-locked .qr-image { filter: blur(20px); }
     .qr-space.is-locked .qr-image.is-revealed { filter: blur(0); }
+
+    .qr-reveal-icon {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      color: rgba(255,255,255,.92);
+      opacity: 0;
+      transition: opacity .2s ease-in-out;
+    }
+    .qr-reveal-icon svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+    .qr-space.is-locked.has-image .qr-reveal-icon { opacity: 1; }
+    .qr-space.is-locked.has-image .qr-image.is-revealed ~ .qr-reveal-icon { opacity: 0; }
 
     .upload-hint {
       position: relative;
@@ -880,8 +896,24 @@
     }
 
     .expand-qr.is-locked { cursor: pointer; }
-    .expand-qr.is-locked .expand-modal-image { filter: blur(14px); }
+    .expand-qr.is-locked .expand-modal-image { filter: blur(20px); }
     .expand-qr.is-locked .expand-modal-image.is-revealed { filter: blur(0); }
+
+    .expand-reveal-icon {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      color: rgba(255,255,255,.92);
+      opacity: 0;
+      transition: opacity .2s ease-in-out;
+    }
+    .expand-reveal-icon svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+    .expand-qr.is-locked .expand-reveal-icon { opacity: 1; }
+    .expand-qr.is-locked .expand-modal-image.is-revealed ~ .expand-reveal-icon { opacity: 0; }
 
     .expand-editor-card {
       min-width: 400px;
@@ -1209,6 +1241,9 @@
        <div class="expand-card expand-qr-card">
          <div class="expand-qr">
            <img id="expand-modal-image" class="expand-modal-image" aria-hidden="true" alt="QR code">
+           <span class="expand-reveal-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 9 5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2 8 5.1"/><path d="m5.1 8-2.9-.8"/><path d="M14 4.1 12 6"/><path d="m6 12-1.9 2"/></svg>
+           </span>
          </div>
        </div>
 <div class="expand-card expand-editor-card">
@@ -1305,6 +1340,9 @@
     <div class="qr-card">
      <div class="qr-space" tabindex="0" role="button" aria-label="Upload a QR image">
       <span class="upload-hint">Drop a QR image here or click to upload</span>
+      <span class="qr-reveal-icon" aria-hidden="true">
+       <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 9 5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2 8 5.1"/><path d="m5.1 8-2.9-.8"/><path d="M14 4.1 12 6"/><path d="m6 12-1.9 2"/></svg>
+      </span>
       <input class="image-picker sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
      </div>
      <div class="resource-title-row">
@@ -1934,7 +1972,7 @@
                 sheet.style.transform = 'none';
               }
 
-              el.querySelectorAll('.action-cluster, .expand-button').forEach(n => n.style.display = 'none');
+              el.querySelectorAll('.action-cluster, .expand-button, .qr-reveal-icon').forEach(n => n.style.display = 'none');
 
               const clonedSpace = el.querySelector('.qr-space');
               if (clonedSpace) {
@@ -2094,7 +2132,7 @@
               sheet.style.transform = 'none';
             }
 
-            el.querySelectorAll('.header-actions, .password-row, .add-resource-wrap, .status-region, .action-cluster, .expand-button').forEach(n => {
+            el.querySelectorAll('.header-actions, .password-row, .add-resource-wrap, .status-region, .action-cluster, .expand-button, .qr-reveal-icon').forEach(n => {
               n.style.display = 'none';
             });
 
@@ -2437,7 +2475,7 @@
 
             // Remove modal chrome
             el.querySelectorAll('.expand-close, .expand-resize-handle').forEach(n => n.style.display = 'none');
-            el.querySelectorAll('.action-cluster, .expand-button').forEach(n => n.style.display = 'none');
+            el.querySelectorAll('.action-cluster, .expand-button, .expand-reveal-icon').forEach(n => n.style.display = 'none');
             el.querySelectorAll('.expand-save-btn').forEach(n => n.style.display = 'none');
 
             const clonedSpace = el.querySelector('.qr-space');
