@@ -782,6 +782,8 @@
       font-size: 20px;
       line-height: 1;
       cursor: pointer;
+      z-index: 40;
+      box-shadow: 0 2px 6px rgba(0,0,0,.18);
     }
     .expand-close:hover { background: var(--maroon); color: #fff; }
     .expand-modal-image {
@@ -908,15 +910,15 @@
     }
 
     .expand-save-btn {
-      position: absolute;
-      top: 8px;
-      left: 8px;
+      position: static;
+      align-self: flex-start;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: .45rem;
       height: 36px;
       padding: 0 .75rem;
+      margin-bottom: .6rem;
       border: 1px solid var(--rule);
       border-radius: 6px;
       background: var(--maroon);
@@ -1106,11 +1108,6 @@
       .expand-editor {
         padding: 1rem;
         min-height: 0;
-      }
-      .expand-save-btn {
-        position: static;
-        margin-bottom: .5rem;
-        align-self: flex-start;
       }
       .expand-resize-handle {
         display: none !important;
