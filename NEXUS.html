@@ -594,14 +594,12 @@
       height: calc(100% - 28px);
       object-fit: contain;
       background: rgba(255,255,255,.78);
-      transition: transform .2s ease, filter .2s ease-in-out;
+      transition: transform .2s ease;
     }
 
     .qr-space:hover .qr-image { transform: scale(1.018); }
 
     .qr-space.is-locked.has-image { cursor: pointer; }
-    .qr-space.is-locked .qr-image { filter: blur(20px); }
-    .qr-space.is-locked .qr-image.is-revealed { filter: blur(0); }
 
     .qr-reveal-icon {
       position: absolute;
@@ -611,11 +609,13 @@
       align-items: center;
       justify-content: center;
       pointer-events: none;
-      color: rgba(255,255,255,.92);
+      background: #fff;
+      border-radius: 10px;
+      color: #4a4a4a;
       opacity: 0;
       transition: opacity .2s ease-in-out;
     }
-    .qr-reveal-icon svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+    .qr-reveal-icon svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)); }
     .qr-space.is-locked.has-image .qr-reveal-icon { opacity: 1; }
     .qr-space.is-locked.has-image .qr-image.is-revealed ~ .qr-reveal-icon { opacity: 0; }
 
@@ -892,12 +892,9 @@
       border-radius: 0;
       background: rgba(255,255,255,.78);
       object-fit: contain;
-      transition: filter .2s ease-in-out;
     }
 
     .expand-qr.is-locked { cursor: pointer; }
-    .expand-qr.is-locked .expand-modal-image { filter: blur(20px); }
-    .expand-qr.is-locked .expand-modal-image.is-revealed { filter: blur(0); }
 
     .expand-reveal-icon {
       position: absolute;
@@ -907,11 +904,12 @@
       align-items: center;
       justify-content: center;
       pointer-events: none;
-      color: rgba(255,255,255,.92);
+      background: #fff;
+      color: #4a4a4a;
       opacity: 0;
       transition: opacity .2s ease-in-out;
     }
-    .expand-reveal-icon svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+    .expand-reveal-icon svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)); }
     .expand-qr.is-locked .expand-reveal-icon { opacity: 1; }
     .expand-qr.is-locked .expand-modal-image.is-revealed ~ .expand-reveal-icon { opacity: 0; }
 
@@ -1323,7 +1321,7 @@
         <p>Click the <span class="kbd">+</span> button (top-right) and enter the password to unlock editing. When locked, all inputs and actions are disabled but viewing works normally.</p>
 
         <h3>QR Blur &amp; Reveal</h3>
-        <p>While editing is locked, QR codes are shown blurred to keep their contents private. Click any blurred QR (on a card or in the expanded view) to reveal it; click again to blur it back. Each QR toggles independently, and exported images are always sharp.</p>
+        <p>While editing is locked, QR codes are covered with a white fill to keep their contents private. Click any covered QR (on a card or in the expanded view) to reveal it; click again to cover it back. Each QR toggles independently, and exported images are always sharp.</p>
 
         <h3>Keyboard Shortcuts</h3>
         <ul>
