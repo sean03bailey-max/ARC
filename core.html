@@ -9,6 +9,13 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('arc-theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=Poppins:wght@800;900&family=DM+Sans:wght@800&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -479,20 +486,6 @@
       color: #3b2426;
     }
 
-    .lead { background: #fde9a7; }
-    .internal { background: #fee6a1; }
-    .external { background: #fee3a0; }
-    .secretariat { background: #f9e0a1; }
-    .finance { background: #f6dfa1; }
-    .media { background: #f4dda2; }
-    .fundraising { background: #dceab0; }
-    .safe { background: #d4e6b0; }
-    .community { background: #cbe3b3; }
-    .design { background: #c5dfb3; }
-    .formation { background: #bfdbb3; }
-    .recruitment { background: #b6d7b1; }
-    .deployment { background: #add3af; }
-
     .status-badge {
       display: flex;
       align-items: center;
@@ -553,14 +546,14 @@
     .format-btn[disabled]:hover { background: transparent; border-color: transparent; }
     .format-divider { width: 1px; height: 20px; background: #d9d0c9; margin: 0 4px; }
 
-    .add-row-wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; }
-    .add-row-controls { display: flex; flex-wrap: wrap; gap: 10px; }
+    .add-row-wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 1.5rem; padding: 0 4px; }
+    .add-row-controls { display: flex; flex-wrap: wrap; gap: 8px; }
 
     .add-row-button {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border: 1px solid rgba(152,32,54,.35);
       border-radius: 999px;
       background: #fff;
@@ -595,8 +588,8 @@
 
     .password-toggle {
       flex: 0 0 auto;
-      width: 34px;
-      height: 34px;
+      width: 38px;
+      height: 38px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -605,7 +598,7 @@
       cursor: pointer;
     }
     .password-toggle.is-unlocked { background: #27704c; border-color: #27704c !important; color: #fff; }
-    .password-toggle svg { width: 16px; height: 16px; }
+    .password-toggle svg { width: 17px; height: 17px; }
 
     .password-panel {
       width: 0;
@@ -617,7 +610,7 @@
 
     .password-input {
       width: 100%;
-      height: 34px;
+      height: 38px;
       padding: 0 .6rem;
       border: 1px solid rgba(152,32,54,.35);
       border-radius: 8px;
@@ -714,8 +707,9 @@
       .sheet { box-shadow: none; border: 1px solid #999; }
     }
   </style>
+  <link rel="stylesheet" href="assets/neubrutal.css">
  </head>
- <body data-template-id="__page-root" style="background: rgb(143, 31, 50);">
+ <body data-template-id="__page-root" style="background: rgb(255, 253, 248);">
   <div class="tracker-shell">
    <main class="app-frame" aria-labelledby="tracker-title">
     <section class="sheet" aria-label="Officer deliverables tracker">
@@ -723,7 +717,7 @@
       <div class="page-header">
        <div class="brand-group">
 <div class="brand-top">
-          <span class="logo-badge arc-action-sm" tabindex="0" role="button" aria-label="Open CORE help guide" aria-expanded="false" aria-controls="helpModal"><img id="orgLogo" src="assets/logo.png" alt="ACRCY logo" onerror="this.closest('.logo-badge').style.display='none'"><i class="help-icon" data-lucide="help-circle" aria-hidden="true"></i></span>
+          <span class="logo-badge arc-action-sm" tabindex="0" role="button" aria-label="Open CORE help guide" aria-expanded="false" aria-controls="helpModal"><i class="help-icon" data-lucide="help-circle" aria-hidden="true"></i></span>
           <h1 id="tracker-title" class="page-heading" style="color: rgb(152, 32, 54);">CORE</h1>
          </div>
         <div class="brand-sub">
@@ -740,8 +734,11 @@
       </div>
       <div class="password-row">
        <div class="password-widget" id="passwordWidget">
-        <button id="passwordToggle" class="password-toggle arc-action-sm" type="button" aria-expanded="false" aria-label="Unlock editing"><i data-lucide="plus" aria-hidden="true" width="18" height="18"></i></button>
-        <div class="password-panel"><input id="passwordInput" type="password" class="password-input" placeholder="Input Password" autocomplete="off" spellcheck="false"></div>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button>
+        <div class="pw-tools">
+         <button id="passwordToggle" class="password-toggle arc-action-sm" type="button" aria-expanded="false" aria-label="Unlock editing"><i data-lucide="plus" aria-hidden="true" width="18" height="18"></i></button>
+         <div class="password-panel"><input id="passwordInput" type="password" class="password-input" placeholder="Input Password" autocomplete="off" spellcheck="false"></div>
+        </div>
        </div>
       </div>
      </header>
@@ -754,7 +751,7 @@
         <span data-template-id="updated-label" class="canva-text meta-label" style="color: rgb(107, 94, 96); font-weight: 800; font-style: normal; font-size: 10px;">Last updated</span> <span data-template-id="updated-value" contenteditable="true" spellcheck="true" class="canva-text text-sm font-bold" style="color: rgb(47, 37, 38); font-weight: 700; font-style: normal; font-size: 14px;">May 29, 2026</span>
        </div>
        <div class="meta-cell">
-        <span data-template-id="updated-by-label" class="canva-text meta-label" style="color: rgb(107, 94, 96); font-weight: 800; font-style: normal; font-size: 10px;">Updated by</span> <span data-template-id="updated-by-value" contenteditable="true" spellcheck="true" class="canva-text text-sm font-bold" style="color: rgb(47, 37, 38); font-weight: 700; font-style: normal; font-size: 14px;">ACRCY Secretariat</span>
+        <span data-template-id="updated-by-label" class="canva-text meta-label" style="color: rgb(107, 94, 96); font-weight: 800; font-style: normal; font-size: 10px;">Updated by</span> <span data-template-id="updated-by-value" contenteditable="true" spellcheck="true" class="canva-text text-sm font-bold" style="color: rgb(47, 37, 38); font-weight: 700; font-style: normal; font-size: 14px;">ARC Secretariat</span>
        </div>
 <div class="meta-cell justify-center">
          <i data-lucide="clipboard-check" aria-hidden="true" width="20" height="20" class="text-[#982036]"></i>
@@ -1137,8 +1134,7 @@
     }
 
     function openPasswordWidget() {
-      const compactWidth = 200;
-      passwordWidget.style.setProperty("--pw-width", `${compactWidth}px`);
+      passwordWidget.style.setProperty("--pw-width", "160px");
       passwordWidget.classList.add("is-open");
       passwordToggle.setAttribute("aria-expanded", "true");
       passwordInput.focus({ preventScroll: true });
@@ -1231,9 +1227,7 @@
       }
     });
 
-    // ---------- Add Row (extra committee rows, cycling the same palette) ----------
-    const PALETTE_CLASSES = ["lead", "internal", "external", "secretariat", "finance", "media",
-      "fundraising", "safe", "community", "design", "formation", "recruitment", "deployment"];
+    // ---------- Add Row (extra committee rows, clean white default) ----------
     const tbodyEl = document.querySelector(".tracker-table tbody");
     let customRows = []; // [{ slug, colorClass }], persisted as one field
 
@@ -1269,9 +1263,8 @@
 
     document.getElementById("addRowButton").addEventListener("click", () => {
       if (editLocked) { flashLockedNotice(); return; }
-      const colorClass = PALETTE_CLASSES[tbodyEl.querySelectorAll("tr").length % PALETTE_CLASSES.length];
       const slug = `custom-${Date.now().toString(36)}`;
-      const record = { slug, colorClass };
+      const record = { slug, colorClass: "" };
       customRows.push(record);
       tbodyEl.appendChild(buildCustomRow(record));
       lucide.createIcons();
@@ -1484,7 +1477,7 @@ try {
 
         const allCss = collectAllCssText();
         const canvas = await html2canvas(document.querySelector(".tracker-shell"), {
-          backgroundColor: "#8f1f32", scale: 2, useCORS: true, imageTimeout: 15000,
+          backgroundColor: "#fffdf8", scale: 2, useCORS: true, imageTimeout: 15000,
           onclone: (clonedDoc) => {
             const style = clonedDoc.createElement("style");
             style.textContent = allCss + `
@@ -1503,6 +1496,7 @@ try {
             const sync = clonedDoc.getElementById("syncStatus"); if (sync) sync.style.display = "none";
             const addRow = clonedDoc.getElementById("addRowButton"); if (addRow) addRow.closest(".add-row-wrap")?.style.setProperty("display", "none");
             clonedDoc.querySelectorAll(".nav-button, .password-widget, .tracker-button, .icon-button").forEach((n) => { n.style.display = "none"; });
+            clonedDoc.querySelectorAll(".desktop-sidebar, .mobile-bottom-nav, .fab").forEach((n) => { n.style.display = "none"; });
 
             // 1) Explicit list markers (html2canvas doesn't render ::marker)
             clonedDoc.querySelectorAll("td.deliverable-cell ol, td.deliverable-cell ul").forEach((list) => {
@@ -1590,6 +1584,89 @@ try {
     applyLockToRow(document);
     updateLockUI();
     lucide.createIcons();
+  </script>
+
+  <!-- Retro-Neubrutalist navigation (REV 38) -->
+  <aside class="desktop-sidebar" aria-label="Primary">
+   <div class="sidebar-brand">
+    <img src="assets/logo.png" alt="ARC logo" class="sidebar-logo">
+    <div>
+     <span class="sidebar-title">ARC</span>
+    </div>
+   </div>
+   <nav class="sidebar-nav" aria-label="Modules">
+    <a href="index.html" class="sidebar-link"><i data-lucide="home" aria-hidden="true"></i><span>Home</span></a>
+    <a href="NEXUS.html" class="sidebar-link"><i data-lucide="qr-code" aria-hidden="true"></i><span>Nexus</span></a>
+    <a href="core.html" class="sidebar-link is-active"><i data-lucide="list-checks" aria-hidden="true"></i><span>Core</span></a>
+    <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="sidebar-link"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>Tracker</span></a>
+    <button type="button" class="sidebar-link" id="sidebarSave"><i data-lucide="save" aria-hidden="true"></i><span>Save</span></button>
+   </nav>
+   <div class="sidebar-footer">
+    <div class="sidebar-widget-slot" id="sidebarWidgetSlot"></div>
+    <div class="sidebar-sync-slot" id="sidebarSyncSlot"></div>
+   </div>
+  </aside>
+
+  <nav class="mobile-bottom-nav" aria-label="Primary">
+   <a href="index.html" class="mn-item"><i data-lucide="home" aria-hidden="true"></i><span>Home</span></a>
+   <a href="NEXUS.html" class="mn-item"><i data-lucide="qr-code" aria-hidden="true"></i><span>Nexus</span></a>
+   <a href="core.html" class="mn-item is-active"><i data-lucide="list-checks" aria-hidden="true"></i><span>Core</span></a>
+   <button type="button" class="mn-item" id="bottomNavSave"><i data-lucide="save" aria-hidden="true"></i><span>Save</span></button>
+  </nav>
+
+  <button type="button" class="fab" id="pageFab" data-requires-unlock aria-label="Add row"><i data-lucide="plus" aria-hidden="true"></i></button>
+
+  <script>
+    (function () {
+      var sidebar = document.querySelector('.desktop-sidebar');
+      if (!sidebar) return;
+      var pw = document.getElementById('passwordWidget');
+      var pwRow = document.querySelector('.password-row');
+      var syncEl = document.getElementById('syncStatus');
+      var brandSub = document.querySelector('.brand-sub');
+      var syncSlot = document.getElementById('sidebarSyncSlot');
+      var widgetSlot = document.getElementById('sidebarWidgetSlot');
+      var realSave = document.getElementById('saveImageButton');
+      var realAdd = document.getElementById('addRowButton');
+      var sidebarSave = document.getElementById('sidebarSave');
+      var bottomSave = document.getElementById('bottomNavSave');
+      var fab = document.getElementById('pageFab');
+      var mq = window.matchMedia('(min-width:1024px)');
+
+      function layout() {
+        var desktop = mq.matches;
+        if (desktop) {
+          if (widgetSlot && pw) widgetSlot.appendChild(pw);
+          if (syncSlot && syncEl) syncSlot.appendChild(syncEl);
+        } else {
+          if (pwRow && pw) pwRow.appendChild(pw);
+          if (brandSub && syncEl && !brandSub.contains(syncEl)) brandSub.appendChild(syncEl);
+        }
+      }
+      layout();
+      if (mq.addEventListener) mq.addEventListener('change', layout);
+      else if (mq.addListener) mq.addListener(layout);
+
+      if (sidebarSave && realSave) sidebarSave.addEventListener('click', function () { realSave.click(); });
+      if (bottomSave && realSave) bottomSave.addEventListener('click', function () { realSave.click(); });
+      if (fab && realAdd) {
+        if (typeof editLocked !== 'undefined' && editLocked) fab.disabled = true;
+        fab.addEventListener('click', function () { realAdd.click(); });
+      }
+      if (window.lucide) lucide.createIcons();
+    })();
+  </script>
+  <script>
+    (function () {
+      var btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var html = document.documentElement;
+        var dark = html.getAttribute('data-theme') === 'dark';
+        html.setAttribute('data-theme', dark ? 'light' : 'dark');
+        try { localStorage.setItem('arc-theme', dark ? 'light' : 'dark'); } catch (e) {}
+      });
+    })();
   </script>
  </body>
 </html>

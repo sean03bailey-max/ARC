@@ -9,6 +9,13 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('arc-theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Poppins:wght@800;900&family=Libre+Franklin:wght@700;800&family=DM+Sans:wght@500;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -436,7 +443,6 @@
     .password-widget {
       display: flex;
       align-items: center;
-      margin-bottom: .5rem;
     }
 
     .password-toggle {
@@ -1180,18 +1186,19 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="assets/neubrutal.css">
  </head>
  <body>
-  <main class="board-shell" aria-label="ACRCY shared resource QR board">
+  <main class="board-shell" aria-label="ARC shared resource QR board">
    <section class="sheet">
     <header class="board-header">
      <div class="brand-group">
 <div class="brand-top">
-        <div class="logo-wrap arc-action-sm" tabindex="0" role="button" aria-label="Open NEXUS help guide" aria-expanded="false" aria-controls="helpModal"><img src="assets/logo.png" alt="Ateneo College Red Cross Youth Council emblem"><i class="help-icon" data-lucide="help-circle" aria-hidden="true"></i></div>
+        <div class="logo-wrap arc-action-sm" tabindex="0" role="button" aria-label="Open NEXUS help guide" aria-expanded="false" aria-controls="helpModal"><i class="help-icon" data-lucide="help-circle" aria-hidden="true"></i></div>
         <h1 class="page-heading">NEXUS</h1>
        </div>
       <div class="brand-sub">
-       <p id="board-tagline" class="page-subtitle" data-template-id="tagline" contenteditable="false" spellcheck="true">Scan less, find faster — every ACRCY link and QR code, one board.</p>
+       <p id="board-tagline" class="page-subtitle" data-template-id="tagline" contenteditable="false" spellcheck="true">Scan less, find faster — every ARC link and QR code, one board.</p>
        <p id="sync-pill" class="sync-pill"><i data-lucide="check-circle-2" aria-hidden="true"></i><span id="sync-pill-text">Synced</span></p>
       </div>
      </div>
@@ -1202,14 +1209,17 @@
       <button id="save-board-button" class="save-board-button arc-action" type="button" style="background: rgb(152, 32, 54); color: rgb(255, 255, 255); font-weight:800;font-size:13px;"><i data-lucide="save" aria-hidden="true"></i><span>Save Board</span></button>
      </div>
     </header>
-    <div class="password-row">
-     <div class="password-widget" id="passwordWidget">
-      <button id="passwordToggle" class="password-toggle arc-action-sm" type="button" aria-expanded="false" aria-label="Unlock editing"><i data-lucide="plus" aria-hidden="true"></i></button>
-      <div class="password-panel"><input id="passwordInput" type="password" class="password-input" placeholder="Input Password" autocomplete="off" spellcheck="false"></div>
+<div class="password-row">
+      <div class="password-widget" id="passwordWidget">
+       <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button>
+       <div class="pw-tools">
+        <button id="passwordToggle" class="password-toggle arc-action-sm" type="button" aria-expanded="false" aria-label="Unlock editing"><i data-lucide="plus" aria-hidden="true"></i></button>
+        <div class="password-panel"><input id="passwordInput" type="password" class="password-input" placeholder="Input Password" autocomplete="off" spellcheck="false"></div>
+       </div>
+      </div>
      </div>
-    </div>
     <section class="main-content" aria-label="QR board content">
-     <p class="editing-note" style="font-weight:700;font-size:12px;letter-spacing:.04rem;">DROP A QR IMAGE ON ANY TARGET OR CLICK TO BROWSE. CLICK A TITLE OR URL TO EDIT IT, THEN USE THE CARD ACTIONS TO ORGANIZE, COPY, OR SAVE. CHANGES SAVE AUTOMATICALLY.</p>
+     <p class="editing-note" style="font-weight:700;font-size:12px;letter-spacing:.04rem;">Drop a QR image on any target or click to browse. Click a title or URL to edit it, then use the card actions to organize, copy, or save. Changes save automatically.</p>
      <p id="status-region" class="status-region" aria-live="polite"></p>
      <section id="qr-grid" class="qr-grid" aria-label="QR resource cards"></section>
      <div class="add-resource-wrap"><button id="add-resource-button" class="add-resource-button arc-action" type="button" data-requires-unlock style="background:#fff;color:#591925;font-weight:800;font-size:14px;"><i data-lucide="plus" aria-hidden="true"></i><span>Add Resource</span></button></div>
@@ -1385,7 +1395,7 @@
     const DEFAULT_CARDS = [
       { title: 'Emergency Contacts', url: 'https://redcross.org.ph/', image: '' },
       { title: 'Volunteer Resources', url: 'https://redcross.org.ph/volunteer-service/', image: '' },
-      { title: 'ACRCY Updates', url: 'https://www.facebook.com/AteneoRedCrossYouthCouncil/', image: '' }
+      { title: 'ARC Updates', url: 'https://www.facebook.com/AteneoRedCrossYouthCouncil/', image: '' }
     ];
 
     let cardAwaitingDeletion = null;
@@ -1486,7 +1496,7 @@
     }
 
     function openPasswordWidget() {
-      const compactWidth = 200;
+      const compactWidth = 160;
       passwordWidget.style.setProperty('--pw-width', `${compactWidth}px`);
       passwordWidget.classList.add('is-open');
       passwordToggle.setAttribute('aria-expanded', 'true');
@@ -1615,7 +1625,7 @@
       clearTimeout(expandSaveTimer);
       expandSaveTimer = setTimeout(() => {
         if (expandCurrentCard) {
-          expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value.trim() || 'New Resource';
+          expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value.trim() || 'ARC Updates';
           expandCurrentCard.querySelector('.resource-url-input').value = document.getElementById('expand-url').value.trim();
           expandCurrentCard.dataset.rich = document.getElementById('expand-rich').innerHTML;
           updateUrlClickable(expandCurrentCard.querySelector('.resource-url-input'));
@@ -1663,7 +1673,7 @@
       const fragment = document.getElementById('resource-template').content.cloneNode(true);
       const card = fragment.querySelector('.resource-item');
       card.dataset.cardId = record.id || makeId();
-      card.querySelector('.resource-title').textContent = record.title || 'New Resource';
+      card.querySelector('.resource-title').textContent = record.title || 'ARC Updates';
       card.querySelector('.resource-url-input').value = record.url || '';
       if (record.rich) {
         card.dataset.rich = record.rich;
@@ -2078,7 +2088,7 @@
 
     addButton.addEventListener('click', () => {
       if (editLocked) { flashLockedNotice(); return; }
-      const card = buildCard({ id: makeId(), title: 'New Resource', url: '', image: '' });
+      const card = buildCard({ id: makeId(), title: 'ARC Updates', url: '', image: '' });
       grid.appendChild(card);
       lucide.createIcons();
       applyLockToRow(card);
@@ -2110,7 +2120,7 @@
         });
 
         const canvas = await html2canvas(document.querySelector('.board-shell'), {
-          backgroundColor: '#0a0203',
+          backgroundColor: '#fffdf8',
           scale: 2,
           useCORS: true,
           imageTimeout: 15000,
@@ -2130,7 +2140,7 @@
               sheet.style.transform = 'none';
             }
 
-            el.querySelectorAll('.header-actions, .password-row, .add-resource-wrap, .status-region, .action-cluster, .expand-button, .qr-reveal-icon').forEach(n => {
+            el.querySelectorAll('.header-actions, .password-row, .add-resource-wrap, .status-region, .action-cluster, .expand-button, .qr-reveal-icon, .desktop-sidebar, .mobile-bottom-nav, .fab').forEach(n => {
               n.style.display = 'none';
             });
 
@@ -2187,7 +2197,7 @@
         });
         const link = document.createElement('a');
         link.href = canvas.toDataURL('image/png');
-        link.download = 'acrcy-nexus-board.png';
+        link.download = 'arc-nexus-board.png';
         link.click();
         showStatus('Board saved and exported as PNG.');
       } catch (err) {
@@ -2285,7 +2295,7 @@
     function closeExpandEditor() {
       if (expandCurrentCard && !editLocked) {
         // Persist changes back to card
-        expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value.trim() || 'New Resource';
+        expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value.trim() || 'ARC Updates';
         expandCurrentCard.querySelector('.resource-url-input').value = document.getElementById('expand-url').value.trim();
         expandCurrentCard.dataset.rich = document.getElementById('expand-rich').innerHTML;
         updateUrlClickable(expandCurrentCard.querySelector('.resource-url-input'));
@@ -2415,7 +2425,7 @@
         if (!editLocked) {
           // Persist current editor state to card (export is allowed even when
           // locked, but never write edits back in read-only mode).
-          expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value.trim() || 'New Resource';
+          expandCurrentCard.querySelector('.resource-title').textContent = document.getElementById('expand-title').value.trim() || 'ARC Updates';
           expandCurrentCard.querySelector('.resource-url-input').value = document.getElementById('expand-url').value.trim();
           expandCurrentCard.dataset.rich = document.getElementById('expand-rich').innerHTML;
           updateUrlClickable(expandCurrentCard.querySelector('.resource-url-input'));
@@ -2515,7 +2525,7 @@
               const isTitle = n.id === 'expand-title';
               const isUrl = n.id === 'expand-url';
               const span = clonedDoc.createElement('div');
-              span.textContent = n.value || (isUrl ? 'No link added' : 'New Resource');
+              span.textContent = n.value || (isUrl ? 'No link added' : 'ARC Updates');
               const liveInput = isTitle ? liveTitle : liveUrl;
               const rect = isTitle ? titleRect : urlRect;
               const h = rect ? rect.height : (liveInput ? liveInput.getBoundingClientRect().height : 44);
@@ -2675,6 +2685,89 @@
       resizeHandle.style.display = editLocked ? 'none' : 'inline-flex';
     }
     lucide.createIcons();
+  </script>
+
+  <!-- Retro-Neubrutalist navigation (REV 38) -->
+  <aside class="desktop-sidebar" aria-label="Primary">
+   <div class="sidebar-brand">
+    <img src="assets/logo.png" alt="ARC logo" class="sidebar-logo">
+    <div>
+     <span class="sidebar-title">ARC</span>
+    </div>
+   </div>
+   <nav class="sidebar-nav" aria-label="Modules">
+    <a href="index.html" class="sidebar-link"><i data-lucide="home" aria-hidden="true"></i><span>Home</span></a>
+    <a href="NEXUS.html" class="sidebar-link is-active"><i data-lucide="qr-code" aria-hidden="true"></i><span>Nexus</span></a>
+    <a href="core.html" class="sidebar-link"><i data-lucide="list-checks" aria-hidden="true"></i><span>Core</span></a>
+    <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="sidebar-link"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>Tracker</span></a>
+    <button type="button" class="sidebar-link" id="sidebarSave"><i data-lucide="save" aria-hidden="true"></i><span>Save</span></button>
+   </nav>
+   <div class="sidebar-footer">
+    <div class="sidebar-widget-slot" id="sidebarWidgetSlot"></div>
+    <div class="sidebar-sync-slot" id="sidebarSyncSlot"></div>
+   </div>
+  </aside>
+
+  <nav class="mobile-bottom-nav" aria-label="Primary">
+   <a href="index.html" class="mn-item"><i data-lucide="home" aria-hidden="true"></i><span>Home</span></a>
+   <a href="NEXUS.html" class="mn-item is-active"><i data-lucide="qr-code" aria-hidden="true"></i><span>Nexus</span></a>
+   <a href="core.html" class="mn-item"><i data-lucide="list-checks" aria-hidden="true"></i><span>Core</span></a>
+   <button type="button" class="mn-item" id="bottomNavSave"><i data-lucide="save" aria-hidden="true"></i><span>Save</span></button>
+  </nav>
+
+  <button type="button" class="fab" id="pageFab" data-requires-unlock aria-label="Add resource"><i data-lucide="plus" aria-hidden="true"></i></button>
+
+  <script>
+    (function () {
+      var sidebar = document.querySelector('.desktop-sidebar');
+      if (!sidebar) return;
+      var pw = document.getElementById('passwordWidget');
+      var pwRow = document.querySelector('.password-row');
+      var syncEl = document.getElementById('sync-pill');
+      var brandSub = document.querySelector('.brand-sub');
+      var syncSlot = document.getElementById('sidebarSyncSlot');
+      var widgetSlot = document.getElementById('sidebarWidgetSlot');
+      var realSave = document.getElementById('save-board-button');
+      var realAdd = document.getElementById('add-resource-button');
+      var sidebarSave = document.getElementById('sidebarSave');
+      var bottomSave = document.getElementById('bottomNavSave');
+      var fab = document.getElementById('pageFab');
+      var mq = window.matchMedia('(min-width:1024px)');
+
+      function layout() {
+        var desktop = mq.matches;
+        if (desktop) {
+          if (widgetSlot && pw) widgetSlot.appendChild(pw);
+          if (syncSlot && syncEl) syncSlot.appendChild(syncEl);
+        } else {
+          if (pwRow && pw) pwRow.appendChild(pw);
+          if (brandSub && syncEl && !brandSub.contains(syncEl)) brandSub.appendChild(syncEl);
+        }
+      }
+      layout();
+      if (mq.addEventListener) mq.addEventListener('change', layout);
+      else if (mq.addListener) mq.addListener(layout);
+
+      if (sidebarSave && realSave) sidebarSave.addEventListener('click', function () { realSave.click(); });
+      if (bottomSave && realSave) bottomSave.addEventListener('click', function () { realSave.click(); });
+      if (fab && realAdd) {
+        if (typeof editLocked !== 'undefined' && editLocked) fab.disabled = true;
+        fab.addEventListener('click', function () { realAdd.click(); });
+      }
+      if (window.lucide) lucide.createIcons();
+    })();
+  </script>
+  <script>
+    (function () {
+      var btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var html = document.documentElement;
+        var dark = html.getAttribute('data-theme') === 'dark';
+        html.setAttribute('data-theme', dark ? 'light' : 'dark');
+        try { localStorage.setItem('arc-theme', dark ? 'light' : 'dark'); } catch (e) {}
+      });
+    })();
   </script>
  </body>
 </html>

@@ -8,10 +8,17 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('arc-theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    })();
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Poppins:wght@800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --red: #df171d;
+      --red: #982036;
       --navy: #07133f;
       --paper: #fffdf8;
       --soft-red: #fce9e9;
@@ -277,7 +284,7 @@
     .password-toggle.morphing span { display: none; }
     .password-toggle.is-input-mode {
       min-width: 0 !important;
-      width: 280px !important;
+      width: 264px !important;
       padding: 0 12px !important;
       background: #fff !important;
       color: var(--navy) !important;
@@ -288,11 +295,17 @@
       width: 100% !important;
       opacity: 1 !important;
       pointer-events: auto !important;
+      animation: pw-in-reveal 220ms ease 90ms both;
+    }
+    @keyframes pw-in-reveal {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .password-input-inline {
       display: none;
       width: 100%;
       height: 100%;
+      min-width: 0;
       border: none;
       background: transparent;
       color: var(--navy);
@@ -302,6 +315,7 @@
       outline: none;
       padding: 0;
       text-align: left;
+      white-space: nowrap;
     }
     .password-input-inline::placeholder { color: rgba(7,19,63,.4); }
 
@@ -319,7 +333,7 @@
       justify-content: center;
     }
 
-    .password-toggle {
+    .password-toggle.arc-action {
       flex: 0 0 auto;
       min-width: 148px;
       height: 48px;
@@ -334,12 +348,18 @@
       border: 1px solid var(--rule);
       border-radius: 6px;
       box-shadow: 5px 5px 0 var(--ink);
-      transition: transform 180ms ease, box-shadow 180ms ease, background-color 0.3s ease, width 250ms cubic-bezier(.22,.8,.3,1), padding 250ms cubic-bezier(.22,.8,.3,1), min-width 250ms cubic-bezier(.22,.8,.3,1);
+      overflow: hidden;
+      transition: transform 200ms cubic-bezier(.22,.8,.3,1), box-shadow 200ms cubic-bezier(.22,.8,.3,1), background-color 0.3s ease, border-color 0.3s ease, width 300ms cubic-bezier(.34,1.56,.64,1), padding 300ms cubic-bezier(.34,1.56,.64,1), min-width 300ms cubic-bezier(.34,1.56,.64,1), border-radius 300ms cubic-bezier(.34,1.56,.64,1), outline 120ms ease;
       font-family: "DM Sans", sans-serif;
       font-size: 14px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
+    }
+    .password-toggle:focus { outline: none; }
+    .password-toggle:focus-visible {
+      outline: 2px solid var(--maroon);
+      outline-offset: 2px;
     }
     .password-toggle:not(.is-unlocked) { background: #df171d !important; color: #fff !important; }
     .password-toggle:hover, .password-toggle:focus-visible {
@@ -413,10 +433,12 @@
       transition: filter 0.5s ease;
     }
   </style>
+  <link rel="stylesheet" href="assets/neubrutal.css">
  </head>
  <body class="w-full overflow-x-hidden" style="background: rgb(255, 253, 248);">
 <main class="arc-dot-field relative flex min-h-screen w-full items-center justify-center overflow-hidden px-5 py-12 sm:px-8">
    <div class="arc-wash absolute inset-0"></div>
+   <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button>
    <section class="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center text-center">
     <div class="page-filterable">
      <div class="rise-in flex justify-center">
@@ -425,23 +447,25 @@
        <i class="info-icon" data-lucide="info" aria-hidden="true"></i>
       </div>
      </div>
-     <p class="rise-in rise-delay-1 mt-7 w-full text-base font-bold uppercase tracking-[0.15em] sm:text-lg text-center" style="color: rgb(223, 23, 29);">Ateneo de Naga College Red Cross Youth Council</p>
-       <div class="rise-in rise-delay-2 mt-8 h-px w-16 bg-[#df171d] mx-auto"></div>
+     <p class="rise-in rise-delay-1 mt-7 w-full text-base font-bold uppercase tracking-[0.15em] sm:text-lg text-center" style="color: rgb(152, 32, 54);">Ateneo de Naga College Red Cross Youth Council</p>
+       <div class="rise-in rise-delay-2 mt-8 h-px w-16 bg-[#982036] mx-auto"></div>
      </div>
-     <div class="password-row rise-in rise-delay-2 my-7">
-       <div class="password-widget" id="passwordWidget">
-         <button id="passwordToggle" class="password-toggle bounce arc-action" type="button" aria-expanded="false" aria-label="Unlock access" style="background:#df171d;color:#fff;">
-           <i data-lucide="lock" aria-hidden="true" width="18" height="18"></i>
-           <span>Unlock</span>
-           <input type="password" class="password-input-inline" placeholder="Input Password" autocomplete="off" spellcheck="false" aria-label="Password">
-         </button>
+<div class="password-row rise-in rise-delay-2 my-7">
+       <div class="auth-stack">
+        <div class="password-widget" id="passwordWidget">
+          <button id="passwordToggle" class="password-toggle bounce arc-action" type="button" aria-expanded="false" aria-label="Unlock access" style="background:#982036;color:#fff;">
+            <i data-lucide="lock" aria-hidden="true" width="18" height="18"></i>
+            <span>Unlock</span>
+            <input type="password" class="password-input-inline" placeholder="Input Password" autocomplete="off" spellcheck="false" aria-label="Password">
+          </button>
+        </div>
        </div>
-     </div>
+      </div>
      <div class="page-filterable">
       <h1 class="rise-in rise-delay-2 mt-0 max-w-3xl" style="color: rgb(7, 19, 63); font-weight: 900; font-size: 38px; letter-spacing: -0.02rem; line-height: 1.05;">Welcome to ARC</h1>
       <p class="rise-in rise-delay-3 mt-5 max-w-2xl leading-relaxed" style="color: rgb(76, 83, 103); font-size: 19px; line-height: 1.6;">Your central space for council operations, shared deliverables, and quick-access files that help us efficiently serve with purpose.</p>
       <nav class="rise-in rise-delay-4 mt-6 flex w-full flex-col justify-center gap-3 sm:flex-row sm:flex-wrap" aria-label="ARC destinations">
-       <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="NEXUS.html" style="background: rgb(223, 23, 29); color: rgb(255, 255, 255);">
+       <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="NEXUS.html" style="background: rgb(152, 32, 54); color: rgb(255, 255, 255);">
         <i data-lucide="qr-code" width="18" height="18" aria-hidden="true"></i>
         <span>NEXUS</span>
        </a>
@@ -688,6 +712,18 @@
       checkAuthState();
       if (passwordInputInline) bindInlineInput(passwordInputInline);
     });
+  </script>
+  <script>
+    (function () {
+      var btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var html = document.documentElement;
+        var dark = html.getAttribute('data-theme') === 'dark';
+        html.setAttribute('data-theme', dark ? 'light' : 'dark');
+        try { localStorage.setItem('arc-theme', dark ? 'light' : 'dark'); } catch (e) {}
+      });
+    })();
   </script>
  </body>
 </html>
