@@ -20,11 +20,11 @@ html[data-theme="dark"] {
   --maroon: #cf3e58;
   --maroon-dark: #e9a3ae;
   --ink: #e8e1d9;
-  --shadow: #ffffff;
+  --shadow: rgba(255, 255, 255, 0.85);
   --paper: #181419;
   --line: #3b333e;
   --red: #e0526b;
-  --shadow-ink: #ffffff;
+  --shadow-ink: rgba(255, 255, 255, 0.85);
 }
 
 /* ---------- Page transition (smooth route entry) ---------- */
@@ -810,7 +810,7 @@ html[data-theme="dark"] .confirmation-dialog {
   box-shadow: 0 15px 40px rgba(255, 255, 255, 0.12);
 }
 html[data-theme="dark"] .password-toggle.arc-action {
-  box-shadow: 5px 5px 0 #ffffff;
+  box-shadow: 5px 5px 0 rgba(255, 255, 255, 0.85);
 }
 html[data-theme="dark"] .expand-close {
   box-shadow: 0 2px 6px rgba(255, 255, 255, 0.18);
