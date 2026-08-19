@@ -9,23 +9,26 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script type="module" src="utils/soundEffects.js"></script>
+  <script src="utils/tour.js"></script>
   <script>
     (function () {
       try {
         if (localStorage.getItem('arc-theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        if (localStorage.getItem('arc_sound_enabled') === 'false') document.documentElement.setAttribute('data-sound', 'off');
       } catch (e) {}
     })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Poppins:wght@800;900&family=Libre+Franklin:wght@700;800&family=DM+Sans:wght@500;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --maroon: #7a2331;
-      --maroon-dark: #591925;
-      --ink: #321119;
-      --paper: #fffdfb;
-      --line: #a4384b;
-      --rule: #171717;
-      --shadow-ink: #101010;
+      --maroon: #8B1A2B;
+      --maroon-dark: #6b101f;
+      --ink: #111111;
+      --paper: #FBF7EE;
+      --line: #E4E4E7;
+      --rule: #111111;
+      --shadow-ink: #111111;
     }
 
     /* Shared design language, matching the Homepage: sharp corners, a
@@ -88,10 +91,10 @@
       max-width: 1170px;
       margin: 0 auto;
       background: var(--paper);
-      border: 1px solid var(--rule);
-      border-radius: 6px;
+      border: 3px solid #111111;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 22px 48px rgba(20,2,7,.16), 0 4px 10px rgba(20,2,7,.08);
+      box-shadow: 4px 4px 0 #111111;
       padding: clamp(1.4rem, 3vw, 2.4rem) clamp(1.2rem, 3.4vw, 2.6rem) 2rem;
       animation: enter .65s ease-out both;
     }
@@ -443,6 +446,8 @@
     .password-widget {
       display: flex;
       align-items: center;
+      position: relative;
+      flex: 0 0 auto;
     }
 
     .password-toggle {
@@ -459,13 +464,25 @@
     .password-toggle.is-unlocked { background: #27704c; border-color: #27704c !important; color: #fff; }
     .password-toggle svg { width: 17px; height: 17px; }
 
+    /* REV 54: isolated popover — the expanded password field drops below the
+       lock button instead of reflowing adjacent utility buttons. */
     .password-panel {
-      width: 0;
-      overflow: hidden;
-      transition: width .25s ease, margin-left .25s ease;
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 0;
+      z-index: 60;
+      width: var(--pw-width, 180px);
       margin-left: 0;
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity .2s ease, transform .2s ease, visibility .2s;
     }
-    .password-widget.is-open .password-panel { width: var(--pw-width, 180px); margin-left: .5rem; }
+    .password-widget.is-open .password-panel {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
 
     .password-input {
       width: 100%;
@@ -533,10 +550,14 @@
 
     .qr-card {
       padding: clamp(.62rem, 1.2vw, .82rem);
-      border: 2px solid #171717;
+      border: 3px solid #111111;
       border-radius: 16px;
-      background: #6b101f;
-      box-shadow: 0 7px 0 rgba(73,13,25,.2), 0 10px 18px rgba(46,8,16,.18);
+      background: #fff;
+      box-shadow: 4px 4px 0 #111111;
+    }
+
+    .capsule-toggle {
+      display: none;
     }
 
     .qr-space {
@@ -656,7 +677,7 @@
       display: block;
       margin: .68rem 0 .28rem;
       padding: .2rem .32rem;
-      color: #fdf1ee;
+      color: #111111;
       background: transparent;
       font-size: clamp(.96rem, 1.45vw, 1.15rem);
       font-weight: 800;
@@ -743,8 +764,8 @@
     .card-action.copied { color: #fff; background: #27704c; border-color: #27704c; }
     .card-action.delete:hover { color: #fff; background: #b91c32; }
 
-    .add-resource-wrap { display: flex; justify-content: center; margin-top: 1.5rem; }
-    .add-resource-button { padding: .74rem 1.05rem; }
+    .add-resource-wrap { display: inline-flex; margin-top: 0; }
+    .add-resource-button { padding: 0 1.05rem; }
 
     .board-footer { margin-top: 1.5rem; }
     .footer-note { margin: 0; line-height: 1.45; text-align: center; }
@@ -774,38 +795,48 @@
     .expand-dialog {
       position: relative;
       width: min(90%, 1000px);
-      height: min(85vh, 720px);
+      height: auto;
+      max-height: min(90vh, 720px);
       display: flex;
       flex-direction: column;
       text-align: center;
+      background: #FBF7EE;
+      border: 3px solid #111111;
+      border-radius: 28px;
+      box-shadow: 4px 4px 0 #111111;
+      padding: 1.4rem 1.5rem 1.6rem;
+      box-sizing: border-box;
+      overflow-y: auto;
     }
     .expand-close {
       position: absolute;
-      top: .6rem;
-      right: .6rem;
-      width: 30px;
-      height: 30px;
+      top: .75rem;
+      right: .75rem;
+      width: 40px;
+      height: 40px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(122,35,49,.35);
-      border-radius: 7px;
+      border: 2px solid #111111;
+      border-radius: 10px;
       background: #fff;
-      color: var(--maroon-dark);
-      font-size: 20px;
+      color: #111111;
+      font-size: 22px;
       line-height: 1;
       cursor: pointer;
-      z-index: 40;
-      box-shadow: 0 2px 6px rgba(0,0,0,.18);
+      z-index: 50;
+      box-shadow: 2px 2px 0 #111111;
+      transition: transform 120ms linear, box-shadow 120ms linear;
     }
-    .expand-close:hover { background: var(--maroon); color: #fff; }
+    .expand-close:hover { background: #8b1a2b; color: #fff; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 #111111; }
+    .expand-close:active { transform: translate(0, 0); box-shadow: 1px 1px 0 #111111; }
     .expand-modal-image {
       width: 100%;
       height: auto;
       max-height: 60vh;
       display: block;
       border-radius: 10px;
-      background-color: #6b101f;
+      background-color: #fff;
       background-size: contain;
       background-position: center;
       background-repeat: no-repeat;
@@ -836,16 +867,15 @@
 
     .expand-split {
       display: grid;
-      grid-template-columns: minmax(320px, 1fr) minmax(400px, 1.3fr);
+      grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
       gap: clamp(1.5rem, 3vw, 2.5rem);
-      min-height: 520px;
-      max-width: 1600px;
-      margin: 0 auto;
+      min-height: 0;
+      margin: 0;
       flex: 1;
       width: 100%;
       height: 100%;
-      align-items: stretch;
-      contain: layout style;
+      align-items: start;
+      box-sizing: border-box;
     }
 
     .expand-card {
@@ -855,7 +885,6 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      height: 100%;
       min-width: 0;
       max-width: 100%;
       box-sizing: border-box;
@@ -864,9 +893,19 @@
 
     .expand-qr-card {
       position: relative;
-      aspect-ratio: 1 / 1;
-      min-width: 320px;
+      width: min(100%, 380px);
+      min-width: 0;
       max-width: 100%;
+      align-self: start;
+      justify-self: center;
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      overflow: visible;
     }
 
     .expand-qr {
@@ -875,9 +914,22 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      height: 100%;
-      background: #6b101f;
+      aspect-ratio: 1 / 1;
+      background: #fff;
+      border: 3px solid #111111;
+      border-radius: 8px;
       overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .expand-qr-caption {
+      margin: .75rem auto 0;
+      max-width: 92%;
+      color: #71717a;
+      font-size: .78rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.4;
     }
 
     .expand-qr img {
@@ -920,23 +972,28 @@
     .expand-qr.is-locked .expand-modal-image.is-revealed ~ .expand-reveal-icon { opacity: 0; }
 
     .expand-editor-card {
-      min-width: 400px;
+      min-width: 0;
       flex: 1;
       display: flex;
       flex-direction: column;
       min-height: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      overflow: visible;
     }
 
     .expand-editor {
       display: flex;
       flex-direction: column;
       gap: .6rem;
-      overflow: auto;
+      overflow: hidden;
       flex: 1;
       min-width: 0;
       width: 100%;
       height: 100%;
-      padding: 1.5rem 1.5rem 1rem;
+      padding: .25rem .25rem .25rem;
       position: relative;
       box-sizing: border-box;
     }
@@ -948,30 +1005,30 @@
       align-items: center;
       justify-content: center;
       gap: .45rem;
-      height: 36px;
-      padding: 0 .75rem;
-      margin-bottom: .6rem;
-      border: 1px solid var(--rule);
-      border-radius: 6px;
-      background: var(--maroon);
+      height: 40px;
+      padding: 0 1.1rem;
+      margin-bottom: 0;
+      border: 2px solid #111111;
+      border-radius: 999px;
+      background: #8b1a2b;
       color: #fff;
       font-family: "Libre Franklin", sans-serif;
       font-weight: 800;
       font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: .04em;
+      letter-spacing: .05em;
       cursor: pointer;
-      box-shadow: 4px 4px 0 var(--shadow-ink);
-      transition: transform 180ms ease, box-shadow 180ms ease;
+      box-shadow: 2px 2px 0 #111111;
+      transition: transform 120ms linear, box-shadow 120ms linear;
       z-index: 10;
     }
     .expand-save-btn:hover, .expand-save-btn:focus-visible {
-      transform: translate(-2px, -2px);
-      box-shadow: 7px 7px 0 var(--shadow-ink);
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 #111111;
     }
     .expand-save-btn:active {
       transform: translate(0, 0);
-      box-shadow: 2px 2px 0 var(--shadow-ink);
+      box-shadow: 1px 1px 0 #111111;
     }
     .expand-save-btn svg { width: 15px; height: 15px; }
 
@@ -980,42 +1037,52 @@
       flex-direction: column;
       gap: .2rem;
     }
+    .expand-field label {
+      display: block;
+      font-size: .7rem;
+      font-weight: 800;
+      color: #71717a !important;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: .25rem;
+      text-align: left;
+    }
 
     .expand-input {
       width: 100%;
       box-sizing: border-box;
-      padding: .4rem .5rem;
-      border: 1px solid rgba(122,35,49,.25);
-      border-radius: 6px;
-      color: #3a1720;
+      padding: .55rem .7rem;
+      border: 2px solid #E4E4E7;
+      border-radius: 12px;
+      color: #111111;
       background: #fff;
       font-family: "DM Sans", sans-serif;
-      font-size: .85rem;
+      font-size: .88rem;
       font-weight: 700;
       line-height: 1.3;
     }
     #expand-title, #expand-url {
       text-align: center;
-      padding-left: .5rem;
-      padding-right: .5rem;
+      padding-left: .7rem;
+      padding-right: .7rem;
     }
     .expand-input:focus {
-      border-color: var(--maroon);
+      border-color: #111111;
       outline: none;
-      box-shadow: 0 0 0 3px rgba(122,35,49,.15);
+      box-shadow: 0 0 0 3px rgba(139,26,43,.15);
     }
 
-    .expand-rich-field { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .expand-rich-field { flex: 0 0 auto; min-height: 0; display: flex; flex-direction: column; }
 
     .expand-toolbar {
       display: flex;
       align-items: center;
       gap: .2rem;
-      padding: .3rem .4rem;
-      border: 1px solid rgba(122,35,49,.2);
-      border-radius: 6px;
-      background: #fffdfb;
-      margin-bottom: .3rem;
+      padding: .35rem .5rem;
+      border: 2px solid #E4E4E7;
+      border-radius: 12px;
+      background: #fff;
+      margin-bottom: .4rem;
       flex-wrap: wrap;
     }
 
@@ -1023,17 +1090,17 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 28px;
-      height: 28px;
-      border: 1px solid transparent;
-      border-radius: 4px;
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 8px;
       background: transparent;
-      color: var(--maroon-dark);
+      color: #111111;
       cursor: pointer;
-      transition: background .12s ease, color .12s ease;
+      transition: background .12s linear, color .12s linear;
     }
-    .expand-format-btn:hover { background: rgba(122,35,49,.1); color: var(--maroon); }
-    .expand-format-btn:active { background: rgba(122,35,49,.2); }
+    .expand-format-btn:hover { background: rgba(139,26,43,.12); color: #8b1a2b; }
+    .expand-format-btn:active { background: rgba(139,26,43,.2); }
     .expand-format-btn svg { width: 14px; height: 14px; }
 
     /* Disabled (locked) state for the expanded editor */
@@ -1080,9 +1147,10 @@
     }
 
     .expand-rich {
-      flex: 1;
-      min-height: 140px;
-      overflow: auto;
+      flex: 0 0 auto;
+      min-height: 110px;
+      max-height: 200px;
+      overflow-y: auto;
       padding: .5rem;
       border: 1px solid rgba(122,35,49,.2);
       border-radius: 6px;
@@ -1108,46 +1176,205 @@
       position: absolute;
       bottom: 10px;
       right: 10px;
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(122,35,49,.35);
-      border-radius: 6px;
+      border: 2px solid #111111;
+      border-radius: 8px;
       background: #fff;
-      color: var(--maroon-dark);
+      color: #111111;
       cursor: nwse-resize;
       z-index: 30;
-      opacity: .55;
-      transition: opacity .18s ease, background .18s ease, color .18s ease;
+      box-shadow: 2px 2px 0 #111111;
+      transition: transform 120ms linear, box-shadow 120ms linear, background 120ms linear, color 120ms linear;
     }
     .expand-resize-handle:hover {
-      opacity: 1;
-      background: var(--maroon);
+      background: #8b1a2b;
       color: #fff;
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 #111111;
     }
-    .expand-resize-handle svg { width: 13px; height: 13px; }
+    .expand-resize-handle:active {
+      transform: translate(0, 0);
+      box-shadow: 1px 1px 0 #111111;
+    }
+    .expand-resize-handle svg { width: 14px; height: 14px; }
     body.resizing { user-select: none; }
 
-    @media (max-width: 760px) {
-      .qr-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .expand-dialog {
-        width: min(95%, 700px);
-        height: min(85vh, 780px);
-      }
-      .expand-split { 
+    @media (max-width: 768px) {
+      .qr-grid {
         grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
-        min-height: auto;
+        gap: 12px;
+        padding: 0 2px;
       }
-      .expand-qr-card {
+
+      .resource-item .qr-card {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+        grid-template-areas: "thumb main toggle";
+        align-items: center;
+        gap: .7rem;
+        padding: .6rem .8rem;
+        border: 3px solid #111111;
+        border-radius: 999px;
+        background: #fff;
+        box-shadow: 4px 4px 0 #111111;
+        transition: border-radius 120ms linear, box-shadow 120ms linear;
+      }
+      .resource-item .qr-card.is-expanded {
+        grid-template-areas:
+          "thumb main toggle"
+          "cluster cluster cluster";
+        grid-template-rows: auto auto;
+        gap: .5rem .7rem;
+        padding: .6rem .8rem .8rem;
+        border-radius: 28px;
+      }
+
+      .qr-card .qr-space {
+        grid-area: thumb;
+        width: 38px;
+        height: 38px;
         aspect-ratio: 1 / 1;
-        max-height: 45vh;
+        border: 2px solid #111111;
+        border-radius: 50%;
+        background-color: #f3e3de;
+        background-image: none;
       }
-      .expand-editor-card {
+      .qr-card .qr-space::before,
+      .qr-card .qr-space::after { display: none; }
+      .qr-card .qr-space .upload-hint { display: none; }
+      .qr-card .qr-image {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+      }
+      .qr-card .qr-reveal-icon { border-radius: 50%; }
+      .qr-card .image-picker { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+      .capsule-main {
+        grid-area: main;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
         min-width: 0;
       }
+      .qr-card .resource-title-row { justify-content: flex-start; }
+      .qr-card .resource-title {
+        margin: 0;
+        padding: 0;
+        color: #111111;
+        background: transparent;
+        font-size: .95rem;
+        font-weight: 800;
+        line-height: 1.25;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .qr-card .resource-title:hover,
+      .qr-card .resource-title:focus {
+        background: transparent;
+        color: #111111;
+      }
+      .qr-card .resource-url-input {
+        min-height: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #8b1a2b;
+        font-size: .78rem;
+        font-weight: 700;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .qr-card.is-expanded .resource-title,
+      .qr-card.is-expanded .resource-url-input {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-word;
+      }
+
+      .capsule-toggle {
+        grid-area: toggle;
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: #111111;
+        cursor: pointer;
+        flex: 0 0 auto;
+      }
+      .capsule-toggle svg { width: 20px; height: 20px; transition: transform 120ms linear; }
+      .qr-card.is-expanded .capsule-toggle svg { transform: rotate(180deg); }
+
+      .qr-card .action-cluster {
+        grid-area: cluster;
+        display: none;
+        justify-content: space-around;
+        align-items: center;
+        gap: .5rem;
+        margin: 0;
+        padding: .6rem .2rem 0;
+        border-top: 1.5px solid #111111;
+      }
+      .qr-card.is-expanded .action-cluster { display: flex; }
+      .qr-card .card-action {
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border: 1.5px solid #111111;
+        border-radius: 50%;
+        background: #fff;
+        color: #111111;
+        box-shadow: none;
+      }
+      .qr-card .card-action svg { width: 15px; height: 15px; }
+      .qr-card .card-action[data-action="left"],
+      .qr-card .card-action[data-action="right"] { display: none; }
+      .qr-card .card-action:hover {
+        background: #8b1a2b;
+        color: #fff;
+        transform: none;
+      }
+      .qr-card .card-action.copied { background: #27704c; border-color: #27704c; color: #fff; }
+      .qr-card .card-action:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+      /* REV 46 expand modal — mobile: stacked, capped, internally scrollable */
+      .expand-dialog {
+        width: min(92vw, 480px);
+        max-width: 92vw;
+        max-height: 90vh;
+        max-height: 90dvh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .expand-split {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        gap: 1rem;
+        min-height: 0;
+      }
+      .expand-qr-card {
+        width: min(100%, 240px);
+        max-width: 100%;
+        align-self: center;
+      }
+      .expand-editor-card { min-width: 0; }
+      .expand-editor { overflow: visible; }
+      .expand-resize-handle { display: none !important; }
     }
 
     @media (max-width: 520px) {
@@ -1155,35 +1382,8 @@
       .logo-wrap { width: 48px; height: 48px; }
       .page-heading { font-size: 28px; }
       .save-board-button span, .nav-button span, .tracker-button span { display: none; }
-      .qr-grid { grid-template-columns: minmax(0, 330px); justify-content: center; }
       .brand-sub { margin-left: calc(48px + .6rem); }
       .header-actions { margin-left: 0; width: 100%; justify-content: flex-end; }
-      
-      .expand-dialog {
-        width: 100%;
-        height: 100%;
-        max-height: 100vh;
-        border-radius: 0;
-        min-height: 100vh;
-      }
-      .expand-split {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
-        gap: 1rem;
-        min-height: 100%;
-      }
-      .expand-qr-card {
-        aspect-ratio: 1 / 1;
-        max-height: 50vh;
-        min-width: 0;
-      }
-      .expand-editor {
-        padding: 1rem;
-        min-height: 0;
-      }
-      .expand-resize-handle {
-        display: none !important;
-      }
     }
   </style>
   <link rel="stylesheet" href="assets/neubrutal.css">
@@ -1203,11 +1403,9 @@
       </div>
      </div>
 <div class="header-actions">
-       <a href="index.html" class="icon-button arc-action" aria-label="Home"><i data-lucide="home" aria-hidden="true"></i></a>
-      <a class="nav-button arc-action" href="core.html"><i data-lucide="list-checks" aria-hidden="true"></i><span>CORE</span></a>
-      <a class="tracker-button arc-action" href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>Tracker</span></a>
-      <button id="save-board-button" class="save-board-button arc-action" type="button" style="background: rgb(152, 32, 54); color: rgb(255, 255, 255); font-weight:800;font-size:13px;"><i data-lucide="save" aria-hidden="true"></i><span>Save Board</span></button>
-     </div>
+       <button id="save-board-button" class="save-board-button arc-action" type="button" style="background: #8B1A2B; color: rgb(255, 255, 255); font-weight:800;font-size:13px;"><i data-lucide="save" aria-hidden="true"></i><span>Save Board</span></button>
+       <div class="add-resource-wrap"><button id="add-resource-button" class="add-resource-button arc-action" type="button" data-requires-unlock style="background:#fff;color:#591925;font-weight:800;font-size:14px;"><i data-lucide="plus" aria-hidden="true"></i><span>Add Resource</span></button></div>
+      </div>
     </header>
 <div class="password-row">
       <div class="password-widget" id="passwordWidget">
@@ -1222,8 +1420,7 @@
      <p class="editing-note" style="font-weight:700;font-size:12px;letter-spacing:.04rem;">Drop a QR image on any target or click to browse. Click a title or URL to edit it, then use the card actions to organize, copy, or save. Changes save automatically.</p>
      <p id="status-region" class="status-region" aria-live="polite"></p>
      <section id="qr-grid" class="qr-grid" aria-label="QR resource cards"></section>
-     <div class="add-resource-wrap"><button id="add-resource-button" class="add-resource-button arc-action" type="button" data-requires-unlock style="background:#fff;color:#591925;font-weight:800;font-size:14px;"><i data-lucide="plus" aria-hidden="true"></i><span>Add Resource</span></button></div>
-    </section>
+     </section>
     <footer class="board-footer">
      <p class="footer-note" style="color:#6c6166;font-weight:500;font-size:12px;">Every edit — uploads, titles, links, and order — saves to the shared board automatically.</p>
     </footer>
@@ -1244,7 +1441,6 @@
 <div id="expand-modal" class="confirmation-layer" role="presentation">
     <section class="confirmation-dialog expand-dialog" role="dialog" aria-modal="true" aria-labelledby="expand-modal-title">
      <button id="expand-close-button" class="expand-close" type="button" aria-label="Close">&times;</button>
-     <button id="expand-resize-handle" class="expand-resize-handle" type="button" aria-label="Resize expanded view" title="Drag to resize"><i data-lucide="maximize-2" aria-hidden="true"></i></button>
      <div class="expand-split">
        <div class="expand-card expand-qr-card">
          <div class="expand-qr">
@@ -1253,43 +1449,38 @@
             <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 9 5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2 8 5.1"/><path d="m5.1 8-2.9-.8"/><path d="M14 4.1 12 6"/><path d="m6 12-1.9 2"/></svg>
            </span>
          </div>
+         <p class="expand-qr-caption">Drop QR image or click to browse</p>
        </div>
 <div class="expand-card expand-editor-card">
           <div class="expand-editor">
-            <button id="expand-save" type="button" class="expand-save-btn" aria-label="Save & Export"><i data-lucide="download" aria-hidden="true"></i><span>Save</span></button>
-           <h2 id="expand-modal-title" style="color:#591925;font-weight:800;font-size:22px;margin:0 0 .4rem;"></h2>
+            <button id="expand-save" type="button" class="expand-save-btn" aria-label="Save resource"><i data-lucide="save" aria-hidden="true"></i><span>Save</span></button>
+           <h2 id="expand-modal-title" style="color:#8B1A2B;font-weight:800;font-size:22px;margin:0;text-align:left;"></h2>
            <div class="expand-field">
-             <label style="display:block;font-size:.7rem;font-weight:700;color:#6c6166;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem;">Title</label>
+             <label>Title</label>
              <input id="expand-title" type="text" class="expand-input" placeholder="Resource title" spellcheck="true">
            </div>
            <div class="expand-field">
-             <label style="display:block;font-size:.7rem;font-weight:700;color:#6c6166;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem;">URL</label>
+             <label>URL</label>
              <input id="expand-url" type="url" class="expand-input" placeholder="https://">
            </div>
            <div class="expand-field expand-rich-field">
-             <label style="display:block;font-size:.7rem;font-weight:700;color:#6c6166;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem;">Description</label>
+             <label>Description</label>
              <div class="expand-toolbar" role="toolbar" aria-label="Formatting" data-requires-unlock>
                <button type="button" class="expand-format-btn" data-format="bold" aria-label="Bold" title="Bold (Ctrl+B)"><i data-lucide="bold" aria-hidden="true"></i></button>
                <button type="button" class="expand-format-btn" data-format="italic" aria-label="Italic" title="Italic (Ctrl+I)"><i data-lucide="italic" aria-hidden="true"></i></button>
                <button type="button" class="expand-format-btn" data-format="underline" aria-label="Underline" title="Underline (Ctrl+U)"><i data-lucide="underline" aria-hidden="true"></i></button>
-               <button type="button" class="expand-format-btn" data-format="strikeThrough" aria-label="Strikethrough" title="Strikethrough"><i data-lucide="strikethrough" aria-hidden="true"></i></button>
-               <span class="expand-toolbar-divider" aria-hidden="true"></span>
-               <button type="button" class="expand-format-btn" data-format="justifyLeft" aria-label="Align Left" title="Align Left"><i data-lucide="align-left" aria-hidden="true"></i></button>
-               <button type="button" class="expand-format-btn" data-format="justifyCenter" aria-label="Align Center" title="Align Center"><i data-lucide="align-center" aria-hidden="true"></i></button>
-               <button type="button" class="expand-format-btn" data-format="justifyRight" aria-label="Align Right" title="Align Right"><i data-lucide="align-right" aria-hidden="true"></i></button>
-               <button type="button" class="expand-format-btn" data-format="justifyFull" aria-label="Justify" title="Justify"><i data-lucide="align-justify" aria-hidden="true"></i></button>
-               <span class="expand-toolbar-divider" aria-hidden="true"></span>
-               <button type="button" class="expand-format-btn" data-format="insertOrderedList" aria-label="Numbered list"><i data-lucide="list-ordered" aria-hidden="true"></i></button>
-               <button type="button" class="expand-format-btn" data-format="insertUnorderedList" aria-label="Bulleted list"><i data-lucide="list" aria-hidden="true"></i></button>
                <span class="expand-toolbar-divider" aria-hidden="true"></span>
                <button type="button" class="expand-format-btn" data-format="formatBlock" data-value="H1" aria-label="Heading 1" title="Heading 1" style="font-weight:800;font-size:.75rem;">H1</button>
                <button type="button" class="expand-format-btn" data-format="formatBlock" data-value="H2" aria-label="Heading 2" title="Heading 2" style="font-weight:800;font-size:.7rem;">H2</button>
              </div>
-             <div id="expand-rich" class="expand-rich" contenteditable="true" spellcheck="true" style="min-height:140px;overflow:auto;padding:.5rem;border:1px solid rgba(122,35,49,.2);border-radius:6px;background:#fff;color:#3a1720;font-family:'DM Sans',sans-serif;font-size:.82rem;line-height:1.5;outline:none;"></div>
+             <div id="expand-rich" class="expand-rich" contenteditable="true" spellcheck="true" style="min-height:110px;max-height:200px;overflow-y:auto;padding:.5rem .6rem;border:2px solid #E4E4E7;border-radius:12px;background:#fff;color:#111111;font-family:'DM Sans',sans-serif;font-size:.82rem;line-height:1.5;outline:none;"></div>
            </div>
          </div>
        </div>
      </div>
+     <button id="expand-resize-handle" class="expand-resize-handle" type="button" aria-label="Resize modal" title="Drag to resize">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
+     </button>
     </section>
    </div>
 
@@ -1314,17 +1505,18 @@
 
         <h3>Expanding Cards (Rich Editor)</h3>
         <ul>
-          <li>Click the <span class="kbd">⛶</span> (expand) button on any card to open the full editor.</li>
-          <li>Edit the title, URL, and a rich-text description with formatting: <strong>Bold</strong>, <em>Italic</em>, <u>Underline</u>, lists, headings, alignment.</li>
+          <li>On desktop, click the <span class="kbd">⛶</span> (expand) button on any card to open the full editor.</li>
+          <li>On mobile, tap any resource capsule to expand it in place, then tap <span class="kbd">⛶</span> to open the full editor.</li>
+          <li>Edit the title, URL, and a rich-text description with formatting: <strong>Bold</strong>, <em>Italic</em>, <u>Underline</u>, and H1/H2 headings.</li>
           <li>Click <strong>Save</strong> in the expanded view to persist changes.</li>
-          <li>Drag the resize handle (bottom-right) to adjust the modal size on desktop.</li>
+          <li>Drag the <span class="kbd">⌗</span> handle at the modal's bottom-right corner to resize it (desktop).</li>
         </ul>
 
         <h3>Board Actions</h3>
         <ul>
           <li><strong>Save Board</strong> — exports the entire board as a PNG image.</li>
-          <li><strong>Home</strong> — returns to the ARC homepage.</li>
-          <li><strong>CORE / Tracker</strong> — navigate to the other modules.</li>
+          <li><strong>Add Resource</strong> — adds a new empty QR card to the board.</li>
+          <li>Navigation to Home, CORE, and TRACKER is handled by the sidebar on the left.</li>
         </ul>
 
         <h3>Editing Lock</h3>
@@ -1353,16 +1545,19 @@
       </span>
       <input class="image-picker sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
      </div>
-     <div class="resource-title-row">
-      <h2 class="resource-title" contenteditable="true" spellcheck="true"></h2>
+     <div class="capsule-main">
+      <div class="resource-title-row">
+       <h2 class="resource-title" contenteditable="true" spellcheck="true"></h2>
+      </div>
+      <input class="resource-url-input" type="url" aria-label="Resource URL" placeholder="https://">
      </div>
-     <input class="resource-url-input" type="url" aria-label="Resource URL" placeholder="https://">
+     <button class="capsule-toggle" type="button" data-action="toggle" aria-label="Expand resource" aria-expanded="false"><i data-lucide="chevron-down" aria-hidden="true"></i></button>
      <div class="action-cluster" aria-label="Resource actions">
        <button class="card-action" type="button" data-action="left" data-requires-unlock aria-label="Move resource left"><i data-lucide="chevron-left"></i></button>
        <button class="card-action" type="button" data-action="right" data-requires-unlock aria-label="Move resource right"><i data-lucide="chevron-right"></i></button>
        <button class="card-action" type="button" data-action="copy" aria-label="Copy resource URL"><i data-lucide="clipboard"></i></button>
        <button class="card-action delete" type="button" data-action="delete" data-requires-unlock aria-label="Delete resource"><i data-lucide="trash-2"></i></button>
-       <button class="card-action expand-button" type="button" data-action="expand" aria-label="Expand resource"><i data-lucide="maximize-2"></i></button>
+       <button class="card-action expand-button" type="button" data-action="expand" aria-label="Edit resource details"><i data-lucide="maximize-2"></i></button>
        <button class="card-action" type="button" data-action="save" aria-label="Save resource QR card"><i data-lucide="download"></i></button>
       </div>
     </div>
@@ -1409,9 +1604,6 @@
     const passwordWidget = document.getElementById('passwordWidget');
     const passwordToggle = document.getElementById('passwordToggle');
     const passwordInput = document.getElementById('passwordInput');
-    const homeLink = document.querySelector('.header-actions .icon-button');
-    const coreLink = document.querySelector('.header-actions .nav-button');
-    const trackerLink = document.querySelector('.header-actions .tracker-button');
 
     function flashLockedNotice(message) {
       let toast = document.getElementById('lockToast');
@@ -1736,6 +1928,13 @@
       try {
         const dataUrl = await fileToResizedDataUrl(file);
         applyImageToCard(card, dataUrl);
+        // If the expanded modal is open for this exact card, mirror the
+        // freshly-uploaded QR into the modal image.
+        const modalImg = document.getElementById('expand-modal-image');
+        if (expandCurrentCard === card && modalImg) {
+          modalImg.src = dataUrl;
+          modalImg.style.display = 'block';
+        }
         showStatus('QR image uploaded and saved.');
       } catch (err) {
         console.error(err);
@@ -1837,6 +2036,15 @@
       space.style.backgroundColor = '#fffdfb';
     }
 
+    // Extracts just the color from a computed box-shadow string. Computed
+    // values are "rgb(17, 17, 17) 4px 4px 0px 0px" (or rgba in dark mode),
+    // so a plain split(' ')[0] would return "rgb(17," — invalid CSS.
+    function shadowColorOf(shadow) {
+      if (!shadow) return '#111111';
+      const match = shadow.match(/^(rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}|[a-z]+)/);
+      return match ? match[1] : '#111111';
+    }
+
     // Adds "https://" to a bare domain/path so window.open() actually
     // navigates instead of treating it as a relative link on this site.
     function normalizeUrl(raw) {
@@ -1852,11 +2060,37 @@
       input.classList.toggle('url-clickable', editLocked && !!input.value.trim());
     }
 
+    // Toggles the mobile capsule expansion of a card. Enforces
+    // single-expansion: opening one card collapses any previously open one.
+    function toggleCardExpanded(container) {
+      const card = container.classList.contains('qr-card') ? container : container.querySelector('.qr-card');
+      if (!card) return;
+      const wasExpanded = card.classList.contains('is-expanded');
+      allCards().forEach(c => {
+        const inner = c.classList.contains('qr-card') ? c : c.querySelector('.qr-card');
+        if (!inner) return;
+        inner.classList.remove('is-expanded');
+        const t = inner.querySelector('[data-action="toggle"]');
+        if (t) t.setAttribute('aria-expanded', 'false');
+      });
+      if (!wasExpanded) {
+        card.classList.add('is-expanded');
+        const t = card.querySelector('[data-action="toggle"]');
+        if (t) t.setAttribute('aria-expanded', 'true');
+      }
+    }
+
     function wireCard(card) {
       setupUploader(card);
 
       card.querySelectorAll('[data-action]').forEach(button => {
         button.addEventListener('click', () => handleAction(card, button));
+      });
+
+      // Tap anywhere on the capsule (except interactive controls) to expand.
+      card.addEventListener('click', event => {
+        if (event.target.closest('.qr-space, .action-cluster, .resource-title, .resource-url-input, .capsule-toggle')) return;
+        toggleCardExpanded(card);
       });
 
       const title = card.querySelector('.resource-title');
@@ -1913,6 +2147,11 @@
         return;
       }
 
+      if (action === 'toggle') {
+        toggleCardExpanded(card);
+        return;
+      }
+
       if (action === 'copy') {
         const url = getCardUrl(card);
         if (!url) {
@@ -1959,7 +2198,24 @@
           const cardUrlInput = card.querySelector('.resource-url-input');
           const cardUrlRect = cardUrlInput ? cardUrlInput.getBoundingClientRect() : null;
 
-          const canvas = await html2canvas(card.querySelector('.qr-card'), {
+          // html2canvas 1.4.1 drops box-shadow, so the card is wrapped in a
+          // padded host and a real offset shadow div is drawn behind it (the
+          // 8px padding keeps the 4px shadow inside the canvas).
+          const cardEl = card.querySelector('.qr-card');
+          const cardShadow = cardEl ? window.getComputedStyle(cardEl).boxShadow : '';
+          const cardShadowColor = shadowColorOf(cardShadow);
+          const cardHost = document.createElement('div');
+          cardHost.style.cssText = 'padding: 8px; position: relative; width: max-content; background: transparent;';
+          // Pin the card to its live grid size so it doesn't shrink-to-fit
+          // once lifted out of the grid into the max-content host.
+          const cardLiveRect = cardEl.getBoundingClientRect();
+          cardEl.style.width = `${Math.round(cardLiveRect.width)}px`;
+          cardEl.style.height = `${Math.round(cardLiveRect.height)}px`;
+          cardEl.parentNode.insertBefore(cardHost, cardEl);
+          cardHost.appendChild(cardEl);
+          let canvas;
+          try {
+          canvas = await html2canvas(cardHost, {
             backgroundColor: null,
             scale: 2,
             useCORS: true,
@@ -1981,6 +2237,13 @@
               }
 
               el.querySelectorAll('.action-cluster, .expand-button, .qr-reveal-icon').forEach(n => n.style.display = 'none');
+
+              // Draw the hard-offset shadow manually (html2canvas drops box-shadow).
+              // el is the padded host: card sits at (8,8), shadow offset +4.
+              const shadow = clonedDoc.createElement('div');
+              shadow.style.cssText = `position:absolute; top:12px; left:12px; right:4px; bottom:4px; background:${cardShadowColor}; border-radius:16px;`;
+              el.insertBefore(shadow, el.firstChild);
+              el.querySelector('.qr-card').style.position = 'relative';
 
               const clonedSpace = el.querySelector('.qr-space');
               if (clonedSpace) {
@@ -2018,8 +2281,9 @@
                 // Use this card's own measured rect (fixes bug where it used
                 // another card's input height).
                 const inputH = cardUrlRect ? cardUrlRect.height : 24;
-                const inputPad = cardUrlRect ? (parseFloat(getComputedStyle(n).paddingTop) || 6.4) : 6.4;
-                const lineH = 16.13; // .72rem font at 1.4 line-height
+                const cs = window.getComputedStyle(n);
+                const lineH = parseFloat(cs.fontSize) * (parseFloat(cs.lineHeight) || 1.4);
+                const inputPad = parseFloat(cs.paddingTop) || 6.4;
                 // Center the text block vertically with real padding and a
                 // normal line-height so descenders (g, y, p, q, j) keep full
                 // clearance. Avoids flexbox (html2canvas 1.4.1 handles it
@@ -2033,12 +2297,12 @@
                   height: ${inputH}px;
                   line-height: 1.4;
                   padding: ${vPad}px .46rem;
-                  border: 1px solid transparent;
-                  border-radius: 6px;
-                  color: #3a1720;
-                  background: rgba(255,255,255,.72);
+                  border: 1px solid ${cs.borderTopColor};
+                  border-radius: ${cs.borderRadius};
+                  color: ${cs.color};
+                  background: ${cs.backgroundColor};
                   font-family: "DM Sans", sans-serif;
-                  font-size: .72rem;
+                  font-size: ${cs.fontSize};
                   font-weight: 700;
                   text-align: center;
                   white-space: nowrap;
@@ -2049,6 +2313,11 @@
               });
             }
           });
+          } finally {
+            cardEl.style.width = '';
+            cardEl.style.height = '';
+            cardHost.replaceWith(cardEl);
+          }
           const link = document.createElement('a');
           link.href = canvas.toDataURL('image/png');
           link.download = `${(getTitle(card) || 'qr-card').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`;
@@ -2111,13 +2380,21 @@
           return space ? space.getBoundingClientRect() : null;
         });
 
-        // Build parallel array of live .resource-url-input rects so each cloned
-        // input gets its own card's height (fixes the bug where all inputs used
-        // the first card's height).
-        const urlInputRects = allCards().map(c => {
-          const input = c.querySelector('.resource-url-input');
-          return input ? input.getBoundingClientRect() : null;
-        });
+        // Measure live shadow colors for manual shadow compositing
+        // (html2canvas drops box-shadow entirely). Shadows are drawn
+        // POST-render on a fresh canvas so they land exactly on the CLONED
+        // layout — the old approach of injecting live-positioned shadow divs
+        // into the clone drifted ~82px because the export hides UI elements
+        // that shift the grid, and it overpainted/bled around the cards.
+        const liveSheet = document.querySelector('.sheet');
+        const sheetShadowColor = liveSheet ? shadowColorOf(window.getComputedStyle(liveSheet).boxShadow) : '#111111';
+        const cardShadowEl = document.querySelector('.resource-item .qr-card');
+        const cardShadowColor = cardShadowEl ? shadowColorOf(window.getComputedStyle(cardShadowEl).boxShadow) : '#111111';
+
+        // Clone-layout geometry + text metadata captured during onclone
+        // (shell-relative), consumed after render for shadow compositing,
+        // exact text drawing, and the final tight crop.
+        const exportState = { cloneGeo: null, titleMeta: [], urlMeta: [] };
 
         const canvas = await html2canvas(document.querySelector('.board-shell'), {
           backgroundColor: '#fffdf8',
@@ -2140,9 +2417,17 @@
               sheet.style.transform = 'none';
             }
 
-            el.querySelectorAll('.header-actions, .password-row, .add-resource-wrap, .status-region, .action-cluster, .expand-button, .qr-reveal-icon, .desktop-sidebar, .mobile-bottom-nav, .fab').forEach(n => {
+            el.querySelectorAll('.header-actions, #save-board-button, .password-row, .add-resource-wrap, .status-region, .action-cluster, .expand-button, .qr-reveal-icon, .desktop-sidebar, .mobile-bottom-nav, .fab, .editing-note, .footer-note, .sync-pill').forEach(n => {
               n.style.display = 'none';
             });
+
+            // Express a clone rect relative to the cloned shell root, so it maps
+            // 1:1 onto the rendered canvas (html2canvas renders the clone at
+            // scale from its bounding-box origin).
+            const rel = r => {
+              const base = el.getBoundingClientRect();
+              return { x: r.x - base.x, y: r.y - base.y, w: r.width, h: r.height };
+            };
 
             el.querySelectorAll('.qr-space').forEach((space, i) => {
               const rect = spaceRects[i];
@@ -2165,38 +2450,152 @@
               img.replaceWith(bg);
             });
 
-            el.querySelectorAll('.resource-url-input').forEach((n, i) => {
-              const span = clonedDoc.createElement('div');
-              span.textContent = n.value || 'No link added';
-              // Use per-card rect measured above (fixes the bug where all inputs
-              // used the first card's height).
-              const rect = urlInputRects[i];
-              const inputH = rect ? rect.height : 24;
-              span.style.cssText = `
-                display: block;
-                box-sizing: border-box;
-                width: 100%;
-                height: ${inputH}px;
-                line-height: ${inputH}px;
-                padding: 0 .46rem;
-                border: 1px solid transparent;
-                border-radius: 6px;
-                color: #3a1720;
-                background: rgba(255,255,255,.72);
-                font-family: "DM Sans", sans-serif;
-                font-size: .72rem;
-                font-weight: 700;
-                text-align: center;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              `;
-              n.replaceWith(span);
+            // html2canvas renders contenteditable title text and padded input
+            // text several pixels too low, and flex/line-height centering tricks
+            // are unreliable. Replace both fields with empty placeholder divs
+            // that keep the exact layout (same box + margins; the URL keeps its
+            // background/border), then draw the text ourselves post-render with
+            // canvas fillText for exact horizontal + optical vertical centering.
+            el.querySelectorAll('.resource-title').forEach(n => {
+              const cs = window.getComputedStyle(n);
+              const box = n.getBoundingClientRect();
+              exportState.titleMeta.push({
+                box: rel(box),
+                text: n.textContent || '',
+                fontSize: cs.fontSize,
+                fontWeight: cs.fontWeight,
+                color: cs.color,
+                padX: parseFloat(cs.paddingLeft) || 5.12
+              });
+              const ph = clonedDoc.createElement('div');
+              ph.style.cssText = `display:block; box-sizing:border-box; width:100%; height:${box.height}px; margin:${cs.margin};`;
+              n.replaceWith(ph);
             });
+            el.querySelectorAll('.resource-url-input').forEach(n => {
+              const cs = window.getComputedStyle(n);
+              const box = n.getBoundingClientRect();
+              exportState.urlMeta.push({
+                box: rel(box),
+                text: n.value || 'No link added',
+                fontSize: cs.fontSize,
+                fontWeight: cs.fontWeight,
+                color: cs.color,
+                padX: parseFloat(cs.paddingLeft) || 7.36
+              });
+              const ph = clonedDoc.createElement('div');
+              ph.style.cssText = `display:block; box-sizing:border-box; width:100%; height:${box.height}px; margin:${cs.margin}; background:${cs.backgroundColor}; border:1px solid ${cs.borderTopColor}; border-radius:${cs.borderRadius};`;
+              n.replaceWith(ph);
+            });
+
+            // Capture the CLONED layout (post-hide, post-replacement) for shadow
+            // compositing and the crop — positions here are what html2canvas
+            // actually rendered, unlike live rects.
+            exportState.cloneGeo = {
+              sheet: sheet ? rel(sheet.getBoundingClientRect()) : null,
+              cards: [...el.querySelectorAll('.resource-item .qr-card')].map(c => rel(c.getBoundingClientRect())),
+              sheetRadius: sheet ? parseFloat(window.getComputedStyle(sheet).borderTopLeftRadius) || 16 : 16,
+              cardRadius: (() => {
+                const c = el.querySelector('.resource-item .qr-card');
+                return c ? parseFloat(window.getComputedStyle(c).borderTopLeftRadius) || 10 : 10;
+              })(),
+              shadowOff: 4
+            };
           }
         });
+        // ---- Post-render: hard-offset shadows + text, on a fresh canvas. ----
+        // html2canvas 1.4.1's returned canvas is read-only for drawing (direct
+        // fillRect is silently ignored), so copy it to a fresh canvas, composite
+        // there, then crop down to the sheet + its shadow.
+        const S = 2;
+        const work = document.createElement('canvas');
+        work.width = canvas.width;
+        work.height = canvas.height;
+        const wctx = work.getContext('2d');
+        wctx.drawImage(canvas, 0, 0);
+        const snap = document.createElement('canvas');
+        snap.width = work.width;
+        snap.height = work.height;
+        snap.getContext('2d').drawImage(work, 0, 0);
+
+        const { cloneGeo, titleMeta, urlMeta } = exportState;
+        const roundRect = (cx, x, y, w, h, r) => {
+          cx.beginPath();
+          cx.moveTo(x + r, y);
+          cx.arcTo(x + w, y, x + w, y + h, r);
+          cx.arcTo(x + w, y + h, x, y + h, r);
+          cx.arcTo(x, y + h, x, y, r);
+          cx.arcTo(x, y, x + w, y, r);
+          cx.closePath();
+        };
+
+        if (cloneGeo && cloneGeo.sheet) {
+          const off = (cloneGeo.shadowOff || 4) * S;
+          const { sheet, cards } = cloneGeo;
+          // Sheet shadow, then punch the sheet back from the pre-shadow snapshot.
+          wctx.fillStyle = sheetShadowColor || '#111111';
+          roundRect(wctx, sheet.x * S + off, sheet.y * S + off, sheet.w * S, sheet.h * S, (cloneGeo.sheetRadius || 16) * S);
+          wctx.fill();
+          wctx.drawImage(snap, sheet.x * S, sheet.y * S, sheet.w * S, sheet.h * S, sheet.x * S, sheet.y * S, sheet.w * S, sheet.h * S);
+          // Card shadows, then punch each card back — shadow shows only on the
+          // 4px right/bottom edges, never overpainted onto the card face.
+          wctx.fillStyle = cardShadowColor || '#111111';
+          cards.forEach(cr => {
+            roundRect(wctx, cr.x * S + off, cr.y * S + off, cr.w * S, cr.h * S, (cloneGeo.cardRadius || 10) * S);
+            wctx.fill();
+          });
+          cards.forEach(cr => {
+            wctx.drawImage(snap, cr.x * S, cr.y * S, cr.w * S, cr.h * S, cr.x * S, cr.y * S, cr.w * S, cr.h * S);
+          });
+        }
+
+        // Draw title/url text optically centered in its placeholder box
+        // (textAlign:center for the horizontal axis; baseline placed so the
+        // measured ascent/descent em box centers vertically). REV 50: text is
+        // drawn at the 2x canvas scale (the export was rendering at 1x, i.e.
+        // half size) plus a readability boost, and colors are pinned to
+        // high-contrast values so exports stay legible in dark theme.
+        const drawText = (meta, kind) => {
+          meta.forEach(({ box, text, fontSize, fontWeight, padX }) => {
+            const baseFsz = parseFloat(fontSize);
+            if (!baseFsz || !text) return;
+            const boost = kind === 'title' ? 1.4 : 1.45;
+            const maxFsz = Math.max(12, (box.h - 2) * S * 0.95);
+            const fsz = Math.min(baseFsz * S * boost, maxFsz);
+            wctx.font = `${fontWeight} ${fsz}px "DM Sans", sans-serif`;
+            wctx.textAlign = 'center';
+            wctx.textBaseline = 'alphabetic';
+            let t = text;
+            const maxW = (box.w - (padX || 0) * 2) * S;
+            while (wctx.measureText(t).width > maxW && t.length > 1) {
+              t = t.slice(0, -1);
+            }
+            if (t.length < text.length) t += '…';
+            const m = wctx.measureText(t);
+            const a = m.actualBoundingBoxAscent || fsz * 0.8;
+            const d = m.actualBoundingBoxDescent || fsz * 0.2;
+            wctx.fillStyle = kind === 'title' ? '#111111' : '#8B1A2B';
+            wctx.fillText(t, (box.x + box.w / 2) * S, (box.y + box.h / 2) * S + (a - (a + d) / 2));
+          });
+        };
+        drawText(titleMeta, 'title');
+        drawText(urlMeta, 'url');
+
+        // ---- Crop to the sheet + its 4px shadow (accurate canvas bounds). ----
+        const outCanvas = document.createElement('canvas');
+        if (cloneGeo && cloneGeo.sheet) {
+          const { sheet } = cloneGeo;
+          const cw = Math.ceil((sheet.w + 4) * S);
+          const ch = Math.ceil((sheet.h + 4) * S);
+          outCanvas.width = cw;
+          outCanvas.height = ch;
+          outCanvas.getContext('2d').drawImage(work, sheet.x * S, sheet.y * S, cw, ch, 0, 0, cw, ch);
+        } else {
+          outCanvas.width = work.width;
+          outCanvas.height = work.height;
+          outCanvas.getContext('2d').drawImage(work, 0, 0);
+        }
         const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png');
+        link.href = outCanvas.toDataURL('image/png');
         link.download = 'arc-nexus-board.png';
         link.click();
         showStatus('Board saved and exported as PNG.');
@@ -2285,6 +2684,7 @@
       document.getElementById('expand-url').value = url;
       document.getElementById('expand-rich').innerHTML = rich || '';
       expandModal.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
       applyExpandLockState();
       if (!editLocked) {
         document.getElementById('expand-title').focus({ preventScroll: true });
@@ -2305,18 +2705,43 @@
       expandDialog.style.width = '';
       expandDialog.style.height = '';
       expandModal.classList.remove('is-open');
+      document.body.style.overflow = '';
     }
 
     // Click-to-reveal for the expanded modal QR: when locked, clicking the
-    // QR image toggles the blur off/on for that single QR only.
+    // QR image toggles the blur off/on for that single QR only. When
+    // unlocked, clicking (or dropping a file onto) the QR panel opens the
+    // card's image picker so the QR can be replaced from the modal.
     const expandQrElement = document.querySelector('.expand-qr');
     if (expandQrElement) {
       expandQrElement.addEventListener('click', (event) => {
-        if (!editLocked) return;
         const modalImg = document.getElementById('expand-modal-image');
-        if (!modalImg || !modalImg.src) return;
-        event.preventDefault();
-        modalImg.classList.toggle('is-revealed');
+        if (editLocked) {
+          if (!modalImg || !modalImg.src) return;
+          event.preventDefault();
+          modalImg.classList.toggle('is-revealed');
+          return;
+        }
+        if (!expandCurrentCard) return;
+        const picker = expandCurrentCard.querySelector('.image-picker');
+        if (picker) picker.click();
+      });
+      ['dragenter', 'dragover'].forEach(type => {
+        expandQrElement.addEventListener(type, event => {
+          event.preventDefault();
+          if (editLocked) return;
+          expandQrElement.classList.add('is-dragging');
+        });
+      });
+      ['dragleave', 'drop'].forEach(type => {
+        expandQrElement.addEventListener(type, event => {
+          event.preventDefault();
+          expandQrElement.classList.remove('is-dragging');
+        });
+      });
+      expandQrElement.addEventListener('drop', event => {
+        if (editLocked || !expandCurrentCard) return;
+        attachImage(expandCurrentCard, event.dataTransfer.files[0]);
       });
     }
 
@@ -2324,8 +2749,8 @@
     let isResizing = false;
     let resizeStartX = 0, resizeStartY = 0;
     let resizeStartW = 0, resizeStartH = 0;
-    const MIN_W = 600, MAX_W = window.innerWidth * 0.95;
-    const MIN_H = 480, MAX_H = window.innerHeight * 0.9;
+    const MIN_W = 560, MIN_H = 440;
+    let MAX_W = 1200, MAX_H = 720;
 
     function applySize(w, h) {
       expandDialog.style.width = `${Math.round(w)}px`;
@@ -2349,6 +2774,14 @@
         const rect = expandDialog.getBoundingClientRect();
         resizeStartW = rect.width;
         resizeStartH = rect.height;
+        // Boundary-constrained: never allow the modal to overflow the region
+        // right of the sidebar (desktop) or the viewport edges.
+        const margin = 24;
+        const padLeft = parseFloat(getComputedStyle(expandModal).paddingLeft) || 0;
+        const availW = Math.max(MIN_W, window.innerWidth - padLeft - margin);
+        const availH = Math.max(MIN_H, window.innerHeight - margin);
+        MAX_W = Math.min(1200, availW);
+        MAX_H = Math.min(720, availH);
         document.body.style.cursor = 'nwse-resize';
       });
     }
@@ -2432,9 +2865,10 @@
           scheduleSave();
         }
 
-        // Measure live QR square for aspect-ratio fix
-        const liveSpace = expandCurrentCard.querySelector('.qr-space');
-        const spaceRect = liveSpace ? liveSpace.getBoundingClientRect() : null;
+        // Measure the modal's live QR square (html2canvas 1.4.1 can mis-lay-out
+        // CSS aspect-ratio elements in the cloned tree, so pin the real size).
+        const expandQrEl = document.querySelector('.expand-qr');
+        const expandQrRect = expandQrEl ? expandQrEl.getBoundingClientRect() : null;
 
         // Pre-measure title and URL input dimensions for accurate export
         const liveTitle = document.getElementById('expand-title');
@@ -2445,8 +2879,27 @@
         btn.disabled = true;
         btn.style.opacity = '0.7';
 
-        const resourceEl = document.querySelector('.expand-split');
-        const canvas = await html2canvas(resourceEl, {
+        // Export the full modal — cream shell, 3px #111 border, hard-offset
+        // shadow, QR square, and editor — so the PNG matches the live dialog.
+        // html2canvas 1.4.1 drops box-shadow entirely, so the dialog is wrapped
+        // in a padded host and a real offset shadow div is drawn behind it
+        // (the 8px padding keeps the shadow inside the canvas).
+        const dialogEl = document.querySelector('.expand-dialog');
+        const dialogShadow = dialogEl ? window.getComputedStyle(dialogEl).boxShadow : '';
+        const dialogShadowColor = shadowColorOf(dialogShadow);
+        // Pin the dialog's width BEFORE lifting it out of the modal — inside a
+        // max-content host the %-based CSS width would shrink-to-fit. Height is
+        // left auto so the clone can grow to fit the fully-expanded rich text.
+        const dialogLiveW = dialogEl.getBoundingClientRect().width;
+        dialogEl.style.width = `${Math.round(dialogLiveW)}px`;
+        dialogEl.style.maxWidth = 'none';
+        const dialogHost = document.createElement('div');
+        dialogHost.style.cssText = 'padding: 8px; position: relative; width: max-content; background: transparent;';
+        dialogEl.parentNode.insertBefore(dialogHost, dialogEl);
+        dialogHost.appendChild(dialogEl);
+        let canvas;
+        try {
+        canvas = await html2canvas(dialogHost, {
           backgroundColor: null,
           scale: 2,
           useCORS: true,
@@ -2463,7 +2916,7 @@
             // computed styles from class toggles). Force the dialog to its open,
             // fully-visible state so the export captures the modal content, not
             // the hidden/transitioning-out appearance.
-            const modal = el.querySelector('#expand-modal');
+            const modal = clonedDoc.querySelector('#expand-modal');
             if (modal) {
               modal.style.animation = 'none';
               modal.style.opacity = '1';
@@ -2472,39 +2925,38 @@
               modal.style.alignItems = 'center';
               modal.style.justifyContent = 'center';
             }
-            const dialog = el.querySelector('.expand-dialog');
+            const dialog = clonedDoc.querySelector('.expand-dialog');
             if (dialog) {
               dialog.style.animation = 'none';
               dialog.style.opacity = '1';
               dialog.style.transform = 'none';
               dialog.style.display = 'flex';
               dialog.style.flexDirection = 'column';
+              // Let the dialog grow to fit the fully-expanded rich text.
+              dialog.style.height = 'auto';
+              dialog.style.overflow = 'visible';
             }
 
-            // Remove modal chrome
-            el.querySelectorAll('.expand-close, .expand-resize-handle').forEach(n => n.style.display = 'none');
-            el.querySelectorAll('.action-cluster, .expand-button, .expand-reveal-icon').forEach(n => n.style.display = 'none');
-            el.querySelectorAll('.expand-save-btn').forEach(n => n.style.display = 'none');
+            // Draw the hard-offset shadow manually (html2canvas drops box-shadow).
+            // el is the padded host: dialog sits at (8,8), shadow offset +4.
+            const shadow = clonedDoc.createElement('div');
+            shadow.style.cssText = `position:absolute; top:12px; left:12px; right:4px; bottom:4px; background:${dialogShadowColor}; border-radius:28px;`;
+            el.insertBefore(shadow, el.firstChild);
 
-            const clonedSpace = el.querySelector('.qr-space');
-            if (clonedSpace && spaceRect) {
-              clonedSpace.style.aspectRatio = 'auto';
-              clonedSpace.style.width = `${spaceRect.width}px`;
-              clonedSpace.style.height = `${spaceRect.height}px`;
-              flattenQrSpaceBackground(clonedSpace);
+            // Remove modal chrome and editing hints — the export is the card's
+            // final presentation, not the editing UI.
+            el.querySelectorAll('.expand-close, .expand-resize-handle, .expand-save-btn, .expand-toolbar, .expand-reveal-icon, .expand-qr-caption, #expand-modal-title').forEach(n => n.style.display = 'none');
+
+            // Pin the QR square to its live pixel size.
+            const clonedQr = el.querySelector('.expand-qr');
+            if (clonedQr && expandQrRect) {
+              clonedQr.style.aspectRatio = 'auto';
+              clonedQr.style.width = `${expandQrRect.width}px`;
+              clonedQr.style.height = `${expandQrRect.height}px`;
             }
 
-            const clonedImg = el.querySelector('.qr-image');
-            if (clonedImg) {
-              const bg = clonedDoc.createElement('div');
-              bg.className = clonedImg.className;
-              bg.style.backgroundImage = `url("${clonedImg.src}")`;
-              bg.style.backgroundSize = 'contain';
-              bg.style.backgroundPosition = 'center';
-              bg.style.backgroundRepeat = 'no-repeat';
-              clonedImg.replaceWith(bg);
-            }
-
+            // Render the QR image as a background (html2canvas stretches
+            // object-fit images; background-size:contain keeps the ratio).
             const expandImg = el.querySelector('#expand-modal-image');
             if (expandImg && expandImg.src) {
               const bg = clonedDoc.createElement('div');
@@ -2516,11 +2968,12 @@
               bg.style.filter = 'none';
               bg.style.width = '100%';
               bg.style.height = '100%';
-              bg.style.objectFit = 'contain';
               expandImg.replaceWith(bg);
             }
 
-            // Replace title input with styled div - match live dimensions exactly
+            // Replace title/URL inputs with plain text divs matched to the LIVE
+            // computed style (auto-adapts to dark mode). Real padding + normal
+            // line-height so descenders keep full clearance.
             el.querySelectorAll('.expand-input').forEach(n => {
               const isTitle = n.id === 'expand-title';
               const isUrl = n.id === 'expand-url';
@@ -2529,83 +2982,67 @@
               const liveInput = isTitle ? liveTitle : liveUrl;
               const rect = isTitle ? titleRect : urlRect;
               const h = rect ? rect.height : (liveInput ? liveInput.getBoundingClientRect().height : 44);
-              const fs = window.getComputedStyle(liveInput).fontSize;
+              const cs = liveInput ? window.getComputedStyle(liveInput) : null;
+              const lineH = cs ? parseFloat(cs.fontSize) * (parseFloat(cs.lineHeight) || 1.3) : 16;
+              const inputPad = cs ? (parseFloat(cs.paddingTop) || 8.8) : 8.8;
+              const vPad = Math.max((h - lineH - 2) / 2, inputPad, 4);
               span.style.cssText = `
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                display: block;
                 box-sizing: border-box;
                 width: 100%;
                 height: ${h}px;
-                line-height: ${h}px;
-                padding: 0 .75rem;
-                border: 1px solid transparent;
-                border-radius: 6px;
-                color: #3a1720;
-                background: rgba(255,255,255,.72);
+                line-height: 1.3;
+                padding: ${vPad}px .7rem;
+                border: 2px solid ${cs ? cs.borderTopColor : '#E4E4E7'};
+                border-radius: ${cs ? cs.borderRadius : '12px'};
+                color: ${cs ? cs.color : '#111111'};
+                background: ${cs ? cs.backgroundColor : '#ffffff'};
                 font-family: "DM Sans", sans-serif;
-                font-size: ${fs};
+                font-size: ${cs ? cs.fontSize : '.88rem'};
                 font-weight: 700;
                 text-align: center;
                 white-space: nowrap;
                 overflow: hidden;
-                text-overflow: ellipsis.
+                text-overflow: ellipsis;
               `;
               n.replaceWith(span);
             });
 
-            // Replace expand-rich with a styled div for proper rendering
+            // Replace the rich description with a plain div matched to the LIVE
+            // style. The export is a presentation image, so show the full content
+            // (no max-height scroll clip).
             el.querySelectorAll('.expand-rich').forEach(n => {
               const div = clonedDoc.createElement('div');
               div.innerHTML = n.innerHTML;
+              const cs = window.getComputedStyle(n);
               div.style.cssText = `
                 display: block;
                 width: 100%;
-                padding: .5rem;
-                color: #3a1720;
-                font-family: "DM Sans", sans-serif;
-                font-size: .82rem;
-                line-height: 1.5;
+                box-sizing: border-box;
+                min-height: ${parseFloat(cs.minHeight) || 110}px;
+                padding: ${cs.paddingTop} ${cs.paddingRight} ${cs.paddingBottom} ${cs.paddingLeft};
+                border: ${cs.borderTopWidth} solid ${cs.borderTopColor};
+                border-radius: ${cs.borderRadius};
+                color: ${cs.color};
+                background: ${cs.backgroundColor};
+                font-family: ${cs.fontFamily};
+                font-size: ${cs.fontSize};
+                font-weight: ${cs.fontWeight};
+                line-height: ${cs.lineHeight};
                 word-wrap: break-word;
                 overflow-wrap: break-word;
+                overflow: visible;
+                max-height: none;
               `;
               n.replaceWith(div);
             });
-
-            // Ensure the split layout renders correctly
-            const splitEl = el.querySelector('.expand-split');
-            if (splitEl) {
-              splitEl.style.gap = '2rem';
-              splitEl.style.padding = '0';
-            }
-            // Style the cards for export - preserve rounded corners, no white bleed
-            el.querySelectorAll('.expand-card').forEach(card => {
-              card.style.border = '2px solid #171717';
-              card.style.borderRadius = '10px';
-              card.style.background = '#fff';
-              card.style.boxShadow = 'none';
-              card.style.overflow = 'hidden';
-            });
-            el.querySelectorAll('.expand-qr').forEach(qr => {
-              qr.style.padding = '0';
-              qr.style.border = 'none';
-              qr.style.borderRadius = '10px 10px 0 0';
-              qr.style.background = '#6b101f';
-              qr.style.overflow = 'hidden';
-            });
-            el.querySelectorAll('.expand-editor').forEach(ed => {
-              ed.style.padding = '1.5rem 1.5rem 1rem';
-            });
-            el.querySelectorAll('.expand-toolbar').forEach(n => n.style.display = 'none');
-
-            // Ensure expand-modal-image in QR card has correct border-radius
-            el.querySelectorAll('#expand-modal-image').forEach(img => {
-              if (img.style) {
-                img.style.borderRadius = '8px 8px 0 0';
-              }
-            });
           }
         });
+        } finally {
+          dialogEl.style.width = '';
+          dialogEl.style.maxWidth = '';
+          dialogHost.replaceWith(dialogEl);
+        }
 
         const link = document.createElement('a');
         link.href = canvas.toDataURL('image/png');
@@ -2690,7 +3127,7 @@
   <!-- Retro-Neubrutalist navigation (REV 38) -->
   <aside class="desktop-sidebar" aria-label="Primary">
    <div class="sidebar-brand">
-    <img src="assets/logo.png" alt="ARC logo" class="sidebar-logo">
+    <a href="index.html" class="sidebar-logo-link" aria-label="Go to Home" title="Go to Home"><img src="assets/logo.png" alt="ARC logo" class="sidebar-logo"></a>
     <div>
      <span class="sidebar-title">ARC</span>
     </div>
@@ -2700,19 +3137,22 @@
     <a href="NEXUS.html" class="sidebar-link is-active"><i data-lucide="qr-code" aria-hidden="true"></i><span>Nexus</span></a>
     <a href="core.html" class="sidebar-link"><i data-lucide="list-checks" aria-hidden="true"></i><span>Core</span></a>
     <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="sidebar-link"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>Tracker</span></a>
-    <button type="button" class="sidebar-link" id="sidebarSave"><i data-lucide="save" aria-hidden="true"></i><span>Save</span></button>
    </nav>
    <div class="sidebar-footer">
-    <div class="sidebar-widget-slot" id="sidebarWidgetSlot"></div>
+    <div class="utility-cluster">
+     <button id="tourToggle" class="tour-toggle" type="button" aria-label="Start walkthrough tour" aria-haspopup="dialog"><i data-lucide="help-circle" aria-hidden="true"></i></button>
+     <button id="soundToggle" class="sound-toggle" type="button" role="switch" aria-checked="true" aria-label="Sound on"><i data-lucide="volume-2" aria-hidden="true"></i><i data-lucide="volume-x" aria-hidden="true"></i></button>
+     <div class="sidebar-widget-slot" id="sidebarWidgetSlot"></div>
+    </div>
     <div class="sidebar-sync-slot" id="sidebarSyncSlot"></div>
    </div>
   </aside>
 
   <nav class="mobile-bottom-nav" aria-label="Primary">
    <a href="index.html" class="mn-item"><i data-lucide="home" aria-hidden="true"></i><span>Home</span></a>
-   <a href="NEXUS.html" class="mn-item is-active"><i data-lucide="qr-code" aria-hidden="true"></i><span>Nexus</span></a>
-   <a href="core.html" class="mn-item"><i data-lucide="list-checks" aria-hidden="true"></i><span>Core</span></a>
-   <button type="button" class="mn-item" id="bottomNavSave"><i data-lucide="save" aria-hidden="true"></i><span>Save</span></button>
+   <a href="NEXUS.html" class="mn-item is-active"><i data-lucide="qr-code" aria-hidden="true"></i><span>NEXUS</span></a>
+   <a href="core.html" class="mn-item"><i data-lucide="list-checks" aria-hidden="true"></i><span>CORE</span></a>
+   <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="mn-item"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>TRACKER</span></a>
   </nav>
 
   <button type="button" class="fab" id="pageFab" data-requires-unlock aria-label="Add resource"><i data-lucide="plus" aria-hidden="true"></i></button>
@@ -2729,8 +3169,6 @@
       var widgetSlot = document.getElementById('sidebarWidgetSlot');
       var realSave = document.getElementById('save-board-button');
       var realAdd = document.getElementById('add-resource-button');
-      var sidebarSave = document.getElementById('sidebarSave');
-      var bottomSave = document.getElementById('bottomNavSave');
       var fab = document.getElementById('pageFab');
       var mq = window.matchMedia('(min-width:1024px)');
 
@@ -2748,8 +3186,6 @@
       if (mq.addEventListener) mq.addEventListener('change', layout);
       else if (mq.addListener) mq.addListener(layout);
 
-      if (sidebarSave && realSave) sidebarSave.addEventListener('click', function () { realSave.click(); });
-      if (bottomSave && realSave) bottomSave.addEventListener('click', function () { realSave.click(); });
       if (fab && realAdd) {
         if (typeof editLocked !== 'undefined' && editLocked) fab.disabled = true;
         fab.addEventListener('click', function () { realAdd.click(); });
@@ -2766,6 +3202,54 @@
         var dark = html.getAttribute('data-theme') === 'dark';
         html.setAttribute('data-theme', dark ? 'light' : 'dark');
         try { localStorage.setItem('arc-theme', dark ? 'light' : 'dark'); } catch (e) {}
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      /* REV 51: sound engine wiring — global click listener, sound toggle,
+         tutorial trigger, and walkthrough resume. */
+      function syncSoundUI() {
+        var on = window.SFX ? window.SFX.isSoundEnabled() : true;
+        document.documentElement.setAttribute('data-sound', on ? 'on' : 'off');
+        var s = document.getElementById('soundToggle');
+        if (s) {
+          s.setAttribute('aria-checked', String(on));
+          s.setAttribute('aria-label', on ? 'Sound on' : 'Sound off');
+        }
+      }
+
+      document.addEventListener('click', function (e) {
+        if (!window.SFX) return;
+        var t = e.target && e.target.closest ? e.target.closest('button, a, [role="button"], input[type="submit"]') : null;
+        if (!t) return;
+        if (t.closest('.tour-overlay')) return;
+        window.SFX.playButtonClick();
+      });
+
+      var soundToggle = document.getElementById('soundToggle');
+      if (soundToggle) {
+        soundToggle.addEventListener('click', function () {
+          if (!window.SFX) return;
+          var on = !window.SFX.isSoundEnabled();
+          window.SFX.setSoundEnabled(on);
+          document.documentElement.setAttribute('data-sound', on ? 'on' : 'off');
+          soundToggle.setAttribute('aria-checked', String(on));
+          soundToggle.setAttribute('aria-label', on ? 'Sound on' : 'Sound off');
+          if (on) window.SFX.playButtonClick();
+        });
+      }
+
+      var tourToggle = document.getElementById('tourToggle');
+      if (tourToggle) {
+        tourToggle.addEventListener('click', function () {
+          if (window.ArcTour) window.ArcTour.startFrom('nexus');
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        syncSoundUI();
+        if (window.ArcTour) window.ArcTour.resume();
       });
     })();
   </script>

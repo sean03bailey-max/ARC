@@ -8,22 +8,25 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script type="module" src="utils/soundEffects.js"></script>
+  <script src="utils/tour.js"></script>
   <script>
     (function () {
       try {
         if (localStorage.getItem('arc-theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        if (localStorage.getItem('arc_sound_enabled') === 'false') document.documentElement.setAttribute('data-sound', 'off');
       } catch (e) {}
     })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Poppins:wght@800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --red: #982036;
+      --red: #8B1A2B;
       --navy: #07133f;
-      --paper: #fffdf8;
-      --soft-red: #fce9e9;
-      --ink: #101010;
-      --rule: #171717;
+      --paper: #FBF7EE;
+      --soft-red: #f3d9d5;
+      --ink: #111111;
+      --rule: #111111;
     }
 
     * { box-sizing: border-box; }
@@ -92,6 +95,36 @@
     .arc-logo:focus-within {
       transform: translate(-3px, -3px);
       box-shadow: 9px 9px 0 var(--ink);
+    }
+
+    /* REV 50: homepage action/nav buttons carry the same weight and depth
+       as the Unlock button (2px border, 5px rest shadow, 9px hover shadow). */
+    nav a.arc-action {
+      border: 2px solid var(--ink) !important;
+      box-shadow: 5px 5px 0 var(--ink);
+    }
+    nav a.arc-action:hover,
+    nav a.arc-action:focus-visible {
+      transform: translate(-3px, -3px);
+      box-shadow: 9px 9px 0 var(--ink);
+    }
+    nav a.arc-action:active {
+      transform: translate(1px, 1px);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    /* REV 52: Tracker keeps a crisp white border while its offset shadow and
+       click depression match the adjacent action buttons. */
+    #trackerButton {
+      box-shadow: 5px 5px 0 var(--ink) !important;
+    }
+    #trackerButton:hover,
+    #trackerButton:focus-visible {
+      box-shadow: 9px 9px 0 var(--ink) !important;
+    }
+    #trackerButton:active {
+      transform: translate(2px, 2px) !important;
+      box-shadow: 3px 3px 0 var(--ink) !important;
     }
 
     .arc-logo {
@@ -362,11 +395,11 @@
       outline-offset: 2px;
     }
     .password-toggle:not(.is-unlocked) { background: #df171d !important; color: #fff !important; }
-    .password-toggle:hover, .password-toggle:focus-visible {
+    .password-toggle.arc-action:hover, .password-toggle.arc-action:focus-visible {
       transform: translate(-3px, -3px);
       box-shadow: 9px 9px 0 var(--ink);
     }
-    .password-toggle:active {
+    .password-toggle.arc-action:active {
       transform: translate(1px, 1px);
       box-shadow: 3px 3px 0 var(--ink);
       transition-duration: 90ms;
@@ -439,6 +472,8 @@
 <main class="arc-dot-field relative flex min-h-screen w-full items-center justify-center overflow-hidden px-5 py-12 sm:px-8">
    <div class="arc-wash absolute inset-0"></div>
    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button>
+   <button id="tourToggle" class="tour-toggle" type="button" aria-label="Start walkthrough tour" aria-haspopup="dialog"><i data-lucide="help-circle" aria-hidden="true"></i></button>
+   <button id="soundToggle" class="sound-toggle" type="button" role="switch" aria-checked="true" aria-label="Sound on"><i data-lucide="volume-2" aria-hidden="true"></i><i data-lucide="volume-x" aria-hidden="true"></i></button>
    <section class="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center text-center">
     <div class="page-filterable">
      <div class="rise-in flex justify-center">
@@ -465,11 +500,11 @@
       <h1 class="rise-in rise-delay-2 mt-0 max-w-3xl" style="color: rgb(7, 19, 63); font-weight: 900; font-size: 38px; letter-spacing: -0.02rem; line-height: 1.05;">Welcome to ARC</h1>
       <p class="rise-in rise-delay-3 mt-5 max-w-2xl leading-relaxed" style="color: rgb(76, 83, 103); font-size: 19px; line-height: 1.6;">Your central space for council operations, shared deliverables, and quick-access files that help us efficiently serve with purpose.</p>
       <nav class="rise-in rise-delay-4 mt-6 flex w-full flex-col justify-center gap-3 sm:flex-row sm:flex-wrap" aria-label="ARC destinations">
-       <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="NEXUS.html" style="background: rgb(152, 32, 54); color: rgb(255, 255, 255);">
+       <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="NEXUS.html" style="background: rgb(139, 26, 43); color: rgb(255, 255, 255);">
         <i data-lucide="qr-code" width="18" height="18" aria-hidden="true"></i>
         <span>NEXUS</span>
        </a>
-       <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" style="background: rgb(7, 19, 63); color: rgb(255, 255, 255);">
+       <a id="trackerButton" class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" style="background: rgb(7, 19, 63); color: rgb(255, 255, 255); border: 2px solid #FFFFFF !important;">
         <i data-lucide="clipboard-list" width="18" height="18" aria-hidden="true"></i>
         <span>Tracker</span>
        </a>
@@ -722,6 +757,63 @@
         var dark = html.getAttribute('data-theme') === 'dark';
         html.setAttribute('data-theme', dark ? 'light' : 'dark');
         try { localStorage.setItem('arc-theme', dark ? 'light' : 'dark'); } catch (e) {}
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      /* REV 51: sound engine wiring — global click listener, unlock latch,
+         sound toggle, tutorial trigger, and walkthrough resume. */
+      function syncSoundUI() {
+        var on = window.SFX ? window.SFX.isSoundEnabled() : true;
+        document.documentElement.setAttribute('data-sound', on ? 'on' : 'off');
+        var s = document.getElementById('soundToggle');
+        if (s) {
+          s.setAttribute('aria-checked', String(on));
+          s.setAttribute('aria-label', on ? 'Sound on' : 'Sound off');
+        }
+      }
+
+      document.addEventListener('click', function (e) {
+        if (!window.SFX) return;
+        var t = e.target && e.target.closest ? e.target.closest('button, a, [role="button"], input[type="submit"]') : null;
+        if (!t) return;
+        if (t.closest('.tour-overlay')) return;
+        // Homepage unlock button has its own two-stage latch sound.
+        if (t.id === 'passwordToggle' && document.querySelector('main.arc-dot-field')) return;
+        window.SFX.playButtonClick();
+      });
+
+      var pwToggle = document.getElementById('passwordToggle');
+      if (pwToggle && document.querySelector('main.arc-dot-field')) {
+        pwToggle.addEventListener('click', function () {
+          if (window.SFX) window.SFX.playUnlockSound();
+        });
+      }
+
+      var soundToggle = document.getElementById('soundToggle');
+      if (soundToggle) {
+        soundToggle.addEventListener('click', function () {
+          if (!window.SFX) return;
+          var on = !window.SFX.isSoundEnabled();
+          window.SFX.setSoundEnabled(on);
+          document.documentElement.setAttribute('data-sound', on ? 'on' : 'off');
+          soundToggle.setAttribute('aria-checked', String(on));
+          soundToggle.setAttribute('aria-label', on ? 'Sound on' : 'Sound off');
+          if (on) window.SFX.playButtonClick();
+        });
+      }
+
+      var tourToggle = document.getElementById('tourToggle');
+      if (tourToggle) {
+        tourToggle.addEventListener('click', function () {
+          if (window.ArcTour) window.ArcTour.startFrom('home');
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        syncSoundUI();
+        if (window.ArcTour) window.ArcTour.resume();
       });
     })();
   </script>

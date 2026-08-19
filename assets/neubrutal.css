@@ -4,15 +4,17 @@
    ========================================================================== */
 
 :root {
-  --maroon: #982036;
-  --maroon-dark: #7a2331;
+  --maroon: #8B1A2B;
+  --maroon-dark: #6b101f;
   --navy: #07133f;
-  --ink: #171717;
-  --shadow: #101010;
-  --paper: #fffdfb;
-  --line: #d8d1c9;
-  --red: #982036;
-  --shadow-ink: #101010;
+  --ink: #111111;
+  --shadow: #111111;
+  --paper: #FBF7EE;
+  --line: #E4E4E7;
+  --red: #8B1A2B;
+  --shadow-ink: #111111;
+  --surface: #FFFFFF;
+  --muted: #71717A;
 }
 
 /* ---------- Dark theme tokens ---------- */
@@ -52,15 +54,19 @@ body,
 .arc-action,
 .arc-action-sm,
 .arc-logo {
-  border: 3px solid var(--ink) !important;
+  border: 2px solid var(--ink) !important;
   border-radius: 10px;
-  box-shadow: 4px 4px 0 var(--shadow);
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  box-shadow: 2px 2px 0 var(--shadow);
+  transition: transform 120ms linear, box-shadow 120ms linear;
 }
 .arc-action-sm {
   border-width: 2px !important;
   border-radius: 8px;
-  box-shadow: 3px 3px 0 var(--shadow);
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+.arc-logo {
+  border-width: 3px !important;
+  box-shadow: 4px 4px 0 var(--shadow);
 }
 .arc-action:hover,
 .arc-action:focus-visible,
@@ -69,7 +75,7 @@ body,
 .arc-logo:hover,
 .arc-logo:focus-within {
   transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 var(--shadow);
+  box-shadow: 4px 4px 0 var(--shadow);
 }
 .arc-action:active,
 .arc-action-sm:active,
@@ -79,7 +85,7 @@ body,
 .mn-item:active,
 .sidebar-link:active,
 .fab:active {
-  transform: translate(2px, 2px) !important;
+  transform: translate(1px, 1px) !important;
   box-shadow: 1px 1px 0 var(--shadow) !important;
 }
 .arc-action:disabled,
@@ -89,9 +95,22 @@ body,
   opacity: 0.55;
 }
 
-/* ---------- Header: inline action cluster replaced by nav ---------- */
+/* ---------- Header: inline action cluster (desktop in-page actions, mobile hidden) ---------- */
 .header-actions {
   display: none !important;
+}
+@media (min-width: 1024px) {
+  .header-actions {
+    display: flex !important;
+    align-items: center;
+    gap: 0.55rem;
+    margin-left: auto;
+  }
+}
+@media (max-width: 1023.98px) {
+  .header-actions {
+    display: none !important;
+  }
 }
 
 /* ---------- Desktop sidebar ---------- */
@@ -106,6 +125,15 @@ body,
   border-bottom: 3px solid var(--ink);
   margin-bottom: 1.25rem;
 }
+.sidebar-logo-link {
+  display: block;
+  line-height: 0;
+  border-radius: 8px;
+}
+.sidebar-logo-link:focus-visible {
+  outline: 3px solid var(--maroon);
+  outline-offset: 2px;
+}
 .sidebar-logo {
   width: 46px;
   height: 46px;
@@ -115,11 +143,12 @@ body,
   border-radius: 8px;
   padding: 4px;
   flex: 0 0 auto;
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  box-shadow: 2px 2px 0 var(--shadow);
+  transition: transform 120ms linear, box-shadow 120ms linear, background 120ms linear;
 }
 .sidebar-logo:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 var(--shadow);
+  box-shadow: 4px 4px 0 var(--shadow);
   background: rgba(152, 32, 54, 0.12);
 }
 .sidebar-logo:active {
@@ -163,15 +192,19 @@ body,
   font-weight: 800;
   font-size: 13.5px;
   letter-spacing: 0.01em;
-  box-shadow: 3px 3px 0 var(--shadow);
+  box-shadow: 5px 5px 0 var(--shadow);
   cursor: pointer;
   text-align: left;
   transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease, color 150ms ease;
 }
 .sidebar-link:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 var(--shadow);
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0 var(--shadow);
   background: #fffdf8;
+}
+.sidebar-link:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--shadow);
 }
 .sidebar-link.is-active {
   background: var(--maroon);
@@ -202,6 +235,21 @@ body,
 .sidebar-sync-slot #syncStatus,
 .sidebar-sync-slot .sync-pill {
   margin: 0;
+}
+
+/* ---------- REV 53: Action Board utility cluster (tour, sound, theme, lock) ---------- */
+.utility-cluster {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.utility-cluster .sidebar-widget-slot {
+  width: 100%;
+}
+body:has(.board-shell) .password-toggle,
+body:has(.tracker-shell) .password-toggle {
+  width: 36px;
+  height: 36px;
 }
 
 /* ---------- REV 43: header divider + control parity (NEXUS == CORE) ---------- */
@@ -238,12 +286,12 @@ body:has(.board-shell) header.board-header {
 }
 /* Match the theme toggle to each page's Edit Lock button size. */
 body:has(.board-shell) .theme-toggle {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
 }
 body:has(.tracker-shell) .theme-toggle {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
 }
 .theme-toggle:hover {
   transform: translate(-2px, -2px);
@@ -273,10 +321,317 @@ html[data-theme="dark"] .theme-toggle .lucide-sun {
 html[data-theme="dark"] .theme-toggle .lucide-moon {
   display: block;
 }
+/* ---------- REV 51: sound toggle (Action Board utility cluster) ---------- */
+.sound-toggle {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #111111;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111111;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #111111;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease;
+}
+.sound-toggle:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 #111111;
+  background: #fffdf8;
+}
+.sound-toggle:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #111111;
+}
+.sound-toggle svg {
+  width: 17px;
+  height: 17px;
+}
+.sound-toggle .lucide-volume-x {
+  display: none;
+}
+html[data-sound="off"] .sound-toggle .lucide-volume-2 {
+  display: none;
+}
+html[data-sound="off"] .sound-toggle .lucide-volume-x {
+  display: block;
+}
+html[data-theme="dark"] .sound-toggle {
+  background: #221d26;
+  color: #ffffff;
+  border-color: #ffffff;
+  box-shadow: 2px 2px 0 #ffffff;
+}
+html[data-theme="dark"] .sound-toggle:hover {
+  background: #2a2430;
+  box-shadow: 4px 4px 0 #ffffff;
+}
+html[data-theme="dark"] .sound-toggle:active {
+  box-shadow: 1px 1px 0 #ffffff;
+}
+/* Muted switch state: pressed-down look when sound is off */
+html[data-sound="off"] .sound-toggle {
+  transform: translate(1px, 1px);
+  background: #e9e2d8;
+  color: #7a6f74;
+  box-shadow: 1px 1px 0 #111111;
+}
+html[data-sound="off"] .sound-toggle:hover {
+  transform: translate(0, 0);
+  background: #e3dcd1;
+  box-shadow: 3px 3px 0 #111111;
+}
+html[data-theme="dark"] html[data-sound="off"] .sound-toggle {
+  background: #16121a;
+  color: #8b8b9a;
+  box-shadow: 1px 1px 0 #ffffff;
+}
+html[data-theme="dark"] html[data-sound="off"] .sound-toggle:hover {
+  background: #1d1822;
+  box-shadow: 3px 3px 0 #ffffff;
+}
+
+/* ---------- REV 51: tutorial trigger (?) buttons ---------- */
+.tour-toggle {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #111111;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111111;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #111111;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease;
+}
+.tour-toggle:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 #111111;
+  background: #fffdf8;
+}
+.tour-toggle:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #111111;
+}
+.tour-toggle svg {
+  width: 19px;
+  height: 19px;
+}
+html[data-theme="dark"] .tour-toggle {
+  background: #221d26;
+  color: #ffffff;
+  border-color: #ffffff;
+  box-shadow: 2px 2px 0 #ffffff;
+}
+html[data-theme="dark"] .tour-toggle:hover {
+  background: #2a2430;
+  box-shadow: 4px 4px 0 #ffffff;
+}
+html[data-theme="dark"] .tour-toggle:active {
+  box-shadow: 1px 1px 0 #ffffff;
+}
+
+/* Homepage: tutorial (?) + sound toggle sit fixed beside the dark mode toggle */
+main.arc-dot-field .tour-toggle {
+  position: fixed;
+  top: 16px;
+  right: 72px;
+  left: auto;
+  bottom: auto;
+  z-index: 70;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+}
+main.arc-dot-field .tour-toggle svg {
+  width: 24px;
+  height: 24px;
+}
+main.arc-dot-field .sound-toggle {
+  position: fixed;
+  top: 16px;
+  right: 128px;
+  left: auto;
+  bottom: auto;
+  z-index: 70;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+}
+main.arc-dot-field .sound-toggle svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ---------- REV 51: walkthrough overlay + tooltip + skip confirmation ---------- */
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;
+  pointer-events: none;
+}
+.tour-spotlight {
+  position: absolute;
+  box-shadow: 0 0 0 9999px rgba(17, 17, 17, 0.55);
+  border: 3px solid #ffffff;
+  border-radius: 14px;
+  pointer-events: none;
+  transition: all 220ms ease;
+}
+.tour-tooltip {
+  position: absolute;
+  box-sizing: border-box;
+  min-width: 260px;
+  max-width: min(90vw, 420px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  background: #FBF7EE;
+  border: 3px solid #111111;
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 #111111;
+  padding: 1rem 1.1rem 1rem;
+  pointer-events: auto;
+  z-index: 2;
+}
+.tour-step-chip {
+  display: inline-block;
+  font-family: "DM Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: #8B1A2B;
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-bottom: 0.5rem;
+}
+.tour-title {
+  margin: 0 0 0.35rem;
+  font-family: "Poppins", "DM Sans", sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: #111111;
+}
+.tour-text {
+  margin: 0 0 0.9rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #2a2a2a;
+}
+.tour-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.tour-btn {
+  font-family: "DM Sans", sans-serif;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid #111111;
+  background: #ffffff;
+  color: #111111;
+  box-shadow: 2px 2px 0 #111111;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+  text-decoration: none;
+}
+.tour-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 #111111;
+}
+.tour-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #111111;
+}
+.tour-btn-primary {
+  background: #982036;
+  color: #ffffff;
+}
+.tour-btn-skip {
+  margin-left: auto;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: #6b6166;
+}
+.tour-btn-skip:hover {
+  transform: none;
+  box-shadow: none;
+  color: #111111;
+  background: rgba(17, 17, 17, 0.07);
+}
+.tour-btn-external {
+  background: #07133f;
+  color: #ffffff;
+}
+.tour-confirm-layer {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 17, 17, 0.45);
+  z-index: 3;
+  pointer-events: auto;
+}
+.tour-confirm-layer.is-open {
+  display: flex;
+}
+.tour-confirm-card {
+  width: min(92vw, 380px);
+  background: #FBF7EE;
+  border: 3px solid #111111;
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 #111111;
+  padding: 1.25rem;
+  text-align: center;
+}
+.tour-confirm-card h3 {
+  margin: 0 0 0.5rem;
+  font-family: "Poppins", "DM Sans", sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #111111;
+}
+.tour-confirm-card p {
+  margin: 0 0 1rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #2a2a2a;
+}
+.tour-confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.tour-btn-danger {
+  background: #8B1A2B;
+  color: #ffffff;
+}
+.tour-btn-cancel {
+  background: #ffffff;
+  color: #111111;
+}
+
 .password-widget:has(.pw-tools) {
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.45rem;
+  gap: 0.6rem;
 }
 /* Edit Lock: clean subpixel containment so no stray pixels escape the frame */
 .password-toggle.arc-action-sm {
@@ -331,50 +686,72 @@ main.arc-dot-field .theme-toggle svg {
 }
 
 /* ---------- Mobile bottom nav ---------- */
+/* ---------- Floating capsule bottom nav (REV 45) ---------- */
 .mobile-bottom-nav {
   display: flex;
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 14px;
   z-index: 80;
-  background: #fffdf8;
-  border-top: 3px solid var(--ink);
-  padding-bottom: env(safe-area-inset-bottom);
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #ffffff;
+  border: 3px solid #111111;
+  border-radius: 999px;
+  box-shadow: 4px 4px 0 #111111;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  max-width: calc(100vw - 24px);
 }
 .mn-item {
-  flex: 1 1 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
+  width: 56px;
   min-width: 0;
-  height: 62px;
-  background: #fffdf8;
-  color: var(--ink);
-  border-right: 1.5px solid var(--ink);
+  height: auto;
+  padding: 3px 0 1px;
+  background: transparent;
+  color: #111111;
+  border: 0;
+  border-right: 0;
   text-decoration: none;
   font-family: "DM Sans", sans-serif;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.03em;
   cursor: pointer;
 }
-.mn-item:last-child {
-  border-right: 0;
-}
 .mn-item svg {
-  width: 21px;
-  height: 21px;
-  color: var(--maroon-dark);
-}
-.mn-item.is-active {
-  background: var(--maroon);
-  color: #fff;
+  width: 34px;
+  height: 34px;
+  padding: 8.5px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: transparent;
+  color: #111111;
+  stroke-width: 2.25;
+  transition: background 120ms linear, transform 120ms linear, box-shadow 120ms linear;
 }
 .mn-item.is-active svg {
-  color: #fff;
+  background: #8b1a2b;
+  color: #ffffff;
+}
+.mn-item:hover:not(.is-active) svg {
+  background: #f0e6e3;
+  transform: translate(-2px, -2px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.mn-item:active:not(.is-active) svg {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+.mn-item.is-active {
+  background: transparent;
+  color: #111111;
 }
 
 /* ---------- Floating action button (mobile only) ---------- */
@@ -425,13 +802,17 @@ main.arc-dot-field .theme-toggle svg {
   }
   .board-shell,
   .tracker-shell {
-    padding-left: 260px;
+    padding-left: calc(260px + 2.25rem);
   }
-  /* NEXUS: container alignment unified with CORE (24px right, 40px top/bottom). */
+  /* NEXUS: symmetric insets — 36px breathing room either side of the board
+     (sidebar left gap equal to the right viewport gap). */
   .board-shell {
-    padding-right: 24px;
+    padding-right: 2.25rem;
     padding-top: 40px;
     padding-bottom: 40px;
+  }
+  .tracker-shell {
+    padding-right: 2.25rem;
   }
   .mobile-bottom-nav,
   .fab {
@@ -571,10 +952,7 @@ main.arc-dot-field .theme-toggle svg {
     position: relative;
   }
   .add-row-wrap {
-    position: absolute;
-    top: -72px;
-    right: 36px;
-    margin: 0;
+    margin-top: 1.25rem;
   }
 }
 
@@ -698,7 +1076,7 @@ body::before {
 }
 .expand-dialog {
   border: 3px solid var(--ink);
-  border-radius: 12px;
+  border-radius: 28px;
   box-shadow: 4px 4px 0 var(--shadow);
 }
 .confirmation-layer {
@@ -718,6 +1096,16 @@ body::before {
   border: 2px solid var(--ink);
   border-radius: 10px;
 }
+/* REV 46: the QR dropzone panel is its own single bordered square — the
+   outer wrappers must stay borderless so no double-nested frame appears. */
+.expand-qr-card,
+.expand-editor-card {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+}
 .expand-qr {
   background: #fffdfb;
 }
@@ -725,10 +1113,10 @@ body::before {
   .main-content {
     position: relative;
   }
-  .add-resource-wrap {
-    position: absolute;
-    top: -88px;
-    right: 0;
+  /* REV 46: Add Resource lives inline in the header action cluster next to
+     Save Board — never absolutely positioned / overlapping the header. */
+  .header-actions .add-resource-wrap {
+    display: inline-flex;
     margin-top: 0;
   }
 }
@@ -804,16 +1192,16 @@ html[data-theme="dark"] body {
 
 /* ---------- Dark mode: solid white offset shadows (exact mirror of light geometry) ---------- */
 html[data-theme="dark"] .sheet {
-  box-shadow: 0 22px 48px rgba(255, 255, 255, 0.1), 0 4px 10px rgba(255, 255, 255, 0.06);
+  box-shadow: 4px 4px 0 rgba(255, 255, 255, 0.85);
 }
 html[data-theme="dark"] .confirmation-dialog {
-  box-shadow: 0 15px 40px rgba(255, 255, 255, 0.12);
+  box-shadow: 4px 4px 0 rgba(255, 255, 255, 0.85);
 }
 html[data-theme="dark"] .password-toggle.arc-action {
   box-shadow: 5px 5px 0 rgba(255, 255, 255, 0.85);
 }
 html[data-theme="dark"] .expand-close {
-  box-shadow: 0 2px 6px rgba(255, 255, 255, 0.18);
+  box-shadow: 2px 2px 0 rgba(255, 255, 255, 0.85);
 }
 html[data-theme="dark"] .qr-reveal-icon svg {
   filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.25));
@@ -851,17 +1239,22 @@ html[data-theme="dark"] .sidebar-logo:hover {
 }
 html[data-theme="dark"] .mobile-bottom-nav {
   background: #141016;
+  border-color: var(--ink);
+  box-shadow: 4px 4px 0 rgba(255, 255, 255, 0.85);
 }
 html[data-theme="dark"] .mn-item {
-  background: #141016;
+  background: transparent;
   color: var(--ink);
 }
-html[data-theme="dark"] .mn-item.is-active {
+html[data-theme="dark"] .mn-item svg {
+  color: var(--ink);
+}
+html[data-theme="dark"] .mn-item.is-active svg {
   background: var(--maroon);
   color: #fff;
 }
-html[data-theme="dark"] .mn-item:hover:not(.is-active) {
-  background: #221d26;
+html[data-theme="dark"] .mn-item:hover:not(.is-active) svg {
+  background: #2a2430;
 }
 
 /* sheets (core uses a hardcoded cream; nexus already uses --paper) */
@@ -1017,6 +1410,9 @@ html[data-theme="dark"] .password-input::placeholder {
 html[data-theme="dark"] .confirmation-dialog {
   background: #19151c;
 }
+html[data-theme="dark"] .confirmation-dialog.expand-dialog {
+  background: #FBF7EE;
+}
 html[data-theme="dark"] .confirmation-dialog p {
   color: #d8cfc6 !important;
 }
@@ -1037,32 +1433,35 @@ html[data-theme="dark"] .expand-rich {
   border-color: rgba(232, 225, 217, 0.22);
 }
 html[data-theme="dark"] .expand-input::placeholder {
-  color: rgba(232, 225, 217, 0.4);
+  color: rgba(232, 225, 217, 0.55);
 }
 html[data-theme="dark"] .expand-field label {
-  color: #b0a3ae !important;
+  color: #c8bac4 !important;
 }
 html[data-theme="dark"] .expand-toolbar {
   background: #19151c;
 }
+html[data-theme="dark"] .expand-format-btn {
+  color: var(--ink);
+}
+html[data-theme="dark"] .expand-format-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffd7dc;
+}
 html[data-theme="dark"] .expand-close {
   background: #221d26;
-  color: var(--maroon-dark);
+  color: var(--ink);
 }
 html[data-theme="dark"] .expand-close:hover {
   background: var(--maroon);
   color: #fff;
-}
-html[data-theme="dark"] .expand-resize-handle {
-  background: #221d26;
-  color: var(--maroon-dark);
 }
 html[data-theme="dark"] .expand-input[readonly],
 html[data-theme="dark"] .expand-input:disabled,
 html[data-theme="dark"] .expand-rich[contenteditable="false"],
 html[data-theme="dark"] .expand-toolbar.is-locked {
   background: #19151c;
-  color: #8a7f8c;
+  color: #d6cbd4;
 }
 html[data-theme="dark"] .help-modal-close {
   background: #221d26;
