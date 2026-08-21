@@ -417,6 +417,112 @@
     }
     .view-mode-toggle[data-view-mode="pill"] svg { color: inherit; }
 
+    /* ---------- REV 69: SEARCH — header toggle, expansion bar, live filter ---------- */
+    .search-toggle {
+      padding: 0 .9rem;
+      background: #FBF7EE;
+      color: #111111;
+    }
+    .search-toggle svg { color: #591925; }
+    .search-bar {
+      display: flex;
+      justify-content: center;
+      padding: 0 0 2px;
+      margin-top: .4rem;
+    }
+    .search-bar[hidden] { display: none; }
+    /* REV 69b: on mobile the expanded field sat flush against the utilities
+       strip below — give it its own breathing room. */
+    @media (max-width: 1023.98px) {
+      #search-bar { margin-top: .55rem; margin-bottom: .9rem; }
+      #search-bar .search-field { box-shadow: 2px 2px 0 #111111; }
+      html[data-theme="dark"] #search-bar .search-field { box-shadow: 2px 2px 0 #FFFFFF; }
+    }
+    .search-field {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      width: min(620px, 100%);
+      background: #fff;
+      border: 2px solid #111111;
+      border-radius: 10px;
+      box-shadow: 3px 3px 0 #111111;
+      padding: .5rem .75rem;
+      box-sizing: border-box;
+    }
+    .search-field > svg { width: 16px; height: 16px; color: #591925; flex: 0 0 auto; }
+    .search-field input {
+      flex: 1 1 auto;
+      min-width: 0;
+      border: 0;
+      outline: none;
+      background: transparent;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 14px;
+      color: #111111;
+    }
+    .search-field input::placeholder { color: #8a7f83; font-weight: 600; }
+    #search-clear {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      border: 2px solid #111111;
+      border-radius: 7px;
+      background: #fff;
+      color: #111111;
+      cursor: pointer;
+      box-shadow: 1px 1px 0 #111111;
+      transition: transform 120ms linear, box-shadow 120ms linear, background 120ms linear, color 120ms linear;
+    }
+    #search-clear svg { width: 13px; height: 13px; }
+    #search-clear:hover { background: #8B1A2B; color: #fff; }
+    #search-clear:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #111111; }
+
+    .search-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .8rem;
+      padding: 2.2rem 1rem 2.6rem;
+      text-align: center;
+    }
+    .search-empty[hidden] { display: none; }
+    .search-empty p { margin: 0; font-weight: 700; font-size: 15px; color: #3a1720; }
+    .search-empty-clear {
+      padding: 0 .9rem;
+      background: #FBF7EE;
+      color: #111111;
+      font-weight: 800;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    /* Filtered-out cards vanish from BOTH grid and pill layouts */
+    .resource-item.search-hidden { display: none !important; }
+
+    html[data-theme="dark"] .search-field {
+      background: var(--bg-card);
+      border-color: #FFFFFF;
+      box-shadow: 3px 3px 0 #FFFFFF;
+    }
+    html[data-theme="dark"] .search-field input { color: var(--text-primary); }
+    html[data-theme="dark"] .search-field input::placeholder { color: #9a9096; }
+    html[data-theme="dark"] .search-field > svg { color: #e8b4b8; }
+    html[data-theme="dark"] #search-clear {
+      background: var(--bg-card);
+      border-color: #FFFFFF;
+      color: var(--text-primary);
+      box-shadow: 1px 1px 0 #FFFFFF;
+    }
+    html[data-theme="dark"] #search-clear:hover { background: #e8b4b8; color: #16161c; }
+    html[data-theme="dark"] .search-empty p { color: var(--text-primary); }
+
     .save-board-button:disabled, .add-resource-button:disabled { opacity: .58; cursor: not-allowed; transform: none; box-shadow: none; }
     .nav-button svg, .save-board-button svg, .add-resource-button svg, .tracker-button svg { width: 17px; height: 17px; }
 
@@ -611,7 +717,13 @@
       pointer-events: none;
       box-shadow: 0 10px 22px rgba(46,8,16,.22);
     }
-    .qr-space:hover::before, .qr-space.is-dragging::before { opacity: 1; transform: scale(1); }
+    /* REV 69: hover glow/lift are GRID-ONLY feedback. Pill circles keep their
+       own veil/icon response and must not inherit the card lift or maroon ring.
+       Drag feedback (.is-dragging) stays global — empty pills still accept drops. */
+    .qr-space.is-dragging::before { opacity: 1; transform: scale(1); }
+    @media (min-width: 769px) {
+      body:not(.nexus-view-pill) .qr-space:hover::before { opacity: 1; transform: scale(1); }
+    }
 
     .qr-space::after {
       position: absolute;
@@ -625,14 +737,47 @@
       mix-blend-mode: multiply;
     }
 
-    .qr-space:hover, .qr-space.is-dragging {
+    .qr-space.is-dragging {
       border-color: var(--maroon);
       transform: translateY(-1px);
+    }
+    @media (min-width: 769px) {
+      body:not(.nexus-view-pill) .qr-space:hover {
+        border-color: var(--maroon);
+        transform: translateY(-1px);
+      }
     }
 
     .qr-space.is-locked { cursor: not-allowed; }
 
     .qr-space.has-image { border-style: solid; }
+
+    /* REV 69: grid-only locked treatment — pill view must RETAIN its ring */
+    body:not(.nexus-view-pill) .qr-space.is-locked.has-image { cursor: pointer; border-color: transparent; overflow: hidden; }
+
+    /* REV 69: restore tactile Neobrutalist hover physics on the grid QR
+       container / dropzone. Scoped OUT of pill view (its circle keeps its own
+       veil feedback) and below 769px (touch capsules). */
+    @media (min-width: 769px) {
+      body:not(.nexus-view-pill) .qr-space {
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease;
+      }
+      body:not(.nexus-view-pill) .qr-space:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0 #111111;
+      }
+      body:not(.nexus-view-pill) .qr-space:active {
+        transform: translate(1px, 1px);
+        box-shadow: 1px 1px 0 #111111;
+      }
+      html[data-theme="dark"] body:not(.nexus-view-pill) .qr-space:hover {
+        box-shadow: 4px 4px 0 #FFFFFF;
+      }
+      html[data-theme="dark"] body:not(.nexus-view-pill) .qr-space:active {
+        box-shadow: 1px 1px 0 #FFFFFF;
+      }
+    }
 
     .qr-image {
       position: relative;
@@ -646,18 +791,16 @@
 
     .qr-space:hover .qr-image { transform: scale(1.018); }
 
-    .qr-space.is-locked.has-image { cursor: pointer; }
-
     .qr-reveal-icon {
       position: absolute;
-      inset: -2px;
+      inset: 0;
       z-index: 4;
       display: flex;
       align-items: center;
       justify-content: center;
       pointer-events: none;
       background: #fff;
-      border-radius: 12px;
+      border-radius: 10px;
       color: #4a4a4a;
       opacity: 0;
       transition: opacity .2s ease-in-out;
@@ -1452,10 +1595,18 @@
      </div>
 <div class="header-actions">
        <button id="save-board-button" class="save-board-button arc-action" type="button" style="background: #8B1A2B; color: rgb(255, 255, 255); font-weight:800;font-size:13px;"><i data-lucide="save" aria-hidden="true"></i><span>Save Board</span></button>
+       <button id="search-toggle" class="search-toggle nav-button arc-action" type="button" aria-expanded="false" aria-controls="search-bar" aria-label="Search resources" title="Search"><i data-lucide="search" aria-hidden="true"></i><span>Search</span></button>
        <button id="view-mode-toggle" class="view-mode-toggle nav-button arc-action" type="button" aria-pressed="false" aria-label="Switch to Pill view" title="Card layout" data-view-mode="full"><i data-lucide="layout-grid" aria-hidden="true"></i><span>Grid</span></button>
        <div class="add-resource-wrap"><button id="add-resource-button" class="add-resource-button arc-action" type="button" data-requires-unlock style="background:#fff;color:#591925;font-weight:800;font-size:14px;"><i data-lucide="plus" aria-hidden="true"></i><span>Add Resource</span></button></div>
 </div>
      </header>
+ <div id="search-bar" class="search-bar" hidden>
+      <div class="search-field">
+       <i data-lucide="search" aria-hidden="true"></i>
+       <input id="search-input" type="text" placeholder="Search by title or link…" autocomplete="off" spellcheck="false" aria-label="Search resources">
+       <button id="search-clear" type="button" aria-label="Clear search and close"><i data-lucide="x" aria-hidden="true"></i></button>
+      </div>
+     </div>
  <div class="utilities-row" id="mobileUtilities" aria-label="Utility controls"></div>
  <div class="password-row">
       <div class="password-widget" id="passwordWidget">
@@ -1469,7 +1620,11 @@
     <section class="main-content" aria-label="QR board content">
      <p class="editing-note" style="font-weight:700;font-size:12px;letter-spacing:.04rem;">Drop a QR image on any target or click to browse. Click a title or URL to edit it, then use the card actions to organize, copy, or save. Changes save automatically.</p>
      <p id="status-region" class="status-region" aria-live="polite"></p>
-     <section id="qr-grid" class="qr-grid" aria-label="QR resource cards"></section>
+      <div id="search-empty" class="search-empty" hidden>
+       <p id="search-empty-text"></p>
+       <button id="search-empty-clear" class="nav-button arc-action search-empty-clear" type="button">Clear Search</button>
+      </div>
+      <section id="qr-grid" class="qr-grid" aria-label="QR resource cards"></section>
      </section>
     <footer class="board-footer">
      <p class="footer-note" style="color:#6c6166;font-weight:500;font-size:12px;">Every edit — uploads, titles, links, and order — saves to the shared board automatically.</p>
@@ -1599,18 +1754,20 @@
   </div>
 
   <template id="resource-template">
-   <article class="resource-item">
-    <div class="qr-card">
-     <div class="qr-space" tabindex="0" role="button" aria-label="Upload a QR image">
-      <div class="pill-qr-mask">
+<article class="resource-item">
+     <div class="qr-card">
+      <div class="qr-space" tabindex="0" role="button" aria-label="View QR code">
+       <img class="qr-image" src="" alt="QR Code" loading="lazy">
+       <div class="pill-qr-veil absolute inset-0 w-full h-full flex items-center justify-center" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 9 5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2 8 5.1"/><path d="m5.1 8-2.9-.8"/><path d="M14 4.1 12 6"/><path d="m6 12-1.9 2"/></svg>
+       </div>
+       <span class="qr-reveal-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 9 5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2 8 5.1"/><path d="m5.1 8-2.9-.8"/><path d="M14 4.1 12 6"/><path d="m6 12-1.9 2"/></svg>
+       </span>
        <span class="upload-hint">Drop a QR image here or click to upload</span>
-       <svg class="pill-qr-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 12h.01"/><path d="M7 17h.01"/><path d="M12 12h2v2"/><path d="M17 12h.01"/><path d="M12 17h.01"/><path d="M17 17h.01"/></svg>
+       <span class="pill-qr-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 12h.01"/><path d="M7 17h.01"/><path d="M12 12h2v2"/><path d="M17 12h.01"/><path d="M12 17h.01"/><path d="M17 17h.01"/></svg></span>
+       <input class="image-picker sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
       </div>
-      <span class="qr-reveal-icon" aria-hidden="true">
-       <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 9 5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2 8 5.1"/><path d="m5.1 8-2.9-.8"/><path d="M14 4.1 12 6"/><path d="m6 12-1.9 2"/></svg>
-      </span>
-      <input class="image-picker sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
-     </div>
      <div class="capsule-main">
       <div class="resource-title-row">
        <h2 class="resource-title" contenteditable="true" spellcheck="true"></h2>
@@ -1981,11 +2138,9 @@
         image.className = 'qr-image';
         image.loading = 'lazy';
         image.alt = 'Uploaded QR image';
-        // REV 68: the image lives inside the circular mask layer so pill view
-        // clips it there; grid/capsule views treat the mask as display:contents.
-        const mask = space.querySelector('.pill-qr-mask') || space;
-        mask.prepend(image);
-        // REV 59: freshly attached QR thumbnails also open the QR View popup
+        // New structure: qr-space is the container, prepend image directly
+        space.prepend(image);
+        // Click on image opens QR View popup
         image.addEventListener('click', event => {
           event.stopPropagation();
           openQrView(card);
@@ -2115,8 +2270,9 @@
     function openQrView(card) {
       if (!qrViewLayer) return;
       const image = card.querySelector('.qr-space .qr-image');
-      if (!image || !image.src) return;
-      qrViewImage.src = image.src;
+      const src = image ? image.getAttribute('src') : null;
+      if (!src) return;
+      qrViewImage.src = src;
       qrViewImage.style.display = 'block';
       const title = card.querySelector('.resource-title');
       qrViewTitle.textContent = (title && title.textContent.trim()) || 'QR Code';
@@ -2144,6 +2300,23 @@
     function wireQrView(card) {
       const space = card.querySelector('.qr-space');
       if (!space) return;
+      // Desktop pill view: the persistent frosted veil IS the affordance, so a
+      // filled thumb always opens the QR View modal. Runs before the uploader
+      // handler (wireCard order below) and stops it for filled cards so the
+      // file picker / grid reveal-toggle never double-fires. Empty cards fall
+      // through to the uploader untouched.
+      const pillFilledActivate = event => {
+        const image = space.querySelector('.qr-image');
+        const src = image ? image.getAttribute('src') : null;
+        if (!src || !document.body.classList.contains('nexus-view-pill')) return;
+        event.stopImmediatePropagation();
+        openQrView(card);
+      };
+      space.addEventListener('click', pillFilledActivate);
+      space.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') pillFilledActivate(event);
+      });
+      // Also keep image click for backwards compatibility
       const image = space.querySelector('.qr-image');
       if (image) {
         image.addEventListener('click', event => {
@@ -2232,8 +2405,8 @@
     }
 
     function wireCard(card) {
-      setupUploader(card);
       wireQrView(card);
+      setupUploader(card);
 
       card.querySelectorAll('[data-action]').forEach(button => {
         button.addEventListener('click', () => handleAction(card, button));
@@ -2493,7 +2666,83 @@
       scheduleSave();
       showStatus('New QR resource card added.');
       card.querySelector('.resource-title').focus({ preventScroll: true });
+      if (typeof applySearchFilter === 'function') applySearchFilter();
     });
+
+    // ---------- REV 69: real-time search (grid + pill) ----------
+    const searchBar = document.getElementById('search-bar');
+    const searchToggle = document.getElementById('search-toggle');
+    const searchInput = document.getElementById('search-input');
+    const searchClearButton = document.getElementById('search-clear');
+    const searchEmpty = document.getElementById('search-empty');
+    const searchEmptyText = document.getElementById('search-empty-text');
+    const searchEmptyClear = document.getElementById('search-empty-clear');
+
+    function cardSearchText(card) {
+      const title = card.querySelector('.resource-title');
+      const url = card.querySelector('.resource-url-input');
+      const rich = card.dataset && card.dataset.rich ? String(card.dataset.rich).replace(/<[^>]*>/g, ' ') : '';
+      return ((title ? title.textContent : '') + ' ' + (url ? url.value : '') + ' ' + rich).toLowerCase();
+    }
+
+    function applySearchFilter() {
+      if (!searchBar || searchBar.hidden) return;
+      const raw = searchInput.value.trim();
+      const q = raw.toLowerCase();
+      let visible = 0;
+      allCards().forEach(card => {
+        const hit = !q || cardSearchText(card).includes(q);
+        card.classList.toggle('search-hidden', !hit);
+        if (hit) visible++;
+      });
+      if (q && visible === 0) {
+        searchEmptyText.textContent = "No resources found matching '" + raw + "'";
+        searchEmpty.hidden = false;
+      } else {
+        searchEmpty.hidden = true;
+      }
+    }
+
+    function openSearchBar() {
+      searchBar.hidden = false;
+      searchToggle.setAttribute('aria-expanded', 'true');
+      setTimeout(() => {
+        if (searchInput && typeof searchInput.focus === 'function') {
+          try { searchInput.focus({ preventScroll: true }); } catch (e) { searchInput.focus(); }
+        }
+      }, 30);
+    }
+
+    function closeSearchBar({ restoreFocusToToggle = false } = {}) {
+      searchBar.hidden = true;
+      searchToggle.setAttribute('aria-expanded', 'false');
+      searchInput.value = '';
+      allCards().forEach(c => c.classList.remove('search-hidden'));
+      searchEmpty.hidden = true;
+      if (restoreFocusToToggle && typeof searchToggle.focus === 'function') searchToggle.focus();
+    }
+
+    if (searchToggle) {
+      searchToggle.addEventListener('click', () => {
+        if (searchBar.hidden) openSearchBar();
+        else closeSearchBar({ restoreFocusToToggle: true });
+      });
+    }
+    if (searchInput) searchInput.addEventListener('input', applySearchFilter);
+    if (searchClearButton) {
+      searchClearButton.addEventListener('click', () => closeSearchBar({ restoreFocusToToggle: true }));
+    }
+    if (searchEmptyClear) {
+      searchEmptyClear.addEventListener('click', () => closeSearchBar({ restoreFocusToToggle: true }));
+    }
+    if (searchInput) {
+      searchInput.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+          event.stopPropagation();
+          closeSearchBar({ restoreFocusToToggle: true });
+        }
+      });
+    }
 
     saveBoardButton.addEventListener('click', async () => {
       saveBoardButton.disabled = true;
@@ -2573,6 +2822,7 @@
             });
 
             el.querySelectorAll('.qr-image').forEach(img => {
+              if (!img.getAttribute('src')) { img.remove(); return; }
               const bg = clonedDoc.createElement('div');
               bg.className = img.className;
               bg.style.backgroundImage = `url("${img.src}")`;
@@ -3302,6 +3552,7 @@
       var widgetSlot = document.getElementById('sidebarWidgetSlot');
       var realSave = document.getElementById('save-board-button');
       var realAdd = document.getElementById('add-resource-button');
+      var searchBtn = document.getElementById('search-toggle');
       var fab = document.getElementById('pageFab');
       var themeBtn = document.getElementById('themeToggle');
       var soundBtn = document.getElementById('soundToggle');
@@ -3322,7 +3573,8 @@
           if (syncSlot && syncEl) syncSlot.appendChild(syncEl);
           if (pw && pwTools && !pw.contains(pwTools)) pw.insertBefore(pwTools, pw.firstChild);
           if (themeBtn && pw && !pw.contains(themeBtn)) pw.insertBefore(themeBtn, pwTools);
-          if (realSave && headerActions && !headerActions.contains(realSave)) headerActions.appendChild(realSave);
+          if (searchBtn && headerActions && !headerActions.contains(searchBtn)) headerActions.insertBefore(searchBtn, document.getElementById('view-mode-toggle'));
+          if (realSave && headerActions && !headerActions.contains(realSave)) headerActions.insertBefore(realSave, searchBtn);
           if (soundBtn && cluster && !cluster.contains(soundBtn)) cluster.insertBefore(soundBtn, widgetSlot);
           if (tourBtn && cluster && !cluster.contains(tourBtn)) cluster.insertBefore(tourBtn, soundBtn);
           if (utilRow) utilRow.style.display = 'none';
@@ -3335,6 +3587,7 @@
             if (soundBtn) utilRow.appendChild(soundBtn);
             if (tourBtn) utilRow.appendChild(tourBtn);
             if (pwTools) utilRow.appendChild(pwTools);
+            if (searchBtn) utilRow.appendChild(searchBtn);
           }
         }
       }

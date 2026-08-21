@@ -1078,6 +1078,16 @@ body::before {
 .pill-qr-empty-icon {
   display: none;
 }
+.pill-qr-veil {
+  display: none;
+}
+/* Template imgs ship src-less; hide them in every view until a real QR is
+   attached, so their forced box + translucent fill never ghost over the
+   grid dropzone or mobile capsule. */
+.qr-image:not([src]),
+.qr-image[src=""] {
+  display: none;
+}
 .qr-space.has-image {
   border-style: solid;
   border-color: var(--ink);
@@ -1883,6 +1893,10 @@ main.arc-dot-field .theme-toggle, main.arc-dot-field .sound-toggle, main.arc-dot
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: center;
+    /* REV 69b: cells pack left on the shared grid; SEARCH carries
+       margin-left:auto so it pins FLUSH-RIGHT — its inset mirrors SAVE's
+       left-edge inset, and the layout stays pixel-stable when the password
+       panel opens (only the slack before SEARCH shrinks). */
     justify-content: flex-start;
     gap: 8px;
     margin: 0 0 20px;
@@ -1954,6 +1968,18 @@ main.arc-dot-field .theme-toggle, main.arc-dot-field .sound-toggle, main.arc-dot
     width: 20px;
     height: 20px;
   }
+  /* REV 69: Search rides the strip as the RIGHTMOST icon-only cell with exact
+     geometric parity (36px square, 2px border). margin-left:auto pins it to
+     the row's right edge so its inset mirrors SAVE's left-edge inset. */
+  .utilities-row #search-toggle {
+    margin-left: auto;
+    padding: 0;
+    gap: 0;
+    background: #fff;
+    color: var(--ink);
+  }
+  .utilities-row #search-toggle span { display: none; }
+  .utilities-row #search-toggle svg { width: 20px; height: 20px; color: inherit; }
   /* The lock button keeps its popover anchored to the strip */
   .utilities-row .pw-tools {
     position: relative;
@@ -2779,16 +2805,9 @@ html[data-theme="dark"] .arc-logo:active {
   }
 }
 
-/* ---------- REV 68: NEXUS pill view — QR thumb wrapper / mask / badge split ----------
-   Supersedes the REV 64 single-element circle. The thumbnail is now three
-   isolated layers per spec:
-     .qr-space        → outer wrapper: positioning anchor, NO clipping (the
-                        badge must be able to straddle the bottom-right edge)
-     .pill-qr-mask    → circular mask: the ONLY clipping layer, clips the
-                        image / empty placeholder edge-to-edge
-     .qr-reveal-icon  → zoom badge: independent sibling OUTSIDE the mask,
-                        anchored -4px past the bottom-right corner
-   Grid/capsule views are unaffected (mask is display:contents there). */
+/* ---------- REV 68: NEXUS pill view — mobile parity QR thumbnail ----------
+   Mirrors the mobile capsule implementation exactly: 48px circular container
+   with full-bleed veil overlay and centered cursor icon. */
 @media (min-width: 1024px) {
   body.nexus-view-pill .qr-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2796,9 +2815,11 @@ html[data-theme="dark"] .arc-logo:active {
     max-width: 920px;
     margin-inline: auto;
   }
-  /* Outer wrapper — relative anchor only */
+  /* REV 69c Circular container — mobile-parity architecture. The BORDER
+     lives HERE on the clipped parent (never on overlays), children clip at
+     the inner border curve, so the image and veil seat flush with zero
+     subpixel fringing. Light: ink ring / white base fill. */
   body.nexus-view-pill .qr-card .qr-space {
-    box-sizing: border-box;
     grid-area: thumb;
     position: relative;
     width: 48px;
@@ -2806,91 +2827,93 @@ html[data-theme="dark"] .arc-logo:active {
     min-width: 48px;
     min-height: 48px;
     aspect-ratio: 1 / 1;
-    border: 0;
-    border-radius: 0;
-    background: none;
-    overflow: visible;
+    border: 2px solid #111111;
+    border-radius: 50%;
+    box-sizing: border-box;
+    overflow: hidden;
+    background-color: #FFFFFF;
     cursor: pointer;
+    flex-shrink: 0;
   }
   body.nexus-view-pill .qr-card .qr-space::before,
   body.nexus-view-pill .qr-card .qr-space::after {
     display: none;
   }
-  /* Circular mask container — clips the QR image or placeholder */
-  body.nexus-view-pill .qr-card .qr-space .pill-qr-mask {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  /* QR image fills the circle */
+  body.nexus-view-pill .qr-card .qr-space .qr-image {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    background: transparent;
+  }
+  body.nexus-view-pill .qr-card .qr-space.has-image .qr-image {
+    display: block;
+  }
+  /* REV 69c opaque full-coverage veil — rendered ONLY when a QR image is
+     attached. Solid fill (no transparency / backdrop-blur), seats flush
+     against the inside edge of the container border: inset:0 + 100% size is
+     exactly the overflow clip region of the bordered round parent, so there
+     are no perimeter gaps, light leaks, or jagged fringes in either theme. */
+  body.nexus-view-pill .qr-card .qr-space .pill-qr-veil {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    border: 2px solid #111111;
-    border-radius: 50%;
-    overflow: hidden;
-    background-color: #FBF7EE;
-  }
-  /* Image state: fills the mask 100% with no distortion (mask does the clipping) */
-  body.nexus-view-pill .qr-card .qr-space.has-image .pill-qr-mask .qr-image {
-    display: block;
-    position: static;
-    inset: auto;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    max-height: none;
-    margin: 0;
-    object-fit: cover;
-    border-radius: 0;
-    background: transparent;
-  }
-  /* Empty state: full-bleed solid cover + subtle centered glyph */
-  body.nexus-view-pill .qr-card .qr-space:not(.has-image) .pill-qr-mask .pill-qr-empty-icon {
-    display: block;
-    width: 16px;
-    height: 16px;
-    color: #111111;
-    opacity: 0.35;
-  }
-  /* Zoom badge — independent child OUTSIDE the mask, bottom-right edge */
-  body.nexus-view-pill .qr-card .qr-space .qr-reveal-icon {
-    position: absolute;
-    inset: auto;
-    right: -4px;
-    bottom: -4px;
-    z-index: 10;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
-    min-width: 20px;
-    min-height: 20px;
-    padding: 0;
-    border: 1.5px solid #111111;
+    background: #FFFFFF;
     border-radius: 50%;
-    background: #ffffff;
-    color: #111111;
-    box-shadow: 1px 1px 0 #111111;
+    z-index: 2;
     pointer-events: none;
   }
-  body.nexus-view-pill .qr-card .qr-space .qr-reveal-icon svg {
-    width: 10px;
-    height: 10px;
+  body.nexus-view-pill .qr-card .qr-space.has-image .pill-qr-veil {
+    display: flex;
   }
-  /* Badge visibility keeps the established gating: locked image cards only.
-     (:not() compound keeps this from fighting the page-level show rule.) */
-  body.nexus-view-pill .qr-card .qr-space:not(.is-locked.has-image) .qr-reveal-icon {
-    opacity: 0;
+  body.nexus-view-pill .qr-card .qr-space .pill-qr-veil svg {
+    width: 26px;
+    height: 26px;
+    color: #111111;
+    stroke-width: 2;
+    transition: transform 150ms ease;
   }
-  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space .pill-qr-mask {
+  /* Hover feedback: icon nudge only (fill stays fully opaque) */
+  body.nexus-view-pill .qr-card .qr-space:hover .pill-qr-veil svg {
+    transform: scale(1.08);
+  }
+  /* REV 69b EMPTY pill: a clean WHITE disc — no upload copy, no veil click
+     indicator. The 48px circle cannot fit legible hint text; the grid/mutable
+     surfaces remain the upload affordance. Ring stays on the container. */
+  body.nexus-view-pill .qr-card .qr-space:not(.has-image) {
+    background-color: #FFFFFF;
+  }
+  body.nexus-view-pill .qr-card .qr-space .upload-hint,
+  body.nexus-view-pill .qr-card .qr-space .pill-qr-empty-icon {
+    display: none !important;
+  }
+  /* Legacy badge suppressed */
+  body.nexus-view-pill .qr-card .qr-space .qr-reveal-icon {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  /* Dark mode — same architecture, theme tokens swapped */
+  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space {
+    background-color: var(--bg-card-hover);
+    border-color: #FFFFFF;
+  }
+  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space:not(.has-image) {
     background-color: var(--bg-card-hover);
   }
-  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space:not(.has-image) .pill-qr-mask .pill-qr-empty-icon {
-    color: var(--text-primary);
+  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space.has-image {
+    border-color: #FFFFFF;
   }
-  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space .qr-reveal-icon {
-    border-color: var(--border-structural);
+  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space .pill-qr-veil {
+    background: var(--bg-card-hover);
+  }
+  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space .pill-qr-veil svg {
     color: var(--text-primary);
   }
 }

@@ -177,6 +177,16 @@
           placement: 'top'
         },
         {
+          title: 'Quick Find',
+          text: 'Quickly find any resource \u2014 Search cards and pills in real time by title or link.',
+          // REV 69: spotlight the SEARCH control — beside Save Board in the
+          // desktop header, rightmost cell of the mobile utility strip. 8px
+          // breathing room keeps the hard-offset shadow inside the cutout.
+          target: '#search-toggle',
+          placement: 'bottom',
+          pad: 8
+        },
+        {
           title: 'Expand & QR Previews',
           text: 'Click the expand action (maximize icon) on any card to open a large preview with rich-text editing of its description and a closer look at the QR code. On compact pill cards, the chevron expands the same way.',
           target: '.capsule-toggle, .resource-item .card-action[data-action="expand"]',
