@@ -113,18 +113,20 @@
       box-shadow: 3px 3px 0 var(--ink);
     }
 
-    /* REV 52: Tracker keeps a crisp white border while its offset shadow and
-       click depression match the adjacent action buttons. */
+    /* REV 58: Tracker button matches adjacent action buttons — tactile lift on
+       hover (translate + outward hard-offset shadow) and press depression. */
     #trackerButton {
-      box-shadow: 5px 5px 0 var(--ink) !important;
+      border: 3px solid var(--ink) !important;
+      box-shadow: 4px 4px 0 var(--ink) !important;
     }
     #trackerButton:hover,
     #trackerButton:focus-visible {
-      box-shadow: 9px 9px 0 var(--ink) !important;
+      transform: translate(-2px, -2px) !important;
+      box-shadow: 6px 6px 0 var(--ink) !important;
     }
     #trackerButton:active {
       transform: translate(2px, 2px) !important;
-      box-shadow: 3px 3px 0 var(--ink) !important;
+      box-shadow: 2px 2px 0 var(--ink) !important;
     }
 
     .arc-logo {
@@ -504,7 +506,7 @@
         <i data-lucide="qr-code" width="18" height="18" aria-hidden="true"></i>
         <span>NEXUS</span>
        </a>
-       <a id="trackerButton" class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" style="background: rgb(7, 19, 63); color: rgb(255, 255, 255); border: 2px solid #FFFFFF !important;">
+       <a id="trackerButton" class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" style="background: rgb(7, 19, 63); color: rgb(255, 255, 255); border: 3px solid #111111 !important;">
         <i data-lucide="clipboard-list" width="18" height="18" aria-hidden="true"></i>
         <span>Tracker</span>
        </a>
@@ -684,7 +686,9 @@
     });
 
     document.addEventListener("click", (event) => {
-      if (passwordWidget.classList.contains("is-open") && !passwordWidget.contains(event.target)) {
+      // Ignore clicks inside the walkthrough tooltip — the CTA opens the password
+      // widget and must not immediately collapse it (REV 58).
+      if (passwordWidget.classList.contains("is-open") && !passwordWidget.contains(event.target) && !event.target.closest(".tour-overlay")) {
         collapsePasswordWidget();
       }
       // Close guide modal on overlay click

@@ -616,13 +616,18 @@
       margin-left: 0;
       visibility: hidden;
       opacity: 0;
-      transform: translateY(-4px);
-      transition: opacity .2s ease, transform .2s ease, visibility .2s;
+      transform: translateX(-6px);
+      transition: opacity .15s ease-out, transform .15s ease-out, visibility .15s ease-out;
     }
     .password-widget.is-open .password-panel {
       visibility: visible;
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(0);
+    }
+    .pw-tools.is-open .password-panel {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(0);
     }
 
     .password-input {
@@ -754,9 +759,10 @@
          <div class="password-panel"><input id="passwordInput" type="password" class="password-input" placeholder="Input Password" autocomplete="off" spellcheck="false"></div>
         </div>
        </div>
-      </div>
-     </header>
-     <div class="sheet-body px-9 py-6">
+</div>
+      </header>
+      <div class="utilities-row" id="mobileUtilities" aria-label="Utility controls"></div>
+      <div class="sheet-body px-9 py-6">
       <section class="meta-grid mb-6" aria-label="Tracker update details">
        <div class="meta-cell">
         <span data-template-id="month-label" class="canva-text meta-label" style="color: rgb(107, 94, 96); font-weight: 800; font-style: normal; font-size: 10px;">Month</span> <span data-template-id="month-value" contenteditable="true" spellcheck="true" class="canva-text text-sm font-bold" style="color: rgb(47, 37, 38); font-weight: 700; font-style: normal; font-size: 14px;">May 2026</span>
@@ -1094,6 +1100,7 @@
     const passwordToggle = document.getElementById("passwordToggle");
     const passwordInput = document.getElementById("passwordInput");
     const saveImageButtonEl = document.getElementById("saveImageButton");
+    const pwTools = document.querySelector("#passwordWidget .pw-tools");
 
     // Help Modal elements
     const helpModal = document.getElementById("helpModal");
@@ -1137,28 +1144,49 @@
       lucide.createIcons();
     }
 
-    function collapsePasswordWidget() {
+function collapsePasswordWidget() {
       passwordWidget.classList.remove("is-open");
+      if (pwTools) pwTools.classList.remove("is-open");
       passwordToggle.setAttribute("aria-expanded", "false");
       passwordInput.value = "";
       passwordInput.blur();
+      if (window.ArcTour && window.ArcTour.reposition) window.ArcTour.reposition();
     }
 
+    // REV 65: the desktop lock input expands inline directly beside the lock
+    // button (CSS handles layout) — no fixed popover positioning needed.
+
     function openPasswordWidget() {
-      passwordWidget.style.setProperty("--pw-width", "160px");
+      passwordWidget.style.setProperty("--pw-width", "200px");
       passwordWidget.classList.add("is-open");
+      if (pwTools) pwTools.classList.add("is-open");
       passwordToggle.setAttribute("aria-expanded", "true");
-      passwordInput.focus({ preventScroll: true });
+      // The visibility transition still reports "hidden" in the same tick as
+      // the class flip, which makes focus() a silent no-op — defer one beat.
+      setTimeout(() => {
+        if (passwordWidget.classList.contains("is-open")) {
+          passwordInput.focus({ preventScroll: true });
+        }
+      }, 60);
+      if (window.ArcTour && window.ArcTour.reposition) window.ArcTour.reposition();
     }
 
     function setEditLocked(locked) {
       editLocked = locked;
       applyLockToRow(document);
       updateLockUI();
+      // REV 59: remove the mobile + fab from view while editing is locked
+      const pageFab = document.getElementById("pageFab");
+      if (pageFab) pageFab.hidden = locked;
     }
 
     passwordToggle.addEventListener("click", () => {
       if (editLocked) {
+        const isOpen = passwordWidget.classList.contains("is-open") || (pwTools && pwTools.classList.contains("is-open"));
+        if (isOpen) {
+          collapsePasswordWidget();
+          return;
+        }
         openPasswordWidget();
       } else {
         setEditLocked(true);
@@ -1183,7 +1211,9 @@
     });
 
     document.addEventListener("click", (event) => {
-      if (passwordWidget.classList.contains("is-open") && !passwordWidget.contains(event.target)) {
+      const inWidget = passwordWidget.contains(event.target);
+      const inTools = pwTools ? pwTools.contains(event.target) : false;
+      if ((passwordWidget.classList.contains("is-open") || (pwTools && pwTools.classList.contains("is-open"))) && !inWidget && !inTools) {
         collapsePasswordWidget();
       }
       // Close help modal on overlay click
@@ -1688,16 +1718,39 @@ try {
       var realSave = document.getElementById('saveImageButton');
       var realAdd = document.getElementById('addRowButton');
       var fab = document.getElementById('pageFab');
+      var themeBtn = document.getElementById('themeToggle');
+      var soundBtn = document.getElementById('soundToggle');
+      var tourBtn = document.getElementById('tourToggle');
+      var pwTools = document.querySelector('#passwordWidget .pw-tools');
+      var cluster = document.querySelector('.utility-cluster');
+      var headerActions = document.querySelector('.header-save');
+      var utilRow = document.getElementById('mobileUtilities');
       var mq = window.matchMedia('(min-width:1024px)');
 
+      /* REV 59: relocating utility controls into the mobile top row and back.
+         passwordWidget keeps its popover anchor on desktop; on mobile the
+         panel anchors to the utilities row itself. */
       function layout() {
         var desktop = mq.matches;
         if (desktop) {
           if (widgetSlot && pw) widgetSlot.appendChild(pw);
           if (syncSlot && syncEl) syncSlot.appendChild(syncEl);
+          if (pw && pwTools && !pw.contains(pwTools)) pw.insertBefore(pwTools, pw.firstChild);
+          if (themeBtn && pw && !pw.contains(themeBtn)) pw.insertBefore(themeBtn, pwTools);
+          if (realSave && headerActions && !headerActions.contains(realSave)) headerActions.appendChild(realSave);
+          if (soundBtn && cluster && !cluster.contains(soundBtn)) cluster.insertBefore(soundBtn, widgetSlot);
+          if (tourBtn && cluster && !cluster.contains(tourBtn)) cluster.insertBefore(tourBtn, soundBtn);
+          if (utilRow) utilRow.style.display = 'none';
         } else {
-          if (pwRow && pw) pwRow.appendChild(pw);
-          if (brandSub && syncEl && !brandSub.contains(syncEl)) brandSub.appendChild(syncEl);
+          if (syncEl && brandSub && !brandSub.contains(syncEl)) brandSub.appendChild(syncEl);
+          if (utilRow) {
+            utilRow.style.display = 'flex';
+            if (realSave) utilRow.appendChild(realSave);
+            if (themeBtn) utilRow.appendChild(themeBtn);
+            if (soundBtn) utilRow.appendChild(soundBtn);
+            if (tourBtn) utilRow.appendChild(tourBtn);
+            if (pwTools) utilRow.appendChild(pwTools);
+          }
         }
       }
       layout();
@@ -1705,7 +1758,7 @@ try {
       else if (mq.addListener) mq.addListener(layout);
 
       if (fab && realAdd) {
-        if (typeof editLocked !== 'undefined' && editLocked) fab.disabled = true;
+        if (typeof editLocked !== 'undefined' && editLocked) fab.hidden = true;
         fab.addEventListener('click', function () { realAdd.click(); });
       }
       if (window.lucide) lucide.createIcons();

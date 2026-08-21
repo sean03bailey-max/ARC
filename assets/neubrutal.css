@@ -1,5 +1,6 @@
 /* ==========================================================================
    ARC Retro-Neubrutalist design system — REV 43 (solid white offsets, header parity, bright dots)
+   Dark theme recalibration — REV 59 (one color, one role)
    Loaded by index.html, NEXUS.html, and core.html.
    ========================================================================== */
 
@@ -17,15 +18,27 @@
   --muted: #71717A;
 }
 
-/* ---------- Dark theme tokens ---------- */
+/* ---------- Dark theme tokens (REV 59: one color, one role) ---------- */
 html[data-theme="dark"] {
-  --maroon: #cf3e58;
-  --maroon-dark: #e9a3ae;
-  --ink: #e8e1d9;
+  /* Semantic palette */
+  --bg-page: #100C11;
+  --bg-card: #1A1519;
+  --bg-card-hover: #241F29;
+  --accent-primary: #E13C63;
+  --accent-primary-hover: #A8283A;
+  --border-structural: #6E2D3F;
+  --text-primary: #F2EEF1;
+  --text-secondary: #A79CA3;
+  --status-warning: #F0A13C;
+  --status-success: #3E9C63;
+  /* Legacy aliases remapped to their single-role semantic token */
+  --maroon: var(--accent-primary);
+  --maroon-dark: var(--text-primary);
+  --ink: var(--text-primary);
   --shadow: rgba(255, 255, 255, 0.85);
-  --paper: #181419;
-  --line: #3b333e;
-  --red: #e0526b;
+  --paper: var(--bg-card);
+  --line: var(--border-structural);
+  --red: var(--text-secondary);
   --shadow-ink: rgba(255, 255, 255, 0.85);
 }
 
@@ -93,6 +106,18 @@ body,
   transform: none !important;
   box-shadow: none !important;
   opacity: 0.55;
+}
+
+/* ---------- REV 58/65: logo tactile parity — hover offset matches the
+   button design system (-3px lift, 9px hard-offset shadow). ---------- */
+.arc-logo:hover,
+.arc-logo:focus-within {
+  transform: translate(-3px, -3px) !important;
+  box-shadow: 9px 9px 0 var(--ink) !important;
+}
+.arc-logo:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: inset 2px 2px 0 var(--ink) !important;
 }
 
 /* ---------- Header: inline action cluster (desktop in-page actions, mobile hidden) ---------- */
@@ -310,10 +335,12 @@ body:has(.tracker-shell) .theme-toggle {
   display: none;
 }
 html[data-theme="dark"] .theme-toggle {
-  background: #221d26;
+  background: var(--bg-card);
+  border-color: var(--border-structural);
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .theme-toggle:hover {
-  background: #2a2430;
+  background: var(--bg-card-hover);
 }
 html[data-theme="dark"] .theme-toggle .lucide-sun {
   display: none;
@@ -360,13 +387,13 @@ html[data-sound="off"] .sound-toggle .lucide-volume-x {
   display: block;
 }
 html[data-theme="dark"] .sound-toggle {
-  background: #221d26;
-  color: #ffffff;
-  border-color: #ffffff;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
   box-shadow: 2px 2px 0 #ffffff;
 }
 html[data-theme="dark"] .sound-toggle:hover {
-  background: #2a2430;
+  background: var(--bg-card-hover);
   box-shadow: 4px 4px 0 #ffffff;
 }
 html[data-theme="dark"] .sound-toggle:active {
@@ -385,12 +412,12 @@ html[data-sound="off"] .sound-toggle:hover {
   box-shadow: 3px 3px 0 #111111;
 }
 html[data-theme="dark"] html[data-sound="off"] .sound-toggle {
-  background: #16121a;
-  color: #8b8b9a;
+  background: var(--bg-page);
+  color: var(--text-secondary);
   box-shadow: 1px 1px 0 #ffffff;
 }
 html[data-theme="dark"] html[data-sound="off"] .sound-toggle:hover {
-  background: #1d1822;
+  background: var(--bg-card);
   box-shadow: 3px 3px 0 #ffffff;
 }
 
@@ -424,13 +451,13 @@ html[data-theme="dark"] html[data-sound="off"] .sound-toggle:hover {
   height: 19px;
 }
 html[data-theme="dark"] .tour-toggle {
-  background: #221d26;
-  color: #ffffff;
-  border-color: #ffffff;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
   box-shadow: 2px 2px 0 #ffffff;
 }
 html[data-theme="dark"] .tour-toggle:hover {
-  background: #2a2430;
+  background: var(--bg-card-hover);
   box-shadow: 4px 4px 0 #ffffff;
 }
 html[data-theme="dark"] .tour-toggle:active {
@@ -489,7 +516,7 @@ main.arc-dot-field .sound-toggle svg {
   position: absolute;
   box-sizing: border-box;
   min-width: 260px;
-  max-width: min(90vw, 420px);
+  max-width: min(92vw, 380px);
   max-height: calc(100vh - 32px);
   overflow-y: auto;
   background: #FBF7EE;
@@ -627,6 +654,22 @@ main.arc-dot-field .sound-toggle svg {
   background: #ffffff;
   color: #111111;
 }
+/* REV 61 §2: comfortable touch targets on small screens — the Next / Skip /
+   confirm actions must be easy to tap without fat-finger misses. */
+@media (max-width: 1023.98px) {
+  .tour-btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tour-btn-skip {
+    min-width: 64px;
+  }
+  .tour-confirm-card .tour-btn {
+    min-width: 132px;
+  }
+}
 
 .password-widget:has(.pw-tools) {
   flex-direction: column;
@@ -638,6 +681,13 @@ main.arc-dot-field .sound-toggle svg {
   overflow: hidden;
   isolation: isolate;
   border-radius: 8px;
+  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+}
+.password-toggle svg {
+  transition: transform 200ms ease;
+}
+.pw-tools.is-open .password-toggle svg {
+  transform: rotate(90deg);
 }
 .pw-tools {
   display: flex;
@@ -662,12 +712,12 @@ main.arc-dot-field .password-row {
   animation-fill-mode: backwards;
 }
 html[data-theme="dark"] main.arc-dot-field {
-  background-color: #0f0c11 !important;
+  background-color: var(--bg-page) !important;
   background-image: radial-gradient(circle, rgba(255, 255, 255, 0.22) 1.9px, transparent 2px);
   background-size: 18px 18px;
 }
 html[data-theme="dark"] main.arc-dot-field .arc-wash {
-  background: radial-gradient(circle at center, rgba(15, 12, 17, 1) 0%, rgba(15, 12, 17, 0.9) 42%, rgba(15, 12, 17, 0.55) 100%);
+  background: radial-gradient(circle at center, rgba(16, 12, 17, 1) 0%, rgba(16, 12, 17, 0.9) 42%, rgba(16, 12, 17, 0.55) 100%);
 }
 main.arc-dot-field .theme-toggle {
   position: fixed;
@@ -713,7 +763,7 @@ main.arc-dot-field .theme-toggle svg {
   width: 56px;
   min-width: 0;
   height: auto;
-  padding: 3px 0 1px;
+  padding: 2px 0 5px;
   background: transparent;
   color: #111111;
   border: 0;
@@ -724,16 +774,24 @@ main.arc-dot-field .theme-toggle svg {
   font-weight: 800;
   letter-spacing: 0.03em;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+.mn-item:focus,
+.mn-item:focus-visible,
+.mn-item:active {
+  outline: none;
 }
 .mn-item svg {
-  width: 34px;
-  height: 34px;
-  padding: 8.5px;
+  width: 40px;
+  height: 40px;
+  padding: 10px;
   box-sizing: border-box;
   border-radius: 50%;
   background: transparent;
   color: #111111;
   stroke-width: 2.25;
+  overflow: visible;
   transition: background 120ms linear, transform 120ms linear, box-shadow 120ms linear;
 }
 .mn-item.is-active svg {
@@ -742,12 +800,9 @@ main.arc-dot-field .theme-toggle svg {
 }
 .mn-item:hover:not(.is-active) svg {
   background: #f0e6e3;
-  transform: translate(-2px, -2px);
-  box-shadow: 2px 2px 0 var(--ink);
 }
 .mn-item:active:not(.is-active) svg {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0 var(--ink);
+  background: #f0e6e3;
 }
 .mn-item.is-active {
   background: transparent;
@@ -1010,8 +1065,18 @@ body::before {
   color: var(--maroon-dark);
 }
 .qr-space {
-  border: 3px dashed rgba(152, 32, 54, 0.55);
+  border: 2px dashed #9B2C2C;
   border-radius: 10px;
+}
+/* REV 68: pill thumbnail DOM split — .pill-qr-mask is the circular clipping
+   layer and .qr-reveal-icon becomes an independent badge sibling. Outside
+   pill view the mask is layout-transparent so grid/capsule views keep the
+   original .qr-space grammar untouched. */
+.pill-qr-mask {
+  display: contents;
+}
+.pill-qr-empty-icon {
+  display: none;
 }
 .qr-space.has-image {
   border-style: solid;
@@ -1182,12 +1247,12 @@ html[data-theme="dark"] body,
 html[data-theme="dark"] .arc-dot-field,
 html[data-theme="dark"] .tracker-shell,
 html[data-theme="dark"] .board-shell {
-  background-color: #0f0c11 !important;
+  background-color: var(--bg-page) !important;
   background-image: radial-gradient(circle, rgba(255, 255, 255, 0.15) 1.5px, transparent 1.5px);
   background-size: 18px 18px;
 }
 html[data-theme="dark"] body {
-  color: var(--ink);
+  color: var(--text-primary);
 }
 
 /* ---------- Dark mode: solid white offset shadows (exact mirror of light geometry) ---------- */
@@ -1213,53 +1278,64 @@ html[data-theme="dark"] .expand-input:focus {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85);
 }
 html[data-theme="dark"] .arc-wash {
-  background: radial-gradient(circle at center, rgba(15, 12, 17, 0.98) 0%, rgba(15, 12, 17, 0.94) 42%, rgba(15, 12, 17, 0.75) 100%);
+  background: radial-gradient(circle at center, rgba(16, 12, 17, 0.98) 0%, rgba(16, 12, 17, 0.94) 42%, rgba(16, 12, 17, 0.75) 100%);
 }
 
 /* sidebar / nav / fab surfaces */
 html[data-theme="dark"] .desktop-sidebar {
-  background: #141016;
+  background: var(--bg-card);
 }
 html[data-theme="dark"] .sidebar-link {
-  background: #221d26;
-  color: var(--ink);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .sidebar-link:hover {
-  background: #2a2430;
+  background: var(--bg-card-hover);
 }
 html[data-theme="dark"] .sidebar-link.is-active {
-  background: var(--maroon);
+  background: var(--accent-primary);
   color: #fff;
+  border-color: var(--accent-primary);
 }
 html[data-theme="dark"] .sidebar-logo {
   background: #fff;
+  border-color: #000 !important;
 }
+/* REV 59: dark-mode logo hover — the emblem container keeps its solid
+   white fill (instead of darkening to the card-hover tone) and pushes a
+   white hard-offset shadow so the ARC logo stays legible. */
 html[data-theme="dark"] .sidebar-logo:hover {
-  background: rgba(152, 32, 54, 0.14);
+  background: #fff;
+  box-shadow: 4px 4px 0 #ffffff;
+}
+html[data-theme="dark"] .sidebar-logo:active {
+  background: #fff;
+  box-shadow: 1px 1px 0 #ffffff;
 }
 html[data-theme="dark"] .mobile-bottom-nav {
-  background: #141016;
-  border-color: var(--ink);
+  background: var(--bg-card);
+  border-color: var(--border-structural);
   box-shadow: 4px 4px 0 rgba(255, 255, 255, 0.85);
 }
 html[data-theme="dark"] .mn-item {
   background: transparent;
-  color: var(--ink);
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .mn-item svg {
-  color: var(--ink);
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .mn-item.is-active svg {
-  background: var(--maroon);
+  background: var(--accent-primary);
   color: #fff;
 }
 html[data-theme="dark"] .mn-item:hover:not(.is-active) svg {
-  background: #2a2430;
+  background: var(--bg-card-hover);
 }
 
 /* sheets (core uses a hardcoded cream; nexus already uses --paper) */
 html[data-theme="dark"] .sheet {
-  background: var(--paper);
+  background: var(--bg-card);
 }
 /* logo icon containers retain their white fill in dark mode */
 html[data-theme="dark"] .logo-wrap,
@@ -1274,238 +1350,251 @@ html[data-theme="dark"] .arc-logo {
   border-color: #000 !important;
 }
 html[data-theme="dark"] .arc-dot-field h1 {
-  color: #ece5dd !important;
+  color: var(--text-primary) !important;
 }
 html[data-theme="dark"] .arc-dot-field section p {
-  color: #c9bfc4 !important;
+  color: var(--text-secondary) !important;
 }
 html[data-theme="dark"] .arc-dot-field section p[style*="152, 32, 54"] {
-  color: #ff8ba0 !important;
-}
-html[data-theme="dark"] .arc-dot-field nav a[style*="255, 253, 248"] {
-  background: #221d26 !important;
-  color: #ece5dd !important;
+  color: var(--accent-primary) !important;
 }
 html[data-theme="dark"] .password-toggle {
-  border-color: var(--ink) !important;
+  border-color: var(--border-structural) !important;
 }
 html[data-theme="dark"] .password-toggle.is-unlocked {
-  background: #221d26 !important;
-  color: var(--ink) !important;
-  border-color: var(--ink) !important;
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-structural) !important;
 }
 html[data-theme="dark"] .password-toggle.is-input-mode {
-  background: #221d26 !important;
-  color: var(--ink) !important;
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
 }
 html[data-theme="dark"] .password-input-inline {
   color: var(--ink) !important;
 }
 html[data-theme="dark"] .password-input-inline::placeholder {
-  color: rgba(232, 225, 217, 0.45);
+  color: var(--text-secondary);
 }
 html[data-theme="dark"] .guide-modal-body {
-  color: #d8cfc6;
+  color: var(--text-secondary);
 }
 html[data-theme="dark"] .guide-modal-body p {
   color: inherit !important;
 }
 html[data-theme="dark"] .guide-modal-close {
-  background: #221d26;
-  color: var(--ink);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .guide-module.nexus,
-html[data-theme="dark"] .guide-module.core {
-  background: rgba(207, 62, 88, 0.16);
-  color: #ff8ba0;
-  border-color: rgba(207, 62, 88, 0.35);
-}
+html[data-theme="dark"] .guide-module.core,
 html[data-theme="dark"] .guide-module.tracker {
-  background: rgba(126, 154, 255, 0.16);
-  color: #9db4ff;
-  border-color: rgba(126, 154, 255, 0.35);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .guide-modal-title {
-  color: #ece5dd !important;
+  color: var(--text-primary) !important;
 }
 html[data-theme="dark"] .arc-dot-field footer p {
-  color: #c9bfc4 !important;
+  color: var(--text-secondary) !important;
 }
 
 /* NEXUS */
 html[data-theme="dark"] .page-subtitle,
 html[data-theme="dark"] .editing-note,
-html[data-theme="dark"] .footer-note,
+html[data-theme="dark"] .footer-note {
+  color: var(--text-secondary) !important;
+}
 html[data-theme="dark"] .sync-pill,
 html[data-theme="dark"] #syncStatus {
-  color: #a698a4 !important;
+  color: var(--status-success) !important;
+}
+html[data-theme="dark"] .sync-pill.saving,
+html[data-theme="dark"] .sync-pill.error,
+html[data-theme="dark"] #syncStatus.saving,
+html[data-theme="dark"] #syncStatus.error {
+  color: var(--status-warning) !important;
 }
 html[data-theme="dark"] .status-region {
-  color: #ff8ba0;
+  color: var(--text-secondary);
 }
 html[data-theme="dark"] .qr-card {
-  background: #19151c;
+  background: var(--bg-card);
 }
 html[data-theme="dark"] .resource-title {
-  color: #f4ede5;
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .resource-title:hover,
 html[data-theme="dark"] .resource-title:focus {
-  color: #ff8ba0;
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .resource-url-input {
-  background: rgba(34, 29, 38, 0.9);
-  color: var(--ink);
-  border-color: rgba(232, 225, 217, 0.22);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .resource-url-input::placeholder {
-  color: rgba(232, 225, 217, 0.4);
+  color: var(--text-secondary);
 }
 html[data-theme="dark"] .resource-url-input:hover,
 html[data-theme="dark"] .resource-url-input:focus {
-  background: #2a2430;
+  background: var(--bg-card-hover);
 }
 html[data-theme="dark"] .upload-hint {
-  background: rgba(25, 21, 28, 0.92);
+  background: var(--bg-card);
 }
 html[data-theme="dark"] .qr-space {
-  background-color: #19151c;
+  background-color: var(--bg-card);
   background-image:
-    radial-gradient(circle, rgba(207, 62, 88, 0.16) 1px, transparent 1.15px),
-    linear-gradient(rgba(207, 62, 88, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(207, 62, 88, 0.05) 1px, transparent 1px);
+    radial-gradient(circle, rgba(110, 45, 63, 0.16) 1px, transparent 1.15px),
+    linear-gradient(rgba(110, 45, 63, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(110, 45, 63, 0.05) 1px, transparent 1px);
 }
 html[data-theme="dark"] .qr-space::after {
-  background-image: radial-gradient(circle, rgba(207, 62, 88, 0.18) 1px, transparent 1.15px);
+  background-image: radial-gradient(circle, rgba(110, 45, 63, 0.18) 1px, transparent 1.15px);
   mix-blend-mode: screen;
 }
 html[data-theme="dark"] .qr-reveal-icon {
-  background: #141016;
-  color: #e8e1d9;
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .qr-image {
-  background: rgba(20, 16, 22, 0.85);
+  background: var(--bg-card);
 }
 html[data-theme="dark"] .card-action {
-  background: #221d26;
-  color: var(--maroon-dark);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .card-action:hover {
-  background: var(--maroon);
-  color: #fff;
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .card-action.copied {
-  background: #27704c;
-  border-color: #27704c;
+  background: var(--status-success);
+  border-color: var(--status-success);
   color: #fff;
 }
 html[data-theme="dark"] .password-input {
-  background: #221d26;
-  color: var(--ink);
-  border-color: rgba(232, 225, 217, 0.25);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .password-input::placeholder {
-  color: rgba(232, 225, 217, 0.4);
+  color: var(--text-secondary);
 }
 html[data-theme="dark"] .confirmation-dialog {
-  background: #19151c;
+  background: var(--bg-card);
 }
 html[data-theme="dark"] .confirmation-dialog.expand-dialog {
   background: #FBF7EE;
 }
 html[data-theme="dark"] .confirmation-dialog p {
-  color: #d8cfc6 !important;
+  color: var(--text-secondary) !important;
 }
 html[data-theme="dark"] .modal-cancel {
-  background: #221d26;
-  color: var(--ink);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .expand-card {
-  background: #221d26;
+  background: var(--bg-card);
 }
 html[data-theme="dark"] .expand-qr {
-  background: #2a2430;
+  background: var(--bg-card-hover);
 }
 html[data-theme="dark"] .expand-input,
 html[data-theme="dark"] .expand-rich {
-  background: #221d26;
-  color: var(--ink);
-  border-color: rgba(232, 225, 217, 0.22);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .expand-input::placeholder {
-  color: rgba(232, 225, 217, 0.55);
+  color: var(--text-secondary);
 }
 html[data-theme="dark"] .expand-field label {
-  color: #c8bac4 !important;
+  color: var(--text-secondary) !important;
 }
 html[data-theme="dark"] .expand-toolbar {
-  background: #19151c;
+  background: var(--bg-card);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .expand-format-btn {
-  color: var(--ink);
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .expand-format-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffd7dc;
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .expand-close {
-  background: #221d26;
-  color: var(--ink);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .expand-close:hover {
-  background: var(--maroon);
-  color: #fff;
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .expand-input[readonly],
 html[data-theme="dark"] .expand-input:disabled,
-html[data-theme="dark"] .expand-rich[contenteditable="false"],
+html[data-theme="dark"] .expand-rich[contenteditable="false"] {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+}
 html[data-theme="dark"] .expand-toolbar.is-locked {
-  background: #19151c;
-  color: #d6cbd4;
+  display: none !important;
 }
 html[data-theme="dark"] .help-modal-close {
-  background: #221d26;
-  color: var(--ink);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
 }
-html[data-theme="dark"] #delete-modal-title,
+html[data-theme="dark"] #delete-modal-title {
+  color: var(--status-warning) !important;
+}
 html[data-theme="dark"] #expand-modal-title {
-  color: #ff8ba0 !important;
+  color: var(--text-primary) !important;
 }
 
 /* CORE */
 html[data-theme="dark"] .sheet-header {
-  border-bottom-color: #3b333e !important;
+  border-bottom-color: var(--border-structural) !important;
 }
 html[data-theme="dark"] .meta-grid {
-  border-color: #3b333e;
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .meta-cell {
-  background: #19151c !important;
-  border-color: #3b333e;
+  background: var(--bg-card) !important;
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .canva-text {
-  color: #ece5dd !important;
+  color: var(--text-primary) !important;
 }
 html[data-theme="dark"] .meta-label {
-  color: #a698a4 !important;
+  color: var(--text-secondary) !important;
 }
 html[data-theme="dark"] .table-wrap {
-  border-color: #3b333e;
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .tracker-table td {
-  color: #ece5dd;
-  border-right-color: #3b333e !important;
+  color: var(--text-primary);
+  border-right-color: var(--border-structural) !important;
 }
 html[data-theme="dark"] .tracker-table tbody tr:hover td {
-  background: #241f29;
+  background: var(--bg-card-hover);
 }
 html[data-theme="dark"] .tracker-table th {
-  background: var(--maroon);
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-structural) !important;
+  border-right-color: var(--border-structural) !important;
 }
 /* Officer/Committee pastel gradients — dark-tinted for contrast */
 html[data-theme="dark"] .officer-cell {
   background: #1a171d;
-  color: #ece5dd;
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .officer-cell.lead {
   background: linear-gradient(135deg, rgba(176, 222, 152, 0.16), rgba(156, 207, 130, 0.26));
@@ -1550,31 +1639,1360 @@ html[data-theme="dark"] .line-text,
 html[data-theme="dark"] .deadline-cell,
 html[data-theme="dark"] .deadline-text,
 html[data-theme="dark"] .remarks-text {
-  color: #ece5dd !important;
+  color: var(--text-primary) !important;
 }
 html[data-theme="dark"] .remarks-cell {
-  color: #a698a4 !important;
+  color: var(--text-secondary) !important;
 }
 html[data-theme="dark"] .cell-stack .line-item:not(:last-child) {
-  border-bottom-color: rgba(207, 62, 88, 0.25);
+  border-bottom-color: var(--border-structural);
 }
 html[data-theme="dark"] .deliverable-cell li::marker {
-  color: var(--red);
+  color: var(--text-secondary);
 }
 html[data-theme="dark"] .format-toolbar {
-  background: #141016;
+  background: var(--bg-card);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .format-btn {
-  color: var(--ink);
+  color: var(--text-primary);
 }
 html[data-theme="dark"] .format-btn:hover {
-  background: #2a2430;
-  border-color: rgba(207, 62, 88, 0.4);
+  background: var(--bg-card-hover);
+  border-color: var(--border-structural);
 }
 html[data-theme="dark"] .format-btn.is-active {
-  background: var(--maroon);
+  background: var(--accent-primary);
   color: #fff;
 }
 html[data-theme="dark"] .page-heading {
-  color: #e9a3ae !important;
+  color: var(--text-primary) !important;
+}
+
+/* ==========================================================================
+   REV 55: Mobile architecture overhaul, QR popup, nav bar polish
+   ========================================================================== */
+
+/* ---------- Mobile utility bar (horizontal row) — shown only on mobile;
+   populated by layout() with the save/theme/sound/tour/lock controls. ---------- */
+.utilities-row { display:none }
+.utilities-row .utilities-btn { flex:0 0 auto; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border:2px solid var(--ink); border-radius:8px; background:#fff; color:var(--ink); cursor:pointer; box-shadow:2px 2px 0 var(--shadow); transition:transform 140ms cubic-bezier(.4,0,.2,1),box-shadow 140ms cubic-bezier(.4,0,.2,1) }
+.utilities-row .utilities-btn:hover { transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--shadow) }
+.utilities-row .utilities-btn:active { transform:translate(2px,2px) !important; box-shadow:1px 1px 0 var(--shadow) !important }
+.utilities-row .utilities-btn:focus-visible { outline:3px solid var(--maroon); outline-offset:2px }
+
+/* ---------- REV 55: Edit lock bottom sheet (mobile) ---------- */
+.bottom-sheet-overlay { position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center }
+.bottom-sheet { position:absolute; bottom:0; left:50%; transform:translateX(-50%); background:var(--paper); border:3px solid var(--ink); border-radius:20px 20px 0 0; width:90%; max-width:280px; padding:1.5rem 1rem 1rem; box-shadow:0 4px 8px rgba(0,0,0,.1); display:none }
+.bottom-sheet.open { display:block }
+.bottom-sheet .close-btn { position:absolute; top:0.5rem; right:0.5rem; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:2px solid var(--ink); border-radius:8px; background:#fff; color:var(--ink); cursor:pointer; box-shadow:2px 2px 0 var(--shadow); transition:transform 140ms ease,box-shadow 140ms ease }
+.bottom-sheet .close-btn:hover { transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--shadow) }
+.bottom-sheet .close-btn:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--shadow) }
+.bottom-sheet h3 { margin:0 0 1rem; font-weight:900; font-size:18px; color:var(--maroon); line-height:1.2 }
+.bottom-sheet .password-input { width:100%; padding:.6rem .8rem; border:1px solid rgba(122,35,49,.35); border-radius:10px; background:#fff; color:#3a1720; font-weight:700; font-size:13px; outline:0; margin-bottom:1rem }
+.bottom-sheet .buttons { display:flex; gap:.5rem }
+.bottom-sheet .btn-cancel { flex:1; padding:.5rem .8rem; background:#fff; color:var(--ink); border:2px solid var(--ink); border-radius:8px; font-size:12px; font-weight:800; text-transform:uppercase; cursor:pointer; transition:transform 140ms ease,box-shadow 140ms ease }
+.bottom-sheet .btn-cancel:hover { transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--shadow) }
+.bottom-sheet .btn-cancel:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--shadow) }
+.bottom-sheet .btn-confirm { flex:1; padding:.5rem .8rem; background:var(--maroon); color:#fff; border:2px solid var(--maroon) !important; border-radius:8px; font-size:12px; font-weight:800; text-transform:uppercase; cursor:pointer; transition:transform 140ms ease,box-shadow 140ms ease }
+.bottom-sheet .btn-confirm:hover { transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--maroon) }
+.bottom-sheet .btn-confirm:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--maroon) }
+
+/* ---------- REV 55: NEXUS resource pill radius + expand transition ---------- */
+.resource-item .qr-card {
+  border-radius: 18px;
+  transition: border-radius 150ms cubic-bezier(.4,0,.2,1), box-shadow 150ms cubic-bezier(.4,0,.2,1);
+}
+.resource-item .qr-card.is-expanded {
+  border-radius: 18px;
+}
+
+/* ---------- REV 55: Nav bar — expanded padding, reduced radius, separators ---------- */
+.mobile-bottom-nav {
+  display: flex;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 12px;
+  z-index: 80;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 4px;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom));
+  background: #ffffff;
+  border: 3px solid #111111;
+  border-radius: 18px;
+  box-shadow: 4px 4px 0 #111111;
+  max-width: calc(100vw - 24px);
+  height: 68px;
+}
+.mobile-bottom-nav .mn-item,
+.mobile-bottom-nav .mn-item:focus,
+.mobile-bottom-nav .mn-item:focus-visible,
+.mobile-bottom-nav .mn-item:active {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+/* REV 66: lift item content so labels clear the capsule's bottom border
+   (nav centers items, so this offset raises both icon and text). */
+.mobile-bottom-nav .mn-item {
+  position: relative;
+  top: -3px;
+}
+.mobile-bottom-nav .mn-item + .mn-item { border-left: 1.5px solid var(--ink) }
+
+/* ---------- REV 55/59/67: + (Add Resource) button docked right of the nav bar
+   on the same plane, hidden from view while editing is locked. Reduced to 48px
+   height to match the reduced nav height. ---------- */
+.fab {
+  position: fixed;
+  right: 16px;
+  bottom: 12px;
+  left: auto;
+  transform: none;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: var(--maroon);
+  color: #fff;
+  box-shadow: 4px 4px 0 var(--shadow);
+  cursor: pointer;
+  z-index: 75;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+.fab:hover { background: #a8283a }
+.fab:active { 
+  transform: translate(2px, 2px);
+  outline: none;
+  border: 3px solid var(--ink) !important;
+}
+.fab:focus,
+.fab:focus-visible {
+  outline: none;
+  border: 3px solid var(--ink) !important;
+}
+.fab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.fab[hidden] { display: none; }
+
+/* ---------- REV 55: Homepage — vertical column of utility controls ---------- */
+main.arc-dot-field .controls-column { display:flex; flex-direction:column; gap:.6rem; align-items:center; margin-top:1rem }
+main.arc-dot-field .controls-column .btn { width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; border:2px solid var(--ink); border-radius:8px; background:#fff; color:var(--ink); cursor:pointer; transition:transform 140ms cubic-bezier(.4,0,.2,1),box-shadow 140ms cubic-bezier(.4,0,.2,1) }
+main.arc-dot-field .controls-column .btn:hover { transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--shadow) }
+main.arc-dot-field .controls-column .btn:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--shadow) }
+main.arc-dot-field .controls-column .btn.theme { margin-bottom:.2rem }
+main.arc-dot-field .theme-toggle, main.arc-dot-field .sound-toggle, main.arc-dot-field .tour-toggle { /* keep existing fixed positions */ }
+
+/* ---------- REV 55: Tracker button border reversion ---------- */
+#trackerButton { border:3px solid var(--ink) !important; box-shadow:4px 4px 0 var(--ink) !important }
+#trackerButton:hover,
+#trackerButton:focus-visible { border:3px solid var(--ink) !important; transform:translate(-2px,-2px) !important; box-shadow:6px 6px 0 var(--ink) !important }
+#trackerButton:active { border:3px solid var(--ink) !important; transform:translate(2px,2px) !important; box-shadow:2px 2px 0 var(--ink) !important }
+
+/* ==========================================================================
+   REV 59: Dark-mode recalibration — one color, one role
+   ========================================================================== */
+
+/* ---------- REV 64/65: Desktop edit-lock input — the password field expands
+   inline directly BESIDE the lock button (no popover card). The Action Board
+   stack hugs the far-left sidebar edge and the row fits within the 260px
+   sidebar, so a plain in-flow input never clips on the overflow scroll. */
+@media (min-width: 1024px) {
+  .sidebar-widget-slot .pw-tools {
+    position: static;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sidebar-widget-slot .password-panel {
+    position: static;
+    right: auto;
+    top: auto;
+    left: auto;
+    width: 0;
+    min-width: 0;
+    max-width: none;
+    z-index: auto;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-6px);
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    transition: opacity .15s ease-out, transform .15s ease-out, width .24s ease, visibility .15s ease-out;
+  }
+  .sidebar-widget-slot .password-widget.is-open .password-panel,
+  .sidebar-widget-slot .pw-tools.is-open .password-panel {
+    visibility: visible;
+    opacity: 1;
+    width: 150px;
+    min-width: 150px;
+    transform: translateX(0);
+  }
+  .sidebar-widget-slot .password-panel .password-input {
+    width: 100%;
+    height: 32px;
+    min-height: 0;
+    padding: 0 0.6rem;
+    border: 2px solid #111111;
+    border-radius: 8px;
+    background: #fff;
+    color: #111111;
+    font-size: 0.82rem;
+    box-shadow: none;
+  }
+  .sidebar-widget-slot .password-panel .password-input:not(:placeholder-shown) {
+    box-shadow: none;
+  }
+  .sidebar-widget-slot .password-panel .password-input::placeholder {
+    color: #111111;
+    opacity: 0.5;
+  }
+  html[data-theme="dark"] .sidebar-widget-slot .password-panel .password-input {
+    background: #fff;
+    color: #111111;
+    border-color: #111111;
+  }
+  html[data-theme="dark"] .sidebar-widget-slot .password-panel .password-input::placeholder {
+    color: #111111;
+    opacity: 0.5;
+  }
+}
+
+/* ---------- REV 59: Mobile top utility row — Save Image / Dark Mode /
+   Sound / Walkthrough / Edit Lock, one uniform 36px strip. The row is
+   filled by layout() on mobile and emptied on desktop, so it is hidden
+   (not just empty) on large screens. */
+.utilities-row {
+  position: relative;
+}
+@media (max-width: 1023.98px) {
+  .utilities-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    margin: 0 0 20px;
+    padding: 8px 10px;
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    background: var(--paper);
+    box-shadow: 3px 3px 0 var(--shadow);
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .utilities-row::-webkit-scrollbar {
+    display: none;
+  }
+  .utilities-row > * {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--shadow);
+    transition: transform 140ms cubic-bezier(.4, 0, .2, 1), box-shadow 140ms cubic-bezier(.4, 0, .2, 1);
+  }
+  .utilities-row > *:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--shadow);
+  }
+  .utilities-row > *:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 1px 1px 0 var(--shadow) !important;
+  }
+  .utilities-row > *:focus-visible {
+    outline: 3px solid var(--maroon);
+    outline-offset: 2px;
+  }
+  .utilities-row > * svg {
+    width: 19px;
+    height: 19px;
+  }
+  /* Save Image becomes icon-only inside the mobile strip */
+  .utilities-row #save-board-button,
+  .utilities-row #saveImageButton {
+    background: var(--maroon);
+    color: #fff;
+  }
+  .utilities-row #save-board-button span,
+  .utilities-row #saveImageButton span {
+    display: none;
+  }
+  /* REV 60: the button's own page padding (.9rem) used to squeeze the 36px
+     strip cell down to a 3px content box, crushing the icon; drop the
+     padding/gap and let the glyph breathe at full optical weight. */
+  .utilities-row #save-board-button,
+  .utilities-row #saveImageButton {
+    padding: 0;
+    gap: 0;
+  }
+  .utilities-row #save-board-button svg,
+  .utilities-row #saveImageButton svg {
+    width: 20px;
+    height: 20px;
+  }
+  /* The lock button keeps its popover anchored to the strip */
+  .utilities-row .pw-tools {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    flex: 0 1 auto;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .utilities-row .pw-tools > * {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--shadow);
+  }
+  /* REV 60: the password input expands inline beside the lock inside the bar
+     (fluid flex spacing) instead of a 200px absolute popover that collided
+     with the sibling buttons and got clipped by the row's overflow. When
+     open, pw-tools wraps to its own full-width row so the input never
+     covers or squishes the Save / Theme / Sound / Tour buttons above. */
+  .utilities-row:has(.pw-tools.is-open) {
+    flex-wrap: wrap;
+  }
+  .utilities-row .pw-tools .password-panel {
+    position: static;
+    right: auto;
+    top: auto;
+    left: auto;
+    width: 0;
+    min-width: 0;
+    max-width: none;
+    flex: 0 1 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-6px);
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    transition: opacity .15s ease-out, transform .15s ease-out, flex .24s ease, visibility .15s ease-out;
+  }
+  .utilities-row .pw-tools.is-open {
+    flex: 1 1 100%;
+    min-width: 100%;
+    max-width: 100%;
+  }
+  .utilities-row .pw-tools.is-open .password-panel {
+    visibility: visible;
+    opacity: 1;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    transform: translateX(0);
+  }
+  .utilities-row .pw-tools .password-panel .password-input {
+    width: 100%;
+    height: 32px;
+    min-height: 0;
+    padding: 0 .6rem;
+    font-size: .8rem;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+  }
+  .utilities-row .pw-tools .password-panel .password-input::placeholder {
+    color: var(--ink);
+    opacity: .55;
+  }
+  /* Empty password row leaves no leftover gap once the lock moves up */
+  body:has(.board-shell) .password-row:has(.password-widget:empty),
+  body:has(.tracker-shell) .password-row:has(.password-widget:empty) {
+    display: none;
+  }
+  /* Dark mode: the strip and its buttons follow the card palette */
+  html[data-theme="dark"] .utilities-row {
+    background: var(--bg-card);
+    border-color: var(--border-structural);
+  }
+  html[data-theme="dark"] .utilities-row > *,
+  html[data-theme="dark"] .utilities-row .pw-tools > * {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-structural);
+  }
+  html[data-theme="dark"] .utilities-row > *:hover,
+  html[data-theme="dark"] .utilities-row .pw-tools > *:hover {
+    background: var(--bg-card-hover);
+  }
+  html[data-theme="dark"] .utilities-row .pw-tools .password-panel {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+  html[data-theme="dark"] .utilities-row .pw-tools .password-panel .password-input {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-structural);
+  }
+  html[data-theme="dark"] .utilities-row .pw-tools .password-panel .password-input::placeholder {
+    color: var(--text-primary);
+    opacity: .55;
+  }
+}
+
+/* ---------- REV 61 §1: CORE mini-bar 1:1 parity with NEXUS ----------
+   NEXUS's row left edge = boardPad + sheetBorder + sheetPad
+   (sheetPad = clamp(1.5rem,2.8vw,2.25rem) = 24px at ≤768px).
+   CORE's row left edge = trackerPad + sheetBorder + marginLeft, with
+   trackerPad = 12px (≤720) / 24px (>720). REV 62 pinned the NEXUS
+   board-shell to the same 12px/24px paddings, so at ≤768px CORE's margin
+   is simply sheetPad = 24px. Above 768px (through 1023.98px) NEXUS still
+   uses clamp(1rem,5vw,4.4rem), so CORE's margin stays boardPad + sheetPad
+   - trackerPad there. */
+@media (max-width: 768px) {
+  body:has(.tracker-shell) #mobileUtilities {
+    margin-left: clamp(1.5rem, 2.8vw, 2.25rem);
+    margin-right: clamp(1.5rem, 2.8vw, 2.25rem);
+    width: auto;
+  }
+}
+@media (min-width: 769px) and (max-width: 1023.98px) {
+  body:has(.tracker-shell) #mobileUtilities {
+    margin-left: calc(clamp(1rem, 5vw, 4.4rem) + clamp(1.5rem, 2.8vw, 2.25rem) - 24px);
+    margin-right: calc(clamp(1rem, 5vw, 4.4rem) + clamp(1.5rem, 2.8vw, 2.25rem) - 24px);
+    width: auto;
+  }
+}
+/* The lock button must never be squeezed below its 36px cell on either
+   page; the row's overflow-x handles the 320px edge case on NEXUS. */
+@media (max-width: 1023.98px) {
+  .utilities-row .pw-tools {
+    flex: 0 0 auto;
+  }
+}
+
+/* ---------- REV 59: QR View modal — standalone popup showing a card's QR
+   image on desktop and mobile, matching the neubrutal dialog language. */
+.qr-view-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 17, 17, 0.55);
+  padding: 1rem;
+}
+.qr-view-layer.is-open {
+  display: flex;
+}
+.qr-view-dialog {
+  box-sizing: border-box;
+  width: min(92vw, 420px);
+  background: #FBF7EE;
+  border: 3px solid #111111;
+  border-radius: 20px;
+  box-shadow: 4px 4px 0 #111111;
+  padding: 1rem;
+  animation: qrViewIn 160ms cubic-bezier(.4, 0, .2, 1);
+}
+@keyframes qrViewIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.qr-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+.qr-view-title {
+  margin: 0;
+  font-family: "Poppins", "DM Sans", sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: #111111;
+}
+.qr-view-close {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #111111;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111111;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #111111;
+  transition: transform 140ms cubic-bezier(.4, 0, .2, 1), box-shadow 140ms cubic-bezier(.4, 0, .2, 1);
+}
+.qr-view-close:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 #111111;
+}
+.qr-view-close:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #111111;
+}
+.qr-view-frame {
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 2px solid #111111;
+  border-radius: 14px;
+  padding: 12px;
+  overflow: hidden;
+}
+.qr-view-image {
+  display: none;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+html[data-theme="dark"] .qr-view-dialog {
+  background: var(--bg-card);
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .qr-view-title {
+  color: var(--text-primary);
+}
+html[data-theme="dark"] .qr-view-close {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .qr-view-frame {
+  background: var(--bg-card);
+  border-color: var(--border-structural);
+}
+
+/* ---------- REV 55 shared-section borders (structural) ---------- */
+html[data-theme="dark"] .mobile-bottom-nav .mn-item + .mn-item {
+  border-left-color: var(--border-structural);
+}
+html[data-theme="dark"] .fab {
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .fab:hover {
+  background: var(--accent-primary-hover);
+}
+html[data-theme="dark"] #trackerButton {
+  border-color: var(--border-structural) !important;
+  box-shadow: 4px 4px 0 rgba(255, 255, 255, 0.85) !important;
+}
+html[data-theme="dark"] #trackerButton:hover,
+html[data-theme="dark"] #trackerButton:focus-visible {
+  border-color: var(--border-structural) !important;
+  box-shadow: 6px 6px 0 rgba(255, 255, 255, 0.85) !important;
+}
+html[data-theme="dark"] #trackerButton:active {
+  border-color: var(--border-structural) !important;
+  box-shadow: 2px 2px 0 rgba(255, 255, 255, 0.85) !important;
+}
+
+/* ---------- REV 55 edit-lock bottom sheet ---------- */
+html[data-theme="dark"] .bottom-sheet {
+  background: var(--bg-card);
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .bottom-sheet .close-btn {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .bottom-sheet h3 {
+  color: var(--text-primary);
+}
+html[data-theme="dark"] .bottom-sheet .password-input {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .bottom-sheet .password-input::placeholder {
+  color: var(--text-secondary);
+}
+html[data-theme="dark"] .bottom-sheet .btn-cancel {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .bottom-sheet .btn-confirm {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary) !important;
+}
+html[data-theme="dark"] .bottom-sheet .btn-confirm:hover {
+  box-shadow: 4px 4px 0 var(--accent-primary-hover);
+}
+html[data-theme="dark"] .bottom-sheet .btn-confirm:active {
+  box-shadow: 1px 1px 0 var(--accent-primary-hover);
+}
+
+/* ---------- Inline-styled primaries → accent ---------- */
+html[data-theme="dark"] #save-board-button,
+html[data-theme="dark"] #saveImageButton {
+  background: var(--accent-primary) !important;
+}
+html[data-theme="dark"] .password-toggle:not(.is-unlocked) {
+  background: var(--accent-primary) !important;
+  color: #fff !important;
+}
+html[data-theme="dark"] .tracker-shell .password-toggle.is-unlocked {
+  background: var(--status-success) !important;
+  border-color: var(--status-success) !important;
+  color: #fff !important;
+}
+
+/* ---------- QR drop-zone border (decorative red tint neutralized) ---------- */
+html[data-theme="dark"] .qr-space,
+html[data-theme="dark"] .qr-space.has-image {
+  border-color: var(--border-structural);
+}
+
+/* ---------- Remaining structural borders → border-structural ---------- */
+html[data-theme="dark"] .sidebar-brand {
+  border-bottom-color: var(--border-structural);
+}
+html[data-theme="dark"] .sidebar-footer {
+  border-top-color: var(--border-structural);
+}
+html[data-theme="dark"] .desktop-sidebar {
+  border-right-color: var(--border-structural);
+}
+html[data-theme="dark"] .sheet,
+html[data-theme="dark"] .board-shell .sheet {
+  border-color: var(--border-structural) !important;
+}
+html[data-theme="dark"] .tracker-table td {
+  border-top-color: var(--border-structural);
+  border-right-color: var(--border-structural);
+}
+html[data-theme="dark"] .qr-card {
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .expand-card {
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .help-modal {
+  border-color: var(--border-structural);
+  color: var(--text-primary);
+}
+html[data-theme="dark"] .help-modal-title,
+html[data-theme="dark"] .help-modal-body,
+html[data-theme="dark"] .help-modal-body h3,
+html[data-theme="dark"] .help-modal-body strong {
+  color: var(--text-primary);
+}
+html[data-theme="dark"] .guide-modal {
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .confirmation-dialog {
+  border-color: var(--border-structural) !important;
+}
+html[data-theme="dark"] .modal-cancel {
+  border-color: var(--border-structural) !important;
+}
+html[data-theme="dark"] .expand-dialog {
+  border-color: #111111 !important;
+}
+
+/* ---------- core.html decorative red tints neutralized ---------- */
+html[data-theme="dark"] .logo-badge::before {
+  background: rgba(23, 23, 23, 0.35);
+}
+html[data-theme="dark"] .text-\[\#982036\] {
+  color: var(--text-secondary) !important;
+}
+
+/* ==========================================================================
+   REV 60: Mobile & tablet viewport pass — fixed chrome scroll stability,
+   vertically centered FAB, and a stacked homepage utility column.
+   ========================================================================== */
+
+/* ---------- §1 Scroll stutter: promote the fixed/sticky chrome to its own
+   composited layer so scrolling never forces a paint of the capsule, dock,
+   sidebar, or homepage toggles. (No backdrop filters are in use anywhere,
+   so there is nothing to strip during scroll; the layer promotion is the
+   hardware-acceleration pass.) ---------- */
+.mobile-bottom-nav,
+.fab,
+.desktop-sidebar,
+main.arc-dot-field .theme-toggle,
+main.arc-dot-field .sound-toggle,
+main.arc-dot-field .tour-toggle {
+  will-change: transform;
+}
+/* The nav capsule already centers itself with translateX(-50%); translateZ(0)
+   layers it without disturbing that horizontal centering. */
+.mobile-bottom-nav {
+  transform: translateX(-50%) translateZ(0);
+  -webkit-transform: translateX(-50%) translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.fab {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.desktop-sidebar {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+/* Homepage toggles keep their hover/active transforms, so they only get the
+   compositing hint (will-change) rather than a fixed translateZ base. */
+main.arc-dot-field .theme-toggle,
+main.arc-dot-field .sound-toggle,
+main.arc-dot-field .tour-toggle {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ---------- §2 FAB: (REV 66) the + button now shares the nav capsule's exact
+   height and bottom line (see REV 62 §3 / REV 66 block), so the old
+   centering offset is no longer needed. ---------- */
+
+/* ---------- §4 Homepage utility controls: stacked vertical column pinned
+   top-right (Audio on top, Info/? below, Dark Mode bottom) with enough
+   clearance that it never overlaps the centered ARC logo at any width. ---------- */
+main.arc-dot-field .theme-toggle,
+main.arc-dot-field .sound-toggle,
+main.arc-dot-field .tour-toggle {
+  right: 16px;
+  left: auto;
+  top: auto;
+  bottom: auto;
+}
+main.arc-dot-field .sound-toggle { top: 16px; }
+main.arc-dot-field .tour-toggle { top: calc(16px + 48px + 8px); }
+main.arc-dot-field .theme-toggle { top: calc(16px + 48px + 8px + 48px + 8px); }
+
+/* ---------- REV 61 §3: NEXUS dark-mode expand chevron ----------
+   The lucide chevron strokes currentColor, so .capsule-toggle { color } is
+   what the QR card must recolor when the card flips to the dark palette.
+   Solid white keeps the expand affordance visible on the dark card. */
+html[data-theme="dark"] .capsule-toggle {
+  color: #FFFFFF;
+}
+
+/* ---------- REV 61 §4: homepage CORE button dark-mode border ----------
+   In dark mode --ink resolves to near-white (--text-primary), which makes
+   the light CORE button's border nearly invisible against the dark page.
+   Pin its border to solid black (#111111) so the neubrutal outline stays
+   crisp, matching the Tracker button's explicit border treatment. */
+html[data-theme="dark"] main.arc-dot-field nav a.arc-action[href="core.html"] {
+  border-color: #111111 !important;
+}
+html[data-theme="dark"] main.arc-dot-field nav a.arc-action[href="core.html"]:hover,
+html[data-theme="dark"] main.arc-dot-field nav a.arc-action[href="core.html"]:focus-visible,
+html[data-theme="dark"] main.arc-dot-field nav a.arc-action[href="core.html"]:active {
+  border-color: #111111 !important;
+}
+
+/* ==========================================================================
+   REV 62: Mobile container + mini utility bar + nav-dock polish (≤768px)
+   ========================================================================== */
+
+/* ---------- REV 62 §1: NEXUS board container geometry parity ----------
+   CORE's tracker-shell carries 18px/12px padding at ≤720px and 40px/24px at
+   721–768px; NEXUS's board-shell used clamp() insets that grew wider than
+   CORE's, so the two sheets sat at different page margins. Pin the board-shell
+   to the same paddings below 768px (the trailing nav-clearance padding is
+   preserved so the bottom bar never covers board content). */
+@media (max-width: 720px) {
+  .board-shell {
+    padding: 18px 12px calc(2.5rem + 80px);
+  }
+}
+@media (min-width: 721px) and (max-width: 768px) {
+  .board-shell {
+    padding: 40px 24px calc(2.5rem + 80px);
+  }
+}
+
+/* ---------- REV 62 §2: mini-bar vertical parity + uniform icons ----------
+   NEXUS's sync→bar offset is a constant 49px (header padding 24 + border 1 +
+   margin-bottom 24). CORE's offset drifted (45px below 600px, 31px at 640–720,
+   35px at 768px) because the empty .header-save wrap added a phantom flex line
+   below 600px and its padding-bottom differs across the 720px boundary. Hiding
+   the mobile-empty .header-save removes the phantom line, then a per-range
+   margin-bottom brings CORE to the same 49px. Icons are unified to 20px so
+   every strip control shares identical inner bounds. */
+@media (max-width: 768px) {
+  .sheet-header .header-save {
+    display: none;
+  }
+  .utilities-row > * svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+@media (max-width: 720px) {
+  .sheet-header {
+    margin-bottom: 18px;
+  }
+}
+@media (min-width: 721px) and (max-width: 768px) {
+  .sheet-header {
+    margin-bottom: 14px;
+  }
+}
+
+/* ---------- REV 62 §3 / REV 66: FAB docked on the nav capsule plane ----------
+   The nav capsule is 68px tall and sits at bottom 12px. The + button shares
+   that exact height and bottom line so the two read as one docked cluster,
+   stepping inward from 16px to 20px so the capsule never hugs the screen
+   edge on narrow viewports. */
+@media (max-width: 1023.98px) {
+  .fab {
+    width: 48px;
+    height: 68px;
+    bottom: 12px;
+    right: 20px;
+  }
+}
+
+/* ---------- REV 66 — Mobile viewport exclusive (≤768px): nav top clearance
+   & active highlight bleed fix + FAB height parity. Scope is strictly mobile;
+   desktop (≥1024px) remains hidden/unchanged. ---------- */
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    height: 76px;
+    padding: 5px 4px;
+    padding-bottom: calc(5px + env(safe-area-inset-bottom));
+  }
+  /* Remove the previous -3px lift once the container is tall enough; the
+     flex centering then yields balanced top/bottom padding and 4–6px
+     clearance from the outer border to the active red circle. */
+  .mobile-bottom-nav .mn-item {
+    top: 0;
+  }
+  .fab {
+    width: 48px;
+    height: 76px;
+    bottom: 12px;
+    right: 20px;
+  }
+}
+
+/* ==========================================================================
+   REV 63: homepage logo parity, desktop pill card view, tour spotlights
+   ========================================================================== */
+
+/* ---------- REV 63 §1 / REV 65: homepage logo shadow/offset parity ----------
+   The logo follows the tactile contract of the primary action buttons:
+   4px rest / 9px hover / 2px active, light #111111 and a solid #FFFFFF hard
+   offset in dark. REV 65 increases the HOVER offset from -2px/6px to -3px/9px
+   to match the button design system (nav a.arc-action). REV 58 previously
+   pressed the logo down with an INSET shadow on :active; REV 63 switches that
+   to an OUTSET 2px offset so the press reads identically to every other
+   neubrutal control. These !important rules come after the REV 58 block so
+   they win the cascade. */
+.arc-logo {
+  box-shadow: 4px 4px 0 #111111 !important;
+}
+.arc-logo:hover,
+.arc-logo:focus-within {
+  transform: translate(-3px, -3px) !important;
+  box-shadow: 9px 9px 0 #111111 !important;
+}
+.arc-logo:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0 #111111 !important;
+}
+html[data-theme="dark"] .arc-logo {
+  box-shadow: 4px 4px 0 #FFFFFF !important;
+}
+html[data-theme="dark"] .arc-logo:hover,
+html[data-theme="dark"] .arc-logo:focus-within {
+  transform: translate(-3px, -3px) !important;
+  box-shadow: 9px 9px 0 #FFFFFF !important;
+}
+html[data-theme="dark"] .arc-logo:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0 #FFFFFF !important;
+}
+
+/* ---------- REV 63 §2: NEXUS desktop "Pill Minimized" card view ----------
+   Desktop-only (≥1024px) compact capsule layout for the QR board, driven by
+   body.nexus-view-pill (toggled via the header view-mode button). Mirrors
+   the mobile capsule grammar (48px circular thumb, single-line title + URL,
+   chevron expand) so Full Card and Pill views share one interaction model.
+   Colors are left to the theme-aware .qr-card tokens — this block only
+   restructures layout and radius so dark mode keeps its palette. */
+@media (min-width: 1024px) {
+  body.nexus-view-pill .qr-grid {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 760px;
+    margin-inline: auto;
+  }
+  body.nexus-view-pill .resource-item .qr-card {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    grid-template-areas: "thumb main toggle";
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 20px;
+    transition: border-radius 120ms linear, box-shadow 120ms linear;
+  }
+  body.nexus-view-pill .resource-item .qr-card.is-expanded {
+    grid-template-areas:
+      "thumb main toggle"
+      "cluster cluster cluster";
+    grid-template-rows: auto auto;
+    gap: 0.5rem 0.7rem;
+    padding: 0.6rem 0.8rem 0.8rem;
+    border-radius: 28px;
+  }
+  body.nexus-view-pill .qr-card .qr-space {
+    grid-area: thumb;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    aspect-ratio: 1 / 1;
+    border-width: 2px;
+    border-style: solid;
+    border-color: var(--ink);
+    border-radius: 50%;
+    background-image: none;
+  }
+  body.nexus-view-pill .qr-card .qr-space::before,
+  body.nexus-view-pill .qr-card .qr-space::after {
+    display: none;
+  }
+  body.nexus-view-pill .qr-card .qr-space .upload-hint {
+    display: none;
+  }
+  body.nexus-view-pill .qr-card .qr-space .qr-image {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.78);
+  }
+  body.nexus-view-pill .qr-card .qr-reveal-icon {
+    position: absolute;
+    inset: auto;
+    right: 2px;
+    bottom: 2px;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    border-radius: 50%;
+    font-size: 10px;
+  }
+  body.nexus-view-pill .qr-card .qr-reveal-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+  body.nexus-view-pill .resource-item .capsule-main {
+    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    max-width: 100%;
+  }
+  body.nexus-view-pill .resource-title-row {
+    margin-top: 0;
+    justify-content: flex-start;
+  }
+  body.nexus-view-pill .resource-title {
+    margin: 0;
+    padding: 0;
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.25;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  body.nexus-view-pill .resource-url-input {
+    min-height: 0;
+    margin-top: 0.25rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  html[data-theme="dark"] body.nexus-view-pill .resource-url-input {
+    background: var(--bg-card);
+  }
+  body.nexus-view-pill .qr-card.is-expanded .resource-title,
+  body.nexus-view-pill .qr-card.is-expanded .resource-url-input {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: break-word;
+  }
+  body.nexus-view-pill .capsule-toggle {
+    grid-area: toggle;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    flex: 0 0 auto;
+  }
+  body.nexus-view-pill .capsule-toggle svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 200ms ease;
+  }
+  body.nexus-view-pill .qr-card.is-expanded .capsule-toggle svg {
+    transform: rotate(180deg);
+  }
+  body.nexus-view-pill .qr-card .action-cluster {
+    grid-area: cluster;
+    display: none;
+    justify-content: space-around;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.6rem 0.2rem 0;
+    border-top: 1.5px solid var(--ink);
+  }
+  body.nexus-view-pill .qr-card.is-expanded .action-cluster {
+    display: flex;
+    animation: nexus-pill-cluster-in 180ms ease-out;
+  }
+  body.nexus-view-pill .qr-card .card-action {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1.5px solid #111111;
+    border-radius: 50%;
+    background: #fff;
+    color: #111111;
+    box-shadow: none;
+  }
+  body.nexus-view-pill .qr-card .card-action svg {
+    width: 15px;
+    height: 15px;
+  }
+  body.nexus-view-pill .qr-card .card-action[data-action="left"],
+  body.nexus-view-pill .qr-card .card-action[data-action="right"] {
+    display: none;
+  }
+  body.nexus-view-pill .qr-card .card-action:hover {
+    background: #8b1a2b;
+    color: #fff;
+    transform: none;
+  }
+  body.nexus-view-pill .qr-card .card-action.copied {
+    background: #27704c;
+    border-color: #27704c;
+    color: #fff;
+  }
+  body.nexus-view-pill .qr-card .card-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  html[data-theme="dark"] body.nexus-view-pill .card-action {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-structural);
+  }
+  html[data-theme="dark"] body.nexus-view-pill .card-action:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+  }
+}
+
+@keyframes nexus-pill-cluster-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- REV 68: NEXUS pill view — QR thumb wrapper / mask / badge split ----------
+   Supersedes the REV 64 single-element circle. The thumbnail is now three
+   isolated layers per spec:
+     .qr-space        → outer wrapper: positioning anchor, NO clipping (the
+                        badge must be able to straddle the bottom-right edge)
+     .pill-qr-mask    → circular mask: the ONLY clipping layer, clips the
+                        image / empty placeholder edge-to-edge
+     .qr-reveal-icon  → zoom badge: independent sibling OUTSIDE the mask,
+                        anchored -4px past the bottom-right corner
+   Grid/capsule views are unaffected (mask is display:contents there). */
+@media (min-width: 1024px) {
+  body.nexus-view-pill .qr-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 20px;
+    max-width: 920px;
+    margin-inline: auto;
+  }
+  /* Outer wrapper — relative anchor only */
+  body.nexus-view-pill .qr-card .qr-space {
+    box-sizing: border-box;
+    grid-area: thumb;
+    position: relative;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    aspect-ratio: 1 / 1;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    overflow: visible;
+    cursor: pointer;
+  }
+  body.nexus-view-pill .qr-card .qr-space::before,
+  body.nexus-view-pill .qr-card .qr-space::after {
+    display: none;
+  }
+  /* Circular mask container — clips the QR image or placeholder */
+  body.nexus-view-pill .qr-card .qr-space .pill-qr-mask {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #111111;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #FBF7EE;
+  }
+  /* Image state: fills the mask 100% with no distortion (mask does the clipping) */
+  body.nexus-view-pill .qr-card .qr-space.has-image .pill-qr-mask .qr-image {
+    display: block;
+    position: static;
+    inset: auto;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    object-fit: cover;
+    border-radius: 0;
+    background: transparent;
+  }
+  /* Empty state: full-bleed solid cover + subtle centered glyph */
+  body.nexus-view-pill .qr-card .qr-space:not(.has-image) .pill-qr-mask .pill-qr-empty-icon {
+    display: block;
+    width: 16px;
+    height: 16px;
+    color: #111111;
+    opacity: 0.35;
+  }
+  /* Zoom badge — independent child OUTSIDE the mask, bottom-right edge */
+  body.nexus-view-pill .qr-card .qr-space .qr-reveal-icon {
+    position: absolute;
+    inset: auto;
+    right: -4px;
+    bottom: -4px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    padding: 0;
+    border: 1.5px solid #111111;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #111111;
+    box-shadow: 1px 1px 0 #111111;
+    pointer-events: none;
+  }
+  body.nexus-view-pill .qr-card .qr-space .qr-reveal-icon svg {
+    width: 10px;
+    height: 10px;
+  }
+  /* Badge visibility keeps the established gating: locked image cards only.
+     (:not() compound keeps this from fighting the page-level show rule.) */
+  body.nexus-view-pill .qr-card .qr-space:not(.is-locked.has-image) .qr-reveal-icon {
+    opacity: 0;
+  }
+  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space .pill-qr-mask {
+    background-color: var(--bg-card-hover);
+  }
+  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space:not(.has-image) .pill-qr-mask .pill-qr-empty-icon {
+    color: var(--text-primary);
+  }
+  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space .qr-reveal-icon {
+    border-color: var(--border-structural);
+    color: var(--text-primary);
+  }
+}
+
+/* ---------- REV 66: CORE dark mode — darker pastel shades with readable text ----------
+   Meta cells and Officer/Committee column use dark theme with darker pastel
+   shades (higher opacity) for visibility. Text uses light colors for readability.
+   Table borders remain high-contrast. ---------- */
+html[data-theme="dark"] .meta-cell {
+  background: rgba(26, 21, 25, 0.85) !important;
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .meta-label {
+  color: var(--text-secondary) !important;
+}
+html[data-theme="dark"] .canva-text {
+  color: var(--text-primary) !important;
+}
+/* Column 1: Officer/Committee uses darker pastel gradients + light text */
+html[data-theme="dark"] .officer-cell {
+  background: #1a171d;
+  color: var(--text-primary);
+}
+html[data-theme="dark"] .officer-cell.lead { 
+  background: linear-gradient(135deg, rgba(176, 222, 152, 0.35), rgba(156, 207, 130, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.internal { 
+  background: linear-gradient(135deg, rgba(170, 216, 144, 0.35), rgba(148, 200, 120, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.external { 
+  background: linear-gradient(135deg, rgba(164, 210, 136, 0.35), rgba(140, 193, 110, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.secretariat { 
+  background: linear-gradient(135deg, rgba(158, 204, 128, 0.35), rgba(132, 186, 100, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.finance { 
+  background: linear-gradient(135deg, rgba(152, 198, 120, 0.35), rgba(124, 179, 90, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.media { 
+  background: linear-gradient(135deg, rgba(146, 192, 112, 0.35), rgba(116, 172, 80, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.fundraising { 
+  background: linear-gradient(135deg, rgba(248, 220, 140, 0.35), rgba(240, 200, 100, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.safe { 
+  background: linear-gradient(135deg, rgba(246, 214, 124, 0.35), rgba(238, 196, 90, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.community { 
+  background: linear-gradient(135deg, rgba(244, 208, 108, 0.35), rgba(236, 192, 80, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.design { 
+  background: linear-gradient(135deg, rgba(242, 202, 92, 0.35), rgba(234, 188, 70, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.formation { 
+  background: linear-gradient(135deg, rgba(240, 196, 76, 0.35), rgba(232, 184, 60, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.recruitment { 
+  background: linear-gradient(135deg, rgba(238, 190, 60, 0.35), rgba(230, 180, 50, 0.45)); 
+  color: var(--text-primary); 
+}
+html[data-theme="dark"] .officer-cell.deployment { 
+  background: linear-gradient(135deg, rgba(236, 184, 44, 0.35), rgba(228, 176, 40, 0.45)); 
+  color: var(--text-primary); 
+}
+/* Officer cell hover effect */
+html[data-theme="dark"] .tracker-table tbody tr:hover .officer-cell {
+  background: var(--bg-card-hover);
+}
+/* Uniform table borders in dark mode — all use high-contrast white borders */
+html[data-theme="dark"] .meta-grid {
+  border-color: #ffffff;
+}
+html[data-theme="dark"] .meta-cell {
+  border-color: var(--border-structural);
+}
+html[data-theme="dark"] .format-toolbar {
+  border-color: #ffffff;
+}
+html[data-theme="dark"] .tracker-table td {
+  border-top-color: #ffffff;
+  border-right-color: var(--border-structural);
+}
+html[data-theme="dark"] .tracker-table th {
+  border-right-color: rgba(255, 255, 255, 0.4);
+}
+/* Table-wrap border: match light mode thickness (3px) and contrast (high-contrast ink) */
+html[data-theme="dark"] .table-wrap {
+  border-color: #ffffff;
+}
+/* REV 65: NEXUS header view-mode toggle keeps a black border in dark mode so
+   the light pill button reads clearly against the dark page. */
+html[data-theme="dark"] .view-mode-toggle {
+  border-color: #000000 !important;
 }

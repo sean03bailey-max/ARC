@@ -402,6 +402,21 @@
 
     .save-board-button { padding: 0 .9rem; text-transform: uppercase; letter-spacing: .04em; }
 
+    .view-mode-toggle {
+      padding: 0 .9rem;
+      background: #fffdf8;
+      color: #07133f;
+      font-weight: 800;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .view-mode-toggle[data-view-mode="pill"] {
+      background: var(--ink);
+      color: var(--paper);
+    }
+    .view-mode-toggle[data-view-mode="pill"] svg { color: inherit; }
+
     .save-board-button:disabled, .add-resource-button:disabled { opacity: .58; cursor: not-allowed; transform: none; box-shadow: none; }
     .nav-button svg, .save-board-button svg, .add-resource-button svg, .tracker-button svg { width: 17px; height: 17px; }
 
@@ -475,13 +490,18 @@
       margin-left: 0;
       visibility: hidden;
       opacity: 0;
-      transform: translateY(-4px);
-      transition: opacity .2s ease, transform .2s ease, visibility .2s;
+      transform: translateX(-6px);
+      transition: opacity .15s ease-out, transform .15s ease-out, visibility .15s ease-out;
     }
     .password-widget.is-open .password-panel {
       visibility: visible;
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(0);
+    }
+    .pw-tools.is-open .password-panel {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(0);
     }
 
     .password-input {
@@ -566,7 +586,7 @@
       width: 100%;
       aspect-ratio: 1 / 1;
       place-items: center;
-      border: 2px dashed rgba(122,35,49,.68);
+      border: 2px dashed #9B2C2C;
       border-radius: 10px;
       cursor: pointer;
       background-color: #fffdfb;
@@ -630,31 +650,32 @@
 
     .qr-reveal-icon {
       position: absolute;
-      inset: 0;
+      inset: -2px;
       z-index: 4;
       display: flex;
       align-items: center;
       justify-content: center;
       pointer-events: none;
       background: #fff;
-      border-radius: 10px;
+      border-radius: 12px;
       color: #4a4a4a;
       opacity: 0;
       transition: opacity .2s ease-in-out;
     }
     .qr-reveal-icon svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)); }
     .qr-space.is-locked.has-image .qr-reveal-icon { opacity: 1; }
-    .qr-space.is-locked.has-image .qr-image.is-revealed ~ .qr-reveal-icon { opacity: 0; }
+    .qr-space.is-locked.has-image:has(.qr-image.is-revealed) .qr-reveal-icon { opacity: 0; }
 
     .upload-hint {
       position: relative;
       z-index: 3;
       max-width: 76%;
-      padding: .45rem .6rem;
-      border: 1px solid rgba(122,35,49,.3);
-      border-radius: 7px;
+      padding: .5rem .85rem;
+      border: 1.5px solid rgba(155,44,44,.45);
+      border-radius: 999px;
       color: var(--maroon-dark);
-      background: rgba(255,253,251,.9);
+      background: rgba(255,253,251,.92);
+      box-shadow: 2px 2px 0 rgba(122,35,49,.18);
       font-size: .74rem;
       font-weight: 800;
       line-height: 1.3;
@@ -1118,10 +1139,7 @@
       cursor: default;
     }
     .expand-toolbar.is-locked {
-      opacity: .55;
-      background: #f6f2f0;
-      border-color: rgba(122,35,49,.12);
-      cursor: not-allowed;
+      display: none !important;
     }
     .expand-toolbar.is-locked .expand-toolbar-divider { background: rgba(122,35,49,.12); }
     .expand-format-btn:disabled {
@@ -1212,7 +1230,7 @@
 
       .resource-item .qr-card {
         display: grid;
-        grid-template-columns: 44px minmax(0, 1fr) auto;
+        grid-template-columns: 48px minmax(0, 1fr) auto;
         grid-template-areas: "thumb main toggle";
         align-items: center;
         gap: .7rem;
@@ -1222,6 +1240,8 @@
         background: #fff;
         box-shadow: 4px 4px 0 #111111;
         transition: border-radius 120ms linear, box-shadow 120ms linear;
+        box-sizing: border-box;
+        max-width: 100%;
       }
       .resource-item .qr-card.is-expanded {
         grid-template-areas:
@@ -1235,24 +1255,52 @@
 
       .qr-card .qr-space {
         grid-area: thumb;
-        width: 38px;
-        height: 38px;
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
         aspect-ratio: 1 / 1;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         border: 2px solid #111111;
         border-radius: 50%;
         background-color: #f3e3de;
         background-image: none;
+        box-sizing: border-box;
       }
       .qr-card .qr-space::before,
       .qr-card .qr-space::after { display: none; }
       .qr-card .qr-space .upload-hint { display: none; }
-      .qr-card .qr-image {
+      .qr-card .qr-space .qr-image {
         width: 100%;
         height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: cover;
         border-radius: 50%;
+        background: rgba(255,255,255,.78);
       }
       .qr-card .qr-reveal-icon { border-radius: 50%; }
       .qr-card .image-picker { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      /* REV 60: bound every inner element to the capsule so long titles/URLs
+         or an oversized QR thumbnail can never push past the card edges. */
+      .resource-item .qr-card,
+      .resource-item .qr-card > * {
+        box-sizing: border-box;
+        max-width: 100%;
+      }
+      .resource-item .qr-card .capsule-main,
+      .resource-item .qr-card .capsule-toggle {
+        min-width: 0;
+        max-width: 100%;
+      }
+      .resource-item .qr-card .resource-title-row,
+      .resource-item .qr-card .resource-title,
+      .resource-item .qr-card .resource-url-input {
+        min-width: 0;
+        max-width: 100%;
+      }
 
       .capsule-main {
         grid-area: main;
@@ -1388,9 +1436,9 @@
   </style>
   <link rel="stylesheet" href="assets/neubrutal.css">
  </head>
- <body>
-  <main class="board-shell" aria-label="ARC shared resource QR board">
-   <section class="sheet">
+<body>
+   <main class="board-shell" aria-label="ARC shared resource QR board">
+    <section class="sheet">
     <header class="board-header">
      <div class="brand-group">
 <div class="brand-top">
@@ -1404,10 +1452,12 @@
      </div>
 <div class="header-actions">
        <button id="save-board-button" class="save-board-button arc-action" type="button" style="background: #8B1A2B; color: rgb(255, 255, 255); font-weight:800;font-size:13px;"><i data-lucide="save" aria-hidden="true"></i><span>Save Board</span></button>
+       <button id="view-mode-toggle" class="view-mode-toggle nav-button arc-action" type="button" aria-pressed="false" aria-label="Switch to Pill view" title="Card layout" data-view-mode="full"><i data-lucide="layout-grid" aria-hidden="true"></i><span>Grid</span></button>
        <div class="add-resource-wrap"><button id="add-resource-button" class="add-resource-button arc-action" type="button" data-requires-unlock style="background:#fff;color:#591925;font-weight:800;font-size:14px;"><i data-lucide="plus" aria-hidden="true"></i><span>Add Resource</span></button></div>
-      </div>
-    </header>
-<div class="password-row">
+</div>
+     </header>
+ <div class="utilities-row" id="mobileUtilities" aria-label="Utility controls"></div>
+ <div class="password-row">
       <div class="password-widget" id="passwordWidget">
        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button>
        <div class="pw-tools">
@@ -1484,6 +1534,19 @@
     </section>
    </div>
 
+  <!-- QR View Modal (REV 59): standalone popup for viewing a card's QR image -->
+  <div id="qr-view-layer" class="qr-view-layer" role="presentation">
+   <section class="qr-view-dialog" role="dialog" aria-modal="true" aria-labelledby="qr-view-title">
+    <header class="qr-view-header">
+     <h2 id="qr-view-title" class="qr-view-title">QR Code</h2>
+     <button id="qr-view-close" class="qr-view-close" type="button" aria-label="Close QR view">&times;</button>
+    </header>
+    <div class="qr-view-frame">
+     <img id="qr-view-image" class="qr-view-image" alt="QR code">
+    </div>
+   </section>
+  </div>
+
   <!-- Help Modal -->
   <div class="help-modal-layer" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
     <div class="help-modal">
@@ -1539,7 +1602,10 @@
    <article class="resource-item">
     <div class="qr-card">
      <div class="qr-space" tabindex="0" role="button" aria-label="Upload a QR image">
-      <span class="upload-hint">Drop a QR image here or click to upload</span>
+      <div class="pill-qr-mask">
+       <span class="upload-hint">Drop a QR image here or click to upload</span>
+       <svg class="pill-qr-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 12h.01"/><path d="M7 17h.01"/><path d="M12 12h2v2"/><path d="M17 12h.01"/><path d="M12 17h.01"/><path d="M17 17h.01"/></svg>
+      </div>
       <span class="qr-reveal-icon" aria-hidden="true">
        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 9 5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2 8 5.1"/><path d="m5.1 8-2.9-.8"/><path d="M14 4.1 12 6"/><path d="m6 12-1.9 2"/></svg>
       </span>
@@ -1604,6 +1670,7 @@
     const passwordWidget = document.getElementById('passwordWidget');
     const passwordToggle = document.getElementById('passwordToggle');
     const passwordInput = document.getElementById('passwordInput');
+    const pwTools = document.querySelector('#passwordWidget .pw-tools');
 
     function flashLockedNotice(message) {
       let toast = document.getElementById('lockToast');
@@ -1682,18 +1749,36 @@
 
     function collapsePasswordWidget() {
       passwordWidget.classList.remove('is-open');
+      if (pwTools) pwTools.classList.remove('is-open');
       passwordToggle.setAttribute('aria-expanded', 'false');
       passwordInput.value = '';
       passwordInput.blur();
+      if (window.ArcTour && window.ArcTour.reposition) window.ArcTour.reposition();
     }
 
+    // REV 65: the desktop lock input expands inline directly beside the lock
+    // button (CSS handles layout) — no fixed popover positioning needed.
+
     function openPasswordWidget() {
-      const compactWidth = 160;
-      passwordWidget.style.setProperty('--pw-width', `${compactWidth}px`);
+      passwordWidget.style.setProperty('--pw-width', '200px');
       passwordWidget.classList.add('is-open');
+      if (pwTools) pwTools.classList.add('is-open');
       passwordToggle.setAttribute('aria-expanded', 'true');
-      passwordInput.focus({ preventScroll: true });
+      // The visibility transition still reports "hidden" in the same tick as
+      // the class flip, which makes focus() a silent no-op — defer one beat.
+      setTimeout(() => {
+        if (passwordWidget.classList.contains('is-open')) {
+          passwordInput.focus({ preventScroll: true });
+        }
+      }, 60);
+      if (window.ArcTour && window.ArcTour.reposition) window.ArcTour.reposition();
     }
+
+    window.addEventListener('resize', () => {
+      if (passwordWidget.classList.contains('is-open') || (pwTools && pwTools.classList.contains('is-open'))) {
+        if (window.ArcTour && window.ArcTour.reposition) window.ArcTour.reposition();
+      }
+    });
 
     function setEditLocked(locked) {
       editLocked = locked;
@@ -1704,10 +1789,18 @@
       if (resizeHandle) {
         resizeHandle.style.display = locked ? 'none' : 'inline-flex';
       }
+      // REV 59: remove the mobile + fab from view while editing is locked
+      const pageFab = document.getElementById('pageFab');
+      if (pageFab) pageFab.hidden = locked;
     }
 
     passwordToggle.addEventListener('click', () => {
       if (editLocked) {
+        const isOpen = passwordWidget.classList.contains('is-open') || (pwTools && pwTools.classList.contains('is-open'));
+        if (isOpen) {
+          collapsePasswordWidget();
+          return;
+        }
         openPasswordWidget();
       } else {
         setEditLocked(true);
@@ -1734,7 +1827,9 @@
     });
 
     document.addEventListener('click', (event) => {
-      if (passwordWidget.classList.contains('is-open') && !passwordWidget.contains(event.target)) {
+      const inWidget = passwordWidget.contains(event.target);
+      const inTools = pwTools ? pwTools.contains(event.target) : false;
+      if ((passwordWidget.classList.contains('is-open') || (pwTools && pwTools.classList.contains('is-open'))) && !inWidget && !inTools) {
         collapsePasswordWidget();
       }
     });
@@ -1886,7 +1981,15 @@
         image.className = 'qr-image';
         image.loading = 'lazy';
         image.alt = 'Uploaded QR image';
-        space.prepend(image);
+        // REV 68: the image lives inside the circular mask layer so pill view
+        // clips it there; grid/capsule views treat the mask as display:contents.
+        const mask = space.querySelector('.pill-qr-mask') || space;
+        mask.prepend(image);
+        // REV 59: freshly attached QR thumbnails also open the QR View popup
+        image.addEventListener('click', event => {
+          event.stopPropagation();
+          openQrView(card);
+        });
       }
       image.src = dataUrl;
       card.dataset.image = dataUrl;
@@ -2002,6 +2105,54 @@
       });
     }
 
+    // REV 59: standalone QR View popup. Clicking a card's QR thumbnail opens
+    // the image in a centered modal on desktop and mobile alike.
+    const qrViewLayer = document.getElementById('qr-view-layer');
+    const qrViewClose = document.getElementById('qr-view-close');
+    const qrViewImage = document.getElementById('qr-view-image');
+    const qrViewTitle = document.getElementById('qr-view-title');
+
+    function openQrView(card) {
+      if (!qrViewLayer) return;
+      const image = card.querySelector('.qr-space .qr-image');
+      if (!image || !image.src) return;
+      qrViewImage.src = image.src;
+      qrViewImage.style.display = 'block';
+      const title = card.querySelector('.resource-title');
+      qrViewTitle.textContent = (title && title.textContent.trim()) || 'QR Code';
+      qrViewLayer.classList.add('is-open');
+    }
+
+    function closeQrView() {
+      if (qrViewLayer) qrViewLayer.classList.remove('is-open');
+    }
+
+    if (qrViewClose) {
+      qrViewClose.addEventListener('click', closeQrView);
+    }
+    if (qrViewLayer) {
+      qrViewLayer.addEventListener('click', event => {
+        if (event.target === qrViewLayer) closeQrView();
+      });
+    }
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeQrView();
+    });
+
+    // Hook QR thumbnail clicks: view the QR popup whenever the card has an
+    // uploaded QR image, regardless of lock state.
+    function wireQrView(card) {
+      const space = card.querySelector('.qr-space');
+      if (!space) return;
+      const image = space.querySelector('.qr-image');
+      if (image) {
+        image.addEventListener('click', event => {
+          event.stopPropagation();
+          openQrView(card);
+        });
+      }
+    }
+
     // html2canvas 1.4.1 has the same limitation with layered
     // backgrounds that it does with `object-fit` and `aspect-ratio`
     // (see the fixes below): the reverted `.qr-space` dotted design
@@ -2082,6 +2233,7 @@
 
     function wireCard(card) {
       setupUploader(card);
+      wireQrView(card);
 
       card.querySelectorAll('[data-action]').forEach(button => {
         button.addEventListener('click', () => handleAction(card, button));
@@ -2183,140 +2335,117 @@
           return;
         }
 
-        // Measure the live layout before html2canvas touches anything —
-        // html2canvas 1.4.1 doesn't understand the CSS `aspect-ratio`
-        // property, so the QR square was collapsing/resizing in its
-        // clone, which is what pushed the title/url out of frame. Pinning
-        // the real, already-rendered pixel size sidesteps that entirely.
-        const liveSpace = card.querySelector('.qr-space');
-        const spaceRect = liveSpace.getBoundingClientRect();
-
         button.disabled = true;
         try {
-          // Pre-measure this card's URL input height so the cloned input
-          // gets the correct height (fixes bug where it used another card's).
-          const cardUrlInput = card.querySelector('.resource-url-input');
-          const cardUrlRect = cardUrlInput ? cardUrlInput.getBoundingClientRect() : null;
+          // REV 59: export a clean desktop-format card built from scratch,
+          // independent of the live mobile capsule. Fixed width, large square
+          // QR, bold centered title, full-width URL pill, explicit vertical
+          // margins, shrink-wrapped height, 3px #111 border, 4px offset
+          // shadow (drawn manually — html2canvas 1.4.1 drops box-shadow),
+          // and clean rounded corners.
+          const title = getTitle(card) || 'ARC Updates';
+          const urlInput = card.querySelector('.resource-url-input');
+          const url = urlInput ? urlInput.value.trim() : '';
+          const cardShadow = (() => {
+            const el = card.querySelector('.qr-card');
+            return el ? shadowColorOf(window.getComputedStyle(el).boxShadow) : 'rgba(17,17,17,1)';
+          })();
 
-          // html2canvas 1.4.1 drops box-shadow, so the card is wrapped in a
-          // padded host and a real offset shadow div is drawn behind it (the
-          // 8px padding keeps the 4px shadow inside the canvas).
-          const cardEl = card.querySelector('.qr-card');
-          const cardShadow = cardEl ? window.getComputedStyle(cardEl).boxShadow : '';
-          const cardShadowColor = shadowColorOf(cardShadow);
           const cardHost = document.createElement('div');
           cardHost.style.cssText = 'padding: 8px; position: relative; width: max-content; background: transparent;';
-          // Pin the card to its live grid size so it doesn't shrink-to-fit
-          // once lifted out of the grid into the max-content host.
-          const cardLiveRect = cardEl.getBoundingClientRect();
-          cardEl.style.width = `${Math.round(cardLiveRect.width)}px`;
-          cardEl.style.height = `${Math.round(cardLiveRect.height)}px`;
-          cardEl.parentNode.insertBefore(cardHost, cardEl);
-          cardHost.appendChild(cardEl);
+
+          const exportCard = document.createElement('div');
+          exportCard.style.cssText = `
+            box-sizing: border-box;
+            width: 320px;
+            background: #ffffff;
+            border: 3px solid #111111;
+            border-radius: 18px;
+            position: relative;
+            padding: 22px 22px 24px;
+          `;
+
+          const qrWrap = document.createElement('div');
+          qrWrap.style.cssText = `
+            box-sizing: border-box;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            border-radius: 12px;
+            background-color: #ffffff;
+            background-image: url("${image.src}");
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+          `;
+
+          const titleEl = document.createElement('div');
+          titleEl.style.cssText = `
+            margin: 18px 0 12px;
+            text-align: center;
+            font-family: "Poppins", "DM Sans", sans-serif;
+            font-size: 19px;
+            font-weight: 900;
+            letter-spacing: -0.01em;
+            line-height: 1.25;
+            color: #111111;
+            word-break: break-word;
+          `;
+          titleEl.textContent = title;
+
+          const urlPill = document.createElement('div');
+          urlPill.style.cssText = `
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border: 2px solid #111111;
+            border-radius: 999px;
+            background: #FBF7EE;
+            color: #111111;
+            font-family: "DM Sans", sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.4;
+            text-align: center;
+            word-break: break-all;
+          `;
+          urlPill.textContent = url || 'No link added';
+
+          exportCard.appendChild(qrWrap);
+          exportCard.appendChild(titleEl);
+          exportCard.appendChild(urlPill);
+          cardHost.appendChild(exportCard);
+
+          const anchor = card.querySelector('.qr-card') || card;
+          anchor.insertAdjacentElement('beforebegin', cardHost);
+
           let canvas;
           try {
-          canvas = await html2canvas(cardHost, {
-            backgroundColor: null,
-            scale: 2,
-            useCORS: true,
-            imageTimeout: 15000,
-            onclone: (clonedDoc, el) => {
-              // Kill animations/transitions in the cloned document — the
-              // .sheet enter animation lives on an ancestor but can still
-              // affect the cloned subtree when html2canvas re-parses CSS.
-              const style = clonedDoc.createElement('style');
-              style.textContent = `*, *::before, *::after { animation: none !important; transition: none !important; }`;
-              clonedDoc.head.appendChild(style);
+            canvas = await html2canvas(cardHost, {
+              backgroundColor: null,
+              scale: 2,
+              useCORS: true,
+              imageTimeout: 15000,
+              onclone: (clonedDoc, el) => {
+                // Kill animations/transitions in the cloned document.
+                const style = clonedDoc.createElement('style');
+                style.textContent = `*, *::before, *::after { animation: none !important; transition: none !important; }`;
+                clonedDoc.head.appendChild(style);
 
-              // Force .sheet to final state if it's in the cloned tree.
-              const sheet = el.querySelector('.sheet');
-              if (sheet) {
-                sheet.style.animation = 'none';
-                sheet.style.opacity = '1';
-                sheet.style.transform = 'none';
+                // Draw the hard-offset shadow manually. el is the padded host:
+                // the card sits at (8,8), shadow offset +4, so a matching
+                // border-radius keeps the corners clean.
+                const shadow = clonedDoc.createElement('div');
+                shadow.style.cssText = `position:absolute; top:12px; left:12px; right:4px; bottom:4px; background:${cardShadow}; border-radius:18px;`;
+                el.insertBefore(shadow, el.firstChild);
               }
-
-              el.querySelectorAll('.action-cluster, .expand-button, .qr-reveal-icon').forEach(n => n.style.display = 'none');
-
-              // Draw the hard-offset shadow manually (html2canvas drops box-shadow).
-              // el is the padded host: card sits at (8,8), shadow offset +4.
-              const shadow = clonedDoc.createElement('div');
-              shadow.style.cssText = `position:absolute; top:12px; left:12px; right:4px; bottom:4px; background:${cardShadowColor}; border-radius:16px;`;
-              el.insertBefore(shadow, el.firstChild);
-              el.querySelector('.qr-card').style.position = 'relative';
-
-              const clonedSpace = el.querySelector('.qr-space');
-              if (clonedSpace) {
-                clonedSpace.style.aspectRatio = 'auto';
-                clonedSpace.style.width = `${spaceRect.width}px`;
-                clonedSpace.style.height = `${spaceRect.height}px`;
-                flattenQrSpaceBackground(clonedSpace);
-              }
-
-              // html2canvas also doesn't honor `object-fit` on <img> —
-              // it stretches the QR to fill the box instead of keeping
-              // its ratio. A div with background-size:contain gets the
-              // same visual result and IS respected by html2canvas.
-              const clonedImg = el.querySelector('.qr-image');
-              if (clonedImg) {
-                const bg = clonedDoc.createElement('div');
-                bg.className = clonedImg.className;
-                bg.style.backgroundImage = `url("${clonedImg.src}")`;
-                bg.style.backgroundSize = 'contain';
-                bg.style.backgroundPosition = 'center';
-                bg.style.backgroundRepeat = 'no-repeat';
-                bg.style.filter = 'none';
-                clonedImg.replaceWith(bg);
-              }
-
-              // html2canvas doesn't reliably rasterize form-field values —
-              // swap the title/url editable fields for plain text so both
-              // are guaranteed to actually show up in the exported PNG.
-              el.querySelectorAll('.resource-title').forEach(n => {
-                n.style.border = '1px solid transparent';
-              });
-              el.querySelectorAll('.resource-url-input').forEach(n => {
-                const span = clonedDoc.createElement('div');
-                span.textContent = n.value || 'No link added';
-                // Use this card's own measured rect (fixes bug where it used
-                // another card's input height).
-                const inputH = cardUrlRect ? cardUrlRect.height : 24;
-                const cs = window.getComputedStyle(n);
-                const lineH = parseFloat(cs.fontSize) * (parseFloat(cs.lineHeight) || 1.4);
-                const inputPad = parseFloat(cs.paddingTop) || 6.4;
-                // Center the text block vertically with real padding and a
-                // normal line-height so descenders (g, y, p, q, j) keep full
-                // clearance. Avoids flexbox (html2canvas 1.4.1 handles it
-                // poorly) and the old `line-height: inputHpx` baseline trick
-                // that clipped descenders at the bottom edge.
-                const vPad = Math.max((inputH - lineH - 2) / 2, inputPad, 4);
-                span.style.cssText = `
-                  display: block;
-                  box-sizing: border-box;
-                  width: 100%;
-                  height: ${inputH}px;
-                  line-height: 1.4;
-                  padding: ${vPad}px .46rem;
-                  border: 1px solid ${cs.borderTopColor};
-                  border-radius: ${cs.borderRadius};
-                  color: ${cs.color};
-                  background: ${cs.backgroundColor};
-                  font-family: "DM Sans", sans-serif;
-                  font-size: ${cs.fontSize};
-                  font-weight: 700;
-                  text-align: center;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                `;
-                n.replaceWith(span);
-              });
-            }
-          });
+            });
           } finally {
-            cardEl.style.width = '';
-            cardEl.style.height = '';
-            cardHost.replaceWith(cardEl);
+            cardHost.remove();
           }
           const link = document.createElement('a');
           link.href = canvas.toDataURL('image/png');
@@ -2417,8 +2546,12 @@
               sheet.style.transform = 'none';
             }
 
-            el.querySelectorAll('.header-actions, #save-board-button, .password-row, .add-resource-wrap, .status-region, .action-cluster, .expand-button, .qr-reveal-icon, .desktop-sidebar, .mobile-bottom-nav, .fab, .editing-note, .footer-note, .sync-pill').forEach(n => {
-              n.style.display = 'none';
+            // REV 64: exclude every piece of UI chrome — header actions
+            // (Save Board / view toggle / Add Resource), the mobile utility
+            // strip, the sidebar Action Board, the pill chevrons, the help
+            // button, and blur/reveal badges — so exports are pure board.
+            el.querySelectorAll('.header-actions, #save-board-button, .view-mode-toggle, .add-resource-wrap, .utilities-row, .password-row, .status-region, .action-cluster, .capsule-toggle, .expand-button, .qr-reveal-icon, .logo-wrap, .help-icon, .desktop-sidebar, .mobile-bottom-nav, .fab, .editing-note, .footer-note, .sync-pill').forEach(n => {
+              n.style.setProperty('display', 'none', 'important');
             });
 
             // Express a clone rect relative to the cloned shell root, so it maps
@@ -3170,16 +3303,39 @@
       var realSave = document.getElementById('save-board-button');
       var realAdd = document.getElementById('add-resource-button');
       var fab = document.getElementById('pageFab');
+      var themeBtn = document.getElementById('themeToggle');
+      var soundBtn = document.getElementById('soundToggle');
+      var tourBtn = document.getElementById('tourToggle');
+      var pwTools = document.querySelector('#passwordWidget .pw-tools');
+      var cluster = document.querySelector('.utility-cluster');
+      var headerActions = document.querySelector('.header-actions');
+      var utilRow = document.getElementById('mobileUtilities');
       var mq = window.matchMedia('(min-width:1024px)');
 
+      /* REV 59: relocating utility controls into the mobile top row and back.
+         passwordWidget keeps its popover anchor on desktop; on mobile the
+         panel anchors to the utilities row itself. */
       function layout() {
         var desktop = mq.matches;
         if (desktop) {
           if (widgetSlot && pw) widgetSlot.appendChild(pw);
           if (syncSlot && syncEl) syncSlot.appendChild(syncEl);
+          if (pw && pwTools && !pw.contains(pwTools)) pw.insertBefore(pwTools, pw.firstChild);
+          if (themeBtn && pw && !pw.contains(themeBtn)) pw.insertBefore(themeBtn, pwTools);
+          if (realSave && headerActions && !headerActions.contains(realSave)) headerActions.appendChild(realSave);
+          if (soundBtn && cluster && !cluster.contains(soundBtn)) cluster.insertBefore(soundBtn, widgetSlot);
+          if (tourBtn && cluster && !cluster.contains(tourBtn)) cluster.insertBefore(tourBtn, soundBtn);
+          if (utilRow) utilRow.style.display = 'none';
         } else {
-          if (pwRow && pw) pwRow.appendChild(pw);
-          if (brandSub && syncEl && !brandSub.contains(syncEl)) brandSub.appendChild(syncEl);
+          if (syncEl && brandSub && !brandSub.contains(syncEl)) brandSub.appendChild(syncEl);
+          if (utilRow) {
+            utilRow.style.display = 'flex';
+            if (realSave) utilRow.appendChild(realSave);
+            if (themeBtn) utilRow.appendChild(themeBtn);
+            if (soundBtn) utilRow.appendChild(soundBtn);
+            if (tourBtn) utilRow.appendChild(tourBtn);
+            if (pwTools) utilRow.appendChild(pwTools);
+          }
         }
       }
       layout();
@@ -3187,7 +3343,7 @@
       else if (mq.addListener) mq.addListener(layout);
 
       if (fab && realAdd) {
-        if (typeof editLocked !== 'undefined' && editLocked) fab.disabled = true;
+        if (typeof editLocked !== 'undefined' && editLocked) fab.hidden = true;
         fab.addEventListener('click', function () { realAdd.click(); });
       }
       if (window.lucide) lucide.createIcons();
@@ -3250,6 +3406,37 @@
       document.addEventListener('DOMContentLoaded', function () {
         syncSoundUI();
         if (window.ArcTour) window.ArcTour.resume();
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      /* REV 63: desktop-only card view mode — Full Card grid vs Pill capsules.
+         Persisted per browser in localStorage (nexus_desktop_view) and applied
+         via body.nexus-view-pill so the pill layout CSS stays scoped to NEXUS. */
+      var KEY = 'nexus_desktop_view';
+      var toggle = document.getElementById('view-mode-toggle');
+      if (!toggle) return;
+      function apply(mode) {
+        var pill = mode === 'pill';
+        document.body.classList.toggle('nexus-view-pill', pill);
+        toggle.setAttribute('data-view-mode', mode);
+        toggle.setAttribute('aria-pressed', String(pill));
+        toggle.setAttribute('aria-label', pill ? 'Switch to Grid view' : 'Switch to Pill view');
+        var label = toggle.querySelector('span');
+        if (label) label.textContent = pill ? 'Pills' : 'Grid';
+        var icon = toggle.querySelector('svg, i');
+        if (icon) icon.setAttribute('data-lucide', pill ? 'list' : 'layout-grid');
+        if (window.lucide) lucide.createIcons();
+      }
+      var stored = null;
+      try { stored = localStorage.getItem(KEY); } catch (e) {}
+      apply(stored === 'pill' ? 'pill' : 'full');
+      toggle.addEventListener('click', function () {
+        var next = document.body.classList.contains('nexus-view-pill') ? 'full' : 'pill';
+        try { localStorage.setItem(KEY, next); } catch (e) {}
+        apply(next);
+        if (window.SFX && window.SFX.playButtonClick) window.SFX.playButtonClick();
       });
     })();
   </script>
