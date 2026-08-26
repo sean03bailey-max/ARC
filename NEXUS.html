@@ -11,15 +11,34 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script type="module" src="utils/soundEffects.js"></script>
   <script src="utils/tour.js"></script>
+  <script src="utils/auth.js"></script>
+  <script src="utils/spa.js"></script>
+  <script src="utils/announcements.js"></script>
+  <script src="utils/mobile-nav.js" defer></script>
   <script>
+    /* REV 70/72 synchronous pre-paint hydration: stash persisted app state so
+       body scripts can render cached data before the first paint (anti-FOUC),
+       and permission surfaces (FAB, lock icons) boot in their true state.
+       Tier model: arc_auth_tier2 governs BOARD edit mode (boot-unlocked). */
     (function () {
       try {
         if (localStorage.getItem('arc-theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
         if (localStorage.getItem('arc_sound_enabled') === 'false') document.documentElement.setAttribute('data-sound', 'off');
       } catch (e) {}
+      try { window.ArcAuth && window.ArcAuth.migrateOnce(); } catch (e) {}
+      var boot = { locked: true, readAnnouncements: [], nexusCache: null, feedCache: null };
+      try {
+        boot.locked = !(window.ArcAuth && window.ArcAuth.isTier2Unlocked());
+        boot.readAnnouncements = JSON.parse(localStorage.getItem('arc_read_announcements') || '[]') || [];
+        boot.nexusCache = JSON.parse(localStorage.getItem('arc_cache_nexus') || 'null');
+        boot.feedCache = JSON.parse(localStorage.getItem('arc_cache_feed') || 'null');
+      } catch (e) {}
+      window.__ARC_BOOT = boot;
+      if (!boot.locked) document.documentElement.classList.add('boot-unlocked');
+      document.documentElement.classList.add('hydrated');
     })();
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Poppins:wght@800;900&family=Libre+Franklin:wght@700;800&family=DM+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Poppins:wght@800;900&family=Libre+Franklin:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --maroon: #8B1A2B;
@@ -37,21 +56,6 @@
        full-size buttons/links; .arc-action-sm is the same language
        scaled down for compact icon-only controls (logo badge, password
        toggle) so the shadow doesn't overpower a small element. */
-    .arc-action, .arc-action-sm {
-      border: 1px solid var(--rule);
-      border-radius: 6px;
-      transition: transform 180ms ease, box-shadow 180ms ease;
-    }
-    .arc-action { box-shadow: 5px 5px 0 var(--shadow-ink); }
-    .arc-action:hover, .arc-action:focus-visible {
-      transform: translate(-3px, -3px);
-      box-shadow: 9px 9px 0 var(--shadow-ink);
-    }
-    .arc-action-sm { box-shadow: 3px 3px 0 var(--shadow-ink); }
-    .arc-action-sm:hover, .arc-action-sm:focus-visible, .arc-action-sm:focus-within {
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0 var(--shadow-ink);
-    }
 
     * { box-sizing: border-box; }
 
@@ -59,26 +63,12 @@
       width: 100%;
       min-height: 100vh;
       margin: 0;
-      overflow-x: hidden;
       color: var(--ink);
       font-family: "DM Sans", sans-serif;
       isolation: isolate;
-      background: linear-gradient(rgb(5, 5, 6), rgb(23, 3, 8), rgb(5, 5, 6), rgb(42, 5, 11), rgb(3, 4, 4), rgb(22, 2, 7), rgb(5, 5, 6), rgb(33, 4, 10));
+      /* background owned by assets/neubrutal.css (dot-field, REV 79/80) */
     }
 
-    body::before {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      content: "";
-      opacity: .82;
-      pointer-events: none;
-      background:
-        repeating-linear-gradient(90deg, transparent 0 3px, rgba(255, 20, 42, .15) 4px, transparent 6px 11px),
-        linear-gradient(105deg, transparent 0 7%, rgba(208, 0, 26, .68) 12%, transparent 23% 39%, rgba(184, 0, 24, .5) 50%, transparent 64% 78%, rgba(226, 0, 31, .68) 88%, transparent 96%);
-      filter: blur(1.5px);
-      mix-blend-mode: screen;
-    }
 
     .board-shell {
       width: 100%;
@@ -92,11 +82,10 @@
       margin: 0 auto;
       background: var(--paper);
       border: 3px solid #111111;
-      border-radius: 16px;
+      border-radius: 10px;
       overflow: hidden;
       box-shadow: 4px 4px 0 #111111;
-      padding: clamp(1.4rem, 3vw, 2.4rem) clamp(1.2rem, 3.4vw, 2.6rem) 2rem;
-      animation: enter .65s ease-out both;
+       animation: enter .65s ease-out both;
     }
 
     @keyframes enter {
@@ -113,15 +102,8 @@
       flex-wrap: wrap;
       align-items: center;
       gap: .9rem;
-      margin-bottom: 0;
-    }
+     }
 
-    .brand-group {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: .4rem;
-    }
 
     .brand-top {
       display: flex;
@@ -137,195 +119,18 @@
       margin-left: calc(56px + .6rem);
     }
 
-    .logo-wrap {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 56px;
-      height: 56px;
-      flex: 0 0 auto;
-      padding: 7px;
-      overflow: hidden;
-      background: #fff;
-      border-radius: 8px;
-    }
-    .logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
-    .logo-wrap::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: rgba(89, 25, 37, 0.35);
-      opacity: 0;
-      transition: opacity 200ms ease;
-      z-index: 1;
-      pointer-events: none;
-      border-radius: 8px;
-    }
-    .logo-wrap::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      width: 40px;
-      height: 40px;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 200ms ease, transform 200ms ease;
-      z-index: 2;
-      pointer-events: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .logo-wrap:hover::before,
-    .logo-wrap:focus-within::before {
-      opacity: 1;
-    }
-    .logo-wrap:hover::after,
-    .logo-wrap:focus-within::after {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-    .logo-wrap .help-icon {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      width: 20px;
-      height: 20px;
-      color: var(--maroon-dark);
-      z-index: 3;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 200ms ease, transform 200ms ease;
-    }
-    .logo-wrap:hover .help-icon,
-    .logo-wrap:focus-within .help-icon {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
+        /* .logo-wrap infoboard trigger owned by assets/neubrutal.css (REV 86 contract) */
+    .logo-wrap img { display: none; }
+    /* REV 79: infoboard theme tokens (always-visible glyph) */
 
-    /* Help Modal (NEXUS) */
-    .help-modal-layer {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
-      background: rgba(5, 5, 6, 0.8);
-      backdrop-filter: blur(4px);
-    }
-    .help-modal-layer.is-open { display: flex; }
-    .help-modal {
-      width: min(92vw, 560px);
-      max-height: 85vh;
-      overflow-y: auto;
-      background: #1a0a0d;
-      border: 2px solid #9d3345;
-      border-radius: 12px;
-      box-shadow: 0 20px 50px rgba(0,0,0,.5), 0 0 0 1px rgba(157,51,69,.3);
-      animation: modal-enter 0.3s cubic-bezier(.22,.8,.3,1) both;
-      color: #fdf1ee;
-    }
+        /* help-modal styles moved to neubrutal.css (Rule 1) */
+
+    /* REV 89/91: wrapper geometry, header/title/body/kbd typography and the
+       footer action are all owned by assets/neubrutal.css */
+    .help-modal { animation: modal-enter 0.3s cubic-bezier(.22,.8,.3,1) both; } /* page-unique entry */
     @keyframes modal-enter {
       from { opacity: 0; transform: translateY(16px) scale(0.96); }
       to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .help-modal::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: radial-gradient(circle, rgba(157,51,69,.15) 1px, transparent 1.5px);
-      background-size: 20px 20px;
-      opacity: 0.4;
-      pointer-events: none;
-      border-radius: 10px;
-      z-index: 0;
-    }
-    .help-modal-header {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid rgba(157,51,69,.25);
-    }
-    .help-modal-title {
-      margin: 0;
-      font-family: "Poppins", "DM Sans", sans-serif;
-      font-weight: 900;
-      font-size: 22px;
-      letter-spacing: -.01em;
-      color: #fffdfb;
-    }
-    .help-modal-close {
-      width: 36px;
-      height: 36px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(157,51,69,.3);
-      border-radius: 8px;
-      background: rgba(255,255,255,.05);
-      color: #fdf1ee;
-      cursor: pointer;
-      transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
-    }
-    .help-modal-close:hover { background: var(--maroon); color: #fff; border-color: var(--maroon); }
-    .help-modal-close svg { width: 20px; height: 20px; }
-    .help-modal-body {
-      position: relative;
-      z-index: 1;
-      padding: 1.5rem;
-      line-height: 1.7;
-      font-size: 14px;
-    }
-    .help-modal-body h3 {
-      margin: 1.25rem 0 .5rem;
-      font-family: "Poppins", "DM Sans", sans-serif;
-      font-weight: 800;
-      font-size: 15px;
-      color: #fffdfb;
-      text-transform: uppercase;
-      letter-spacing: .02em;
-    }
-    .help-modal-body h3:first-child { margin-top: 0; }
-    .help-modal-body p { margin: .5rem 0; }
-    .help-modal-body ul { margin: .5rem 0 1rem 1.25rem; }
-    .help-modal-body li { margin: .35rem 0; }
-    .help-modal-body strong { color: #fffdfb; }
-    .help-modal-body .kbd {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      background: rgba(255,255,255,.1);
-      border: 1px solid rgba(157,51,69,.3);
-      font-family: "Libre Franklin", sans-serif;
-      font-weight: 700;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-
-    .page-heading {
-      min-width: 0;
-      margin: 0;
-      padding: 0;
-      font-family: "Poppins", "DM Sans", sans-serif;
-      font-weight: 900;
-      font-size: 34px;
-      letter-spacing: -.01em;
-      line-height: 1.05;
-      text-align: left;
-      text-transform: uppercase;
-      color: var(--maroon-dark);
     }
 
     .page-subtitle {
@@ -334,7 +139,8 @@
       padding: 0;
       color: #6c6166;
       font-size: 13px;
-      font-weight: 700;
+      /* REV 71: subtle Neobrutalist subtext tokens — weight 500, theme-aware */
+      font-weight: 500;
       text-align: left;
       letter-spacing: .01em;
       outline: 0;
@@ -347,28 +153,13 @@
       margin: 0 0 0 -4px;
     }
 
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: .55rem;
-      margin-left: auto;
-    }
 
-    .icon-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      height: 42px;
-      padding: 0 .9rem;
-      flex: 0 0 auto;
-      background: #fff;
-      color: var(--maroon-dark);
-      cursor: pointer;
-      text-decoration: none;
-    }
-    .icon-button svg { width: 17px; height: 17px; }
+    /* REV 87: page accent (typography hoisted to neubrutal) */
+    .page-heading { color: var(--maroon-dark); }
 
-    .nav-button, .save-board-button, .add-resource-button, .tracker-button {
+    /* REV 86: button group trimmed to live members
+       (.icon-button/.nav-button/.tracker-button had no markup left) */
+    .save-board-button, .add-resource-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -379,47 +170,19 @@
       text-decoration: none;
     }
 
-    .nav-button {
-      padding: 0 .9rem;
-      background: #fffdf8;
-      color: #07133f;
-      font-weight: 800;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-
-    .tracker-button {
-      padding: 0 .9rem;
-      background: #07133f;
-      color: #fff;
-      font-weight: 800;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      border-color: #07133f !important;
-    }
-
     .save-board-button { padding: 0 .9rem; text-transform: uppercase; letter-spacing: .04em; }
 
-    .view-mode-toggle {
-      padding: 0 .9rem;
-      background: #fffdf8;
-      color: #07133f;
-      font-weight: 800;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-    .view-mode-toggle[data-view-mode="pill"] {
-      background: var(--ink);
-      color: var(--paper);
-    }
-    .view-mode-toggle[data-view-mode="pill"] svg { color: inherit; }
 
     /* ---------- REV 69: SEARCH — header toggle, expansion bar, live filter ---------- */
+    /* REV 87/88: square neubrutalist search trigger — 42×42 to match the
+       Save Board / GRID row height (the mobile strip override keeps 36px) */
     .search-toggle {
-      padding: 0 .9rem;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       background: #FBF7EE;
       color: #111111;
     }
@@ -431,114 +194,48 @@
       margin-top: .4rem;
     }
     .search-bar[hidden] { display: none; }
-    /* REV 69b: on mobile the expanded field sat flush against the utilities
+    .search-input {
+      width: min(560px, 86%);
+      padding: .55rem .9rem;
+      border: 2px solid #111111;
+      border-radius: 10px;
+      background: #FFFDF8;
+      color: #111111;
+      font-weight: 700;
+      font-size: 14px;
+      outline: none;
+      box-shadow: 2px 2px 0px #111111;
+    }
+    .search-input::placeholder { color: #8a8a8a; font-weight: 600; }
+    html[data-theme="dark"] .search-input {
+      background: #262626;
+      color: #FBF7EE;
+      border-color: #FFFFFF;
+      box-shadow: 2px 2px 0px #FFFFFF;
+    }
+    /* REV 69b: on mobile the expanded field sits flush against the utilities
        strip below — give it its own breathing room. */
     @media (max-width: 1023.98px) {
       #search-bar { margin-top: .55rem; margin-bottom: .9rem; }
-      #search-bar .search-field { box-shadow: 2px 2px 0 #111111; }
-      html[data-theme="dark"] #search-bar .search-field { box-shadow: 2px 2px 0 #FFFFFF; }
-    }
-    .search-field {
-      display: flex;
-      align-items: center;
-      gap: .55rem;
-      width: min(620px, 100%);
-      background: #fff;
-      border: 2px solid #111111;
-      border-radius: 10px;
-      box-shadow: 3px 3px 0 #111111;
-      padding: .5rem .75rem;
-      box-sizing: border-box;
-    }
-    .search-field > svg { width: 16px; height: 16px; color: #591925; flex: 0 0 auto; }
-    .search-field input {
-      flex: 1 1 auto;
-      min-width: 0;
-      border: 0;
-      outline: none;
-      background: transparent;
-      font-family: inherit;
-      font-weight: 600;
-      font-size: 14px;
-      color: #111111;
-    }
-    .search-field input::placeholder { color: #8a7f83; font-weight: 600; }
-    #search-clear {
-      flex: 0 0 auto;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 26px;
-      height: 26px;
-      padding: 0;
-      border: 2px solid #111111;
-      border-radius: 7px;
-      background: #fff;
-      color: #111111;
-      cursor: pointer;
-      box-shadow: 1px 1px 0 #111111;
-      transition: transform 120ms linear, box-shadow 120ms linear, background 120ms linear, color 120ms linear;
-    }
-    #search-clear svg { width: 13px; height: 13px; }
-    #search-clear:hover { background: #8B1A2B; color: #fff; }
-    #search-clear:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #111111; }
-
-    .search-empty {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: .8rem;
-      padding: 2.2rem 1rem 2.6rem;
-      text-align: center;
-    }
-    .search-empty[hidden] { display: none; }
-    .search-empty p { margin: 0; font-weight: 700; font-size: 15px; color: #3a1720; }
-    .search-empty-clear {
-      padding: 0 .9rem;
-      background: #FBF7EE;
-      color: #111111;
-      font-weight: 800;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
     }
 
-    /* Filtered-out cards vanish from BOTH grid and pill layouts */
-    .resource-item.search-hidden { display: none !important; }
+    /* REV 86: removed dead search chrome — .search-field wrapper, #search-clear
+       and .search-empty state never existed in the restored markup (the live
+       control is the bare input.search-input inside #search-bar) */
 
-    html[data-theme="dark"] .search-field {
-      background: var(--bg-card);
+    /* REV 71: dark-mode search trigger uses the action-surface token, not white */
+    html[data-theme="dark"] .search-toggle {
+      background: #1E1E1E;
+      color: #FBF7EE;
       border-color: #FFFFFF;
-      box-shadow: 3px 3px 0 #FFFFFF;
     }
-    html[data-theme="dark"] .search-field input { color: var(--text-primary); }
-    html[data-theme="dark"] .search-field input::placeholder { color: #9a9096; }
-    html[data-theme="dark"] .search-field > svg { color: #e8b4b8; }
-    html[data-theme="dark"] #search-clear {
-      background: var(--bg-card);
-      border-color: #FFFFFF;
-      color: var(--text-primary);
-      box-shadow: 1px 1px 0 #FFFFFF;
-    }
-    html[data-theme="dark"] #search-clear:hover { background: #e8b4b8; color: #16161c; }
-    html[data-theme="dark"] .search-empty p { color: var(--text-primary); }
+    html[data-theme="dark"] .search-toggle svg { color: #FBF7EE; }
 
     .save-board-button:disabled, .add-resource-button:disabled { opacity: .58; cursor: not-allowed; transform: none; box-shadow: none; }
-    .nav-button svg, .save-board-button svg, .add-resource-button svg, .tracker-button svg { width: 17px; height: 17px; }
+    .save-board-button svg, .add-resource-button svg { width: 17px; height: 17px; }
 
-    .sync-pill {
-      font-size: 11px;
-      font-weight: 700;
-      color: #74696a;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      margin: 0;
-      justify-content: flex-start;
-    }
-    .sync-pill.saving { color: #896414; }
-    .sync-pill.error { color: #a23537; }
-    .sync-pill svg { width: 13px; height: 13px; }
+    /* REV 71: canonical Synced-pill styles live in assets/neubrutal.css
+       (.sync-pill, .sync-status-capsule / .sync-dot) so NEXUS, CORE and FEED share one component. */
 
     .editing-note {
       max-width: 790px;
@@ -557,12 +254,6 @@
       text-align: center;
     }
 
-    .password-row {
-      width: 100%;
-      margin: .8rem 0 0;
-      display: flex;
-      justify-content: flex-end;
-    }
 
     .password-widget {
       display: flex;
@@ -573,8 +264,8 @@
 
     .password-toggle {
       flex: 0 0 auto;
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -583,73 +274,25 @@
       cursor: pointer;
     }
     .password-toggle.is-unlocked { background: #27704c; border-color: #27704c !important; color: #fff; }
-    .password-toggle svg { width: 17px; height: 17px; }
+    .password-toggle svg { width: 16px; height: 16px; }
 
     /* REV 54: isolated popover — the expanded password field drops below the
        lock button instead of reflowing adjacent utility buttons. */
-    .password-panel {
-      position: absolute;
-      top: calc(100% + 0.5rem);
-      right: 0;
-      z-index: 60;
-      width: var(--pw-width, 180px);
-      margin-left: 0;
-      visibility: hidden;
-      opacity: 0;
-      transform: translateX(-6px);
-      transition: opacity .15s ease-out, transform .15s ease-out, visibility .15s ease-out;
-    }
-    .password-widget.is-open .password-panel {
-      visibility: visible;
-      opacity: 1;
-      transform: translateX(0);
-    }
-    .pw-tools.is-open .password-panel {
-      visibility: visible;
-      opacity: 1;
-      transform: translateX(0);
-    }
 
     .password-input {
-      width: 100%;
-      height: 38px;
-      padding: 0 .6rem;
-      border: 1px solid rgba(122,35,49,.35);
-      border-radius: 10px;
-      background: #fff;
-      color: #3a1720;
-      font-weight: 700;
-      font-size: 13px;
-      outline: 0;
-      transition: box-shadow .18s ease;
+      /* base input skin owned by neubrutal scoped rules (sidebar slot / utilities row) */
     }
     .password-input:not(:placeholder-shown) {
       box-shadow: 0 0 0 3px rgba(122,35,49,.14), 0 8px 18px rgba(20,2,7,.12);
     }
-    .password-input.is-wrong { animation: pw-shake .32s ease; border-color: #ff8f9a; }
+    .password-input.is-wrong { animation: pw-shake .32s ease; border-color: #c23b48; }
     @keyframes pw-shake {
       25% { transform: translateX(-4px); }
       75% { transform: translateX(4px); }
     }
 
-    .lock-toast {
-      position: fixed;
-      left: 50%;
-      bottom: 24px;
-      transform: translate(-50%, 12px);
-      background: #2a0d13;
-      color: #fff;
-      padding: .6rem 1rem;
-      border-radius: 10px;
-      font-size: 12.5px;
-      font-weight: 700;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .2s ease, transform .2s ease;
-      z-index: 50;
-      box-shadow: 0 10px 24px rgba(0,0,0,.3);
-    }
-    .lock-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+        /* lock-toast styles moved to neubrutal.css (Rule 1) */
+
 
     [contenteditable="false"] { cursor: not-allowed; }
     input:read-only.resource-url-input { cursor: not-allowed; }
@@ -657,12 +300,6 @@
     .card-action[disabled]:hover { color: var(--maroon-dark); background: #fff; transform: none; }
     .add-resource-button[disabled] { opacity: .5; cursor: not-allowed; transform: none; }
 
-    .qr-grid {
-      display: grid;
-      width: 100%;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: clamp(1.1rem, 2.7vw, 2.2rem);
-    }
 
     .resource-item {
       min-width: 0;
@@ -675,11 +312,9 @@
     }
 
     .qr-card {
-      padding: clamp(.62rem, 1.2vw, .82rem);
-      border: 3px solid #111111;
-      border-radius: 16px;
-      background: #fff;
-      box-shadow: 4px 4px 0 #111111;
+       border: 3px solid #111111;
+      border-radius: 10px;
+       box-shadow: 4px 4px 0 #111111;
     }
 
     .capsule-toggle {
@@ -855,7 +490,7 @@
       justify-content: center;
       gap: .35rem;
     }
-    .resource-title-row .resource-title { flex: 1; min-width: 0; margin: .68rem 0 .28rem; }
+    .resource-title-row .resource-title { flex: 1; min-width: 0; }
 
     .resource-url-input {
       display: flex;
@@ -896,8 +531,8 @@
     .action-cluster {
       display: flex;
       align-items: center;
-      gap: .3rem;
-      margin-top: .65rem;
+      gap: .35rem;
+      margin-top: 1rem;
     }
 
     .card-action {
@@ -909,40 +544,39 @@
       justify-content: center;
       gap: .25rem;
       padding: .35rem;
-      border: 1px solid rgba(122,35,49,.36);
-      border-radius: 7px;
-      color: var(--maroon-dark);
+        color: var(--maroon-dark);
       background: #fff;
       cursor: pointer;
       transition: transform .16s ease, background .16s ease, color .16s ease;
     }
 
-    .card-action:hover {
-      color: #fff;
-      background: var(--maroon);
-      transform: translateY(-1px);
-    }
 
     .card-action:disabled { opacity: .5; cursor: not-allowed; transform: none; }
     .card-action svg { width: 15px; height: 15px; }
     .card-action.copied { color: #fff; background: #27704c; border-color: #27704c; }
     .card-action.delete:hover { color: #fff; background: #b91c32; }
 
-    .add-resource-wrap { display: inline-flex; margin-top: 0; }
-    .add-resource-button { padding: 0 1.05rem; }
+    .add-resource-wrap { /* visibility owned by assets/neubrutal.css */ }
+    /* REV 81: hidden while Tier-2 locked */
+    html:not(.boot-unlocked) .add-resource-wrap { display: none !important; }
+    html:not(.boot-unlocked) .add-resource-button { display: none !important; }
+    /* REV 81: hidden while Tier-2 locked */
 
-    .board-footer { margin-top: 1.5rem; }
-    .footer-note { margin: 0; line-height: 1.45; text-align: center; }
+    /* ========== REV 84 HOTFIX: restored modal + mobile-card CSS lost in the
+       style-block truncation (source REV 50 755-1370, consolidated with the
+       fragments that had been duplicated into neubrutal.css) ========== */
 
     .confirmation-layer {
       position: fixed;
       inset: 0;
-      z-index: 20;
+      z-index: var(--z-confirm);
       display: none;
       align-items: center;
       justify-content: center;
       padding: 1rem;
-      background: rgba(20, 2, 7, .65);
+      background-color: rgba(23, 23, 23, 0.5);
+      background-image: radial-gradient(circle, rgba(152, 32, 54, 0.18) 1.5px, transparent 1.5px);
+      background-size: 18px 18px;
     }
 
     .confirmation-layer.is-open { display: flex; }
@@ -1282,7 +916,10 @@
       cursor: default;
     }
     .expand-toolbar.is-locked {
-      display: none !important;
+      opacity: .55;
+      background: #f6f2f0;
+      border-color: rgba(122,35,49,.12);
+      cursor: not-allowed;
     }
     .expand-toolbar.is-locked .expand-toolbar-divider { background: rgba(122,35,49,.12); }
     .expand-format-btn:disabled {
@@ -1366,25 +1003,20 @@
 
     @media (max-width: 768px) {
       .qr-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
         padding: 0 2px;
       }
 
       .resource-item .qr-card {
         display: grid;
-        grid-template-columns: 48px minmax(0, 1fr) auto;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
         grid-template-areas: "thumb main toggle";
         align-items: center;
         gap: .7rem;
         padding: .6rem .8rem;
         border: 3px solid #111111;
-        border-radius: 999px;
         background: #fff;
         box-shadow: 4px 4px 0 #111111;
         transition: border-radius 120ms linear, box-shadow 120ms linear;
-        box-sizing: border-box;
-        max-width: 100%;
       }
       .resource-item .qr-card.is-expanded {
         grid-template-areas:
@@ -1393,57 +1025,28 @@
         grid-template-rows: auto auto;
         gap: .5rem .7rem;
         padding: .6rem .8rem .8rem;
-        border-radius: 28px;
       }
 
       .qr-card .qr-space {
         grid-area: thumb;
-        width: 48px;
-        height: 48px;
-        min-width: 48px;
+        width: 38px;
+        height: 38px;
         aspect-ratio: 1 / 1;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         border: 2px solid #111111;
         border-radius: 50%;
         background-color: #f3e3de;
         background-image: none;
-        box-sizing: border-box;
       }
       .qr-card .qr-space::before,
       .qr-card .qr-space::after { display: none; }
       .qr-card .qr-space .upload-hint { display: none; }
-      .qr-card .qr-space .qr-image {
+      .qr-card .qr-image {
         width: 100%;
         height: 100%;
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: cover;
         border-radius: 50%;
-        background: rgba(255,255,255,.78);
       }
       .qr-card .qr-reveal-icon { border-radius: 50%; }
       .qr-card .image-picker { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-      /* REV 60: bound every inner element to the capsule so long titles/URLs
-         or an oversized QR thumbnail can never push past the card edges. */
-      .resource-item .qr-card,
-      .resource-item .qr-card > * {
-        box-sizing: border-box;
-        max-width: 100%;
-      }
-      .resource-item .qr-card .capsule-main,
-      .resource-item .qr-card .capsule-toggle {
-        min-width: 0;
-        max-width: 100%;
-      }
-      .resource-item .qr-card .resource-title-row,
-      .resource-item .qr-card .resource-title,
-      .resource-item .qr-card .resource-url-input {
-        min-width: 0;
-        max-width: 100%;
-      }
 
       .capsule-main {
         grid-area: main;
@@ -1572,16 +1175,29 @@
       .board-header { gap: .65rem; }
       .logo-wrap { width: 48px; height: 48px; }
       .page-heading { font-size: 28px; }
-      .save-board-button span, .nav-button span, .tracker-button span { display: none; }
+      .save-board-button span { display: none; }
       .brand-sub { margin-left: calc(48px + .6rem); }
       .header-actions { margin-left: 0; width: 100%; justify-content: flex-end; }
     }
+
+    /* REV 84: desktop expand modal clears the sidebar rail (consolidated from neubrutal.css) */
   </style>
   <link rel="stylesheet" href="assets/neubrutal.css">
- </head>
+  </head>
+
 <body>
-   <main class="board-shell" aria-label="ARC shared resource QR board">
-    <section class="sheet">
+  <div id="app-content">
+  <div class="password-row" data-parking>
+<div class="password-widget" id="passwordWidget">
+        <div class="pw-tools" id="pwTools">
+         <button id="passwordToggle" class="password-toggle arc-action-sm" type="button" aria-expanded="false" aria-label="Unlock editing"><i data-lucide="lock" aria-hidden="true" width="18" height="18"></i></button>
+         <div class="password-panel"><input id="passwordInput" type="password" class="password-input" placeholder="Input Password" autocomplete="off" spellcheck="false"></div>
+        </div>
+       </div>
+  </div>
+  <main class="board-shell" aria-label="ARC shared resource QR board">
+   <div class="utilities-row" id="mobileUtilities" aria-label="Utility controls"></div>
+   <section class="sheet">
     <header class="board-header">
      <div class="brand-group">
 <div class="brand-top">
@@ -1595,36 +1211,18 @@
      </div>
 <div class="header-actions">
        <button id="save-board-button" class="save-board-button arc-action" type="button" style="background: #8B1A2B; color: rgb(255, 255, 255); font-weight:800;font-size:13px;"><i data-lucide="save" aria-hidden="true"></i><span>Save Board</span></button>
-       <button id="search-toggle" class="search-toggle nav-button arc-action" type="button" aria-expanded="false" aria-controls="search-bar" aria-label="Search resources" title="Search"><i data-lucide="search" aria-hidden="true"></i><span>Search</span></button>
-       <button id="view-mode-toggle" class="view-mode-toggle nav-button arc-action" type="button" aria-pressed="false" aria-label="Switch to Pill view" title="Card layout" data-view-mode="full"><i data-lucide="layout-grid" aria-hidden="true"></i><span>Grid</span></button>
        <div class="add-resource-wrap"><button id="add-resource-button" class="add-resource-button arc-action" type="button" data-requires-unlock style="background:#fff;color:#591925;font-weight:800;font-size:14px;"><i data-lucide="plus" aria-hidden="true"></i><span>Add Resource</span></button></div>
-</div>
-     </header>
- <div id="search-bar" class="search-bar" hidden>
-      <div class="search-field">
-       <i data-lucide="search" aria-hidden="true"></i>
-       <input id="search-input" type="text" placeholder="Search by title or link…" autocomplete="off" spellcheck="false" aria-label="Search resources">
-       <button id="search-clear" type="button" aria-label="Clear search and close"><i data-lucide="x" aria-hidden="true"></i></button>
+       <button id="view-mode-toggle" class="view-mode-toggle arc-action" type="button" data-view-mode="grid" aria-label="Switch to pill view" title="Toggle pill / grid view"><i data-lucide="layout-grid" aria-hidden="true"></i><span class="vmt-label">Grid</span></button>
+       <button id="search-toggle" class="search-toggle arc-action-sm" type="button" aria-label="Search board" aria-expanded="false" aria-controls="search-bar"><i data-lucide="search" aria-hidden="true"></i></button>
       </div>
-     </div>
- <div class="utilities-row" id="mobileUtilities" aria-label="Utility controls"></div>
- <div class="password-row">
-      <div class="password-widget" id="passwordWidget">
-       <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button>
-       <div class="pw-tools">
-        <button id="passwordToggle" class="password-toggle arc-action-sm" type="button" aria-expanded="false" aria-label="Unlock editing"><i data-lucide="plus" aria-hidden="true"></i></button>
-        <div class="password-panel"><input id="passwordInput" type="password" class="password-input" placeholder="Input Password" autocomplete="off" spellcheck="false"></div>
-       </div>
-      </div>
-     </div>
-    <section class="main-content" aria-label="QR board content">
+    </header>
+    <div class="search-bar" id="search-bar" hidden>
+     <input id="search-bar-input" class="search-input" type="search" placeholder="Search titles and links…" aria-label="Search resources" autocomplete="off">
+    </div>
+<section class="main-content" aria-label="QR board content">
      <p class="editing-note" style="font-weight:700;font-size:12px;letter-spacing:.04rem;">Drop a QR image on any target or click to browse. Click a title or URL to edit it, then use the card actions to organize, copy, or save. Changes save automatically.</p>
      <p id="status-region" class="status-region" aria-live="polite"></p>
-      <div id="search-empty" class="search-empty" hidden>
-       <p id="search-empty-text"></p>
-       <button id="search-empty-clear" class="nav-button arc-action search-empty-clear" type="button">Clear Search</button>
-      </div>
-      <section id="qr-grid" class="qr-grid" aria-label="QR resource cards"></section>
+     <section id="qr-grid" class="qr-grid" aria-label="QR resource cards"></section>
      </section>
     <footer class="board-footer">
      <p class="footer-note" style="color:#6c6166;font-weight:500;font-size:12px;">Every edit — uploads, titles, links, and order — saves to the shared board automatically.</p>
@@ -1689,25 +1287,11 @@
     </section>
    </div>
 
-  <!-- QR View Modal (REV 59): standalone popup for viewing a card's QR image -->
-  <div id="qr-view-layer" class="qr-view-layer" role="presentation">
-   <section class="qr-view-dialog" role="dialog" aria-modal="true" aria-labelledby="qr-view-title">
-    <header class="qr-view-header">
-     <h2 id="qr-view-title" class="qr-view-title">QR Code</h2>
-     <button id="qr-view-close" class="qr-view-close" type="button" aria-label="Close QR view">&times;</button>
-    </header>
-    <div class="qr-view-frame">
-     <img id="qr-view-image" class="qr-view-image" alt="QR code">
-    </div>
-   </section>
-  </div>
-
   <!-- Help Modal -->
   <div class="help-modal-layer" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
     <div class="help-modal">
       <header class="help-modal-header">
         <h2 class="help-modal-title" id="helpModalTitle">How to Use NEXUS</h2>
-        <button class="help-modal-close" id="helpModalClose" aria-label="Close help"><i data-lucide="x" aria-hidden="true"></i></button>
       </header>
       <div class="help-modal-body">
         <h3>Getting Started</h3>
@@ -1750,24 +1334,22 @@
           <li><span class="kbd">Enter</span> on card — expand card</li>
         </ul>
       </div>
+      <div class="dialog-actions" style="margin-top:16px">
+        <button type="button" class="btn-got-it" id="helpModalClose">Got it</button>
+      </div>
     </div>
   </div>
 
   <template id="resource-template">
-<article class="resource-item">
-     <div class="qr-card">
-      <div class="qr-space" tabindex="0" role="button" aria-label="View QR code">
-       <img class="qr-image" src="" alt="QR Code" loading="lazy">
-       <div class="pill-qr-veil absolute inset-0 w-full h-full flex items-center justify-center" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 9 5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2 8 5.1"/><path d="m5.1 8-2.9-.8"/><path d="M14 4.1 12 6"/><path d="m6 12-1.9 2"/></svg>
-       </div>
-       <span class="qr-reveal-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 9 5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2 8 5.1"/><path d="m5.1 8-2.9-.8"/><path d="M14 4.1 12 6"/><path d="m6 12-1.9 2"/></svg>
-       </span>
-       <span class="upload-hint">Drop a QR image here or click to upload</span>
-       <span class="pill-qr-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 12h.01"/><path d="M7 17h.01"/><path d="M12 12h2v2"/><path d="M17 12h.01"/><path d="M12 17h.01"/><path d="M17 17h.01"/></svg></span>
-       <input class="image-picker sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
-      </div>
+   <article class="resource-item">
+    <div class="qr-card">
+     <div class="qr-space" tabindex="0" role="button" aria-label="Upload a QR image">
+      <span class="upload-hint">Drop a QR image here or click to upload</span>
+      <span class="qr-reveal-icon" aria-hidden="true">
+       <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 9 5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2 8 5.1"/><path d="m5.1 8-2.9-.8"/><path d="M14 4.1 12 6"/><path d="m6 12-1.9 2"/></svg>
+      </span>
+      <input class="image-picker sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+     </div>
      <div class="capsule-main">
       <div class="resource-title-row">
        <h2 class="resource-title" contenteditable="true" spellcheck="true"></h2>
@@ -1822,11 +1404,14 @@
 
     // ---------- Password lock ----------
     const CORRECT_PASSWORD = 'arc143';
-    let editLocked = true;
+    let editLocked = !(window.ArcAuth && window.ArcAuth.isTier2Unlocked());
+    document.documentElement.classList.toggle('boot-unlocked', !editLocked);
 
     const passwordWidget = document.getElementById('passwordWidget');
     const passwordToggle = document.getElementById('passwordToggle');
     const passwordInput = document.getElementById('passwordInput');
+    /* REV 86: the relocatable lock unit — its is-open state drives the
+       mobile utilities-strip panel (mirrors core.html) */
     const pwTools = document.querySelector('#passwordWidget .pw-tools');
 
     function flashLockedNotice(message) {
@@ -1898,66 +1483,50 @@
     function updateLockUI() {
       passwordToggle.classList.toggle('is-unlocked', !editLocked);
       passwordToggle.setAttribute('aria-label', editLocked ? 'Unlock editing' : 'Lock editing');
-      passwordToggle.innerHTML = editLocked
-        ? '<i data-lucide="plus" aria-hidden="true"></i>'
-        : '<i data-lucide="unlock" aria-hidden="true"></i>';
-      lucide.createIcons();
+      /* REV 88: padlock convention (matches FEED) + idempotent re-render —
+         the icon only swaps when the desired glyph actually changes */
+      const desiredIcon = editLocked ? 'lock' : 'unlock';
+      if (passwordToggle.dataset.icon !== desiredIcon) {
+        passwordToggle.dataset.icon = desiredIcon;
+        passwordToggle.innerHTML = '<i data-lucide="' + desiredIcon + '" aria-hidden="true"></i>';
+        lucide.createIcons();
+      }
     }
 
     function collapsePasswordWidget() {
       passwordWidget.classList.remove('is-open');
+      /* REV 86: toggle the relocatable unit too — the mobile strip's open
+         rule keys off .pw-tools.is-open (mirrors core.html) */
       if (pwTools) pwTools.classList.remove('is-open');
       passwordToggle.setAttribute('aria-expanded', 'false');
       passwordInput.value = '';
       passwordInput.blur();
-      if (window.ArcTour && window.ArcTour.reposition) window.ArcTour.reposition();
     }
 
-    // REV 65: the desktop lock input expands inline directly beside the lock
-    // button (CSS handles layout) — no fixed popover positioning needed.
-
     function openPasswordWidget() {
-      passwordWidget.style.setProperty('--pw-width', '200px');
       passwordWidget.classList.add('is-open');
       if (pwTools) pwTools.classList.add('is-open');
       passwordToggle.setAttribute('aria-expanded', 'true');
-      // The visibility transition still reports "hidden" in the same tick as
-      // the class flip, which makes focus() a silent no-op — defer one beat.
-      setTimeout(() => {
-        if (passwordWidget.classList.contains('is-open')) {
-          passwordInput.focus({ preventScroll: true });
-        }
-      }, 60);
-      if (window.ArcTour && window.ArcTour.reposition) window.ArcTour.reposition();
+      setTimeout(() => { if (passwordWidget.classList.contains('is-open')) passwordInput.focus({ preventScroll: true }); }, 60);
     }
-
-    window.addEventListener('resize', () => {
-      if (passwordWidget.classList.contains('is-open') || (pwTools && pwTools.classList.contains('is-open'))) {
-        if (window.ArcTour && window.ArcTour.reposition) window.ArcTour.reposition();
-      }
-    });
 
     function setEditLocked(locked) {
       editLocked = locked;
       applyLockToRow(document);
       applyExpandLockState();
       updateLockUI();
+      if (window.ArcAuth) window.ArcAuth.setTier2(!locked);
+      document.documentElement.classList.toggle('boot-unlocked', !locked);
+      var fabEl = document.getElementById('pageFab');
+      if (fabEl) fabEl.hidden = locked;
       // Toggle resize handle visibility based on lock state
       if (resizeHandle) {
         resizeHandle.style.display = locked ? 'none' : 'inline-flex';
       }
-      // REV 59: remove the mobile + fab from view while editing is locked
-      const pageFab = document.getElementById('pageFab');
-      if (pageFab) pageFab.hidden = locked;
     }
 
     passwordToggle.addEventListener('click', () => {
       if (editLocked) {
-        const isOpen = passwordWidget.classList.contains('is-open') || (pwTools && pwTools.classList.contains('is-open'));
-        if (isOpen) {
-          collapsePasswordWidget();
-          return;
-        }
         openPasswordWidget();
       } else {
         setEditLocked(true);
@@ -1984,6 +1553,8 @@
     });
 
     document.addEventListener('click', (event) => {
+      /* REV 86: on mobile pwTools is relocated into the strip (outside the
+         widget) — judge outside-clicks against BOTH mounts (mirrors core) */
       const inWidget = passwordWidget.contains(event.target);
       const inTools = pwTools ? pwTools.contains(event.target) : false;
       if ((passwordWidget.classList.contains('is-open') || (pwTools && pwTools.classList.contains('is-open'))) && !inWidget && !inTools) {
@@ -2138,13 +1709,7 @@
         image.className = 'qr-image';
         image.loading = 'lazy';
         image.alt = 'Uploaded QR image';
-        // New structure: qr-space is the container, prepend image directly
         space.prepend(image);
-        // Click on image opens QR View popup
-        image.addEventListener('click', event => {
-          event.stopPropagation();
-          openQrView(card);
-        });
       }
       image.src = dataUrl;
       card.dataset.image = dataUrl;
@@ -2260,72 +1825,6 @@
       });
     }
 
-    // REV 59: standalone QR View popup. Clicking a card's QR thumbnail opens
-    // the image in a centered modal on desktop and mobile alike.
-    const qrViewLayer = document.getElementById('qr-view-layer');
-    const qrViewClose = document.getElementById('qr-view-close');
-    const qrViewImage = document.getElementById('qr-view-image');
-    const qrViewTitle = document.getElementById('qr-view-title');
-
-    function openQrView(card) {
-      if (!qrViewLayer) return;
-      const image = card.querySelector('.qr-space .qr-image');
-      const src = image ? image.getAttribute('src') : null;
-      if (!src) return;
-      qrViewImage.src = src;
-      qrViewImage.style.display = 'block';
-      const title = card.querySelector('.resource-title');
-      qrViewTitle.textContent = (title && title.textContent.trim()) || 'QR Code';
-      qrViewLayer.classList.add('is-open');
-    }
-
-    function closeQrView() {
-      if (qrViewLayer) qrViewLayer.classList.remove('is-open');
-    }
-
-    if (qrViewClose) {
-      qrViewClose.addEventListener('click', closeQrView);
-    }
-    if (qrViewLayer) {
-      qrViewLayer.addEventListener('click', event => {
-        if (event.target === qrViewLayer) closeQrView();
-      });
-    }
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') closeQrView();
-    });
-
-    // Hook QR thumbnail clicks: view the QR popup whenever the card has an
-    // uploaded QR image, regardless of lock state.
-    function wireQrView(card) {
-      const space = card.querySelector('.qr-space');
-      if (!space) return;
-      // Desktop pill view: the persistent frosted veil IS the affordance, so a
-      // filled thumb always opens the QR View modal. Runs before the uploader
-      // handler (wireCard order below) and stops it for filled cards so the
-      // file picker / grid reveal-toggle never double-fires. Empty cards fall
-      // through to the uploader untouched.
-      const pillFilledActivate = event => {
-        const image = space.querySelector('.qr-image');
-        const src = image ? image.getAttribute('src') : null;
-        if (!src || !document.body.classList.contains('nexus-view-pill')) return;
-        event.stopImmediatePropagation();
-        openQrView(card);
-      };
-      space.addEventListener('click', pillFilledActivate);
-      space.addEventListener('keydown', event => {
-        if (event.key === 'Enter' || event.key === ' ') pillFilledActivate(event);
-      });
-      // Also keep image click for backwards compatibility
-      const image = space.querySelector('.qr-image');
-      if (image) {
-        image.addEventListener('click', event => {
-          event.stopPropagation();
-          openQrView(card);
-        });
-      }
-    }
-
     // html2canvas 1.4.1 has the same limitation with layered
     // backgrounds that it does with `object-fit` and `aspect-ratio`
     // (see the fixes below): the reverted `.qr-space` dotted design
@@ -2405,7 +1904,6 @@
     }
 
     function wireCard(card) {
-      wireQrView(card);
       setupUploader(card);
 
       card.querySelectorAll('[data-action]').forEach(button => {
@@ -2508,117 +2006,140 @@
           return;
         }
 
+        // Measure the live layout before html2canvas touches anything —
+        // html2canvas 1.4.1 doesn't understand the CSS `aspect-ratio`
+        // property, so the QR square was collapsing/resizing in its
+        // clone, which is what pushed the title/url out of frame. Pinning
+        // the real, already-rendered pixel size sidesteps that entirely.
+        const liveSpace = card.querySelector('.qr-space');
+        const spaceRect = liveSpace.getBoundingClientRect();
+
         button.disabled = true;
         try {
-          // REV 59: export a clean desktop-format card built from scratch,
-          // independent of the live mobile capsule. Fixed width, large square
-          // QR, bold centered title, full-width URL pill, explicit vertical
-          // margins, shrink-wrapped height, 3px #111 border, 4px offset
-          // shadow (drawn manually — html2canvas 1.4.1 drops box-shadow),
-          // and clean rounded corners.
-          const title = getTitle(card) || 'ARC Updates';
-          const urlInput = card.querySelector('.resource-url-input');
-          const url = urlInput ? urlInput.value.trim() : '';
-          const cardShadow = (() => {
-            const el = card.querySelector('.qr-card');
-            return el ? shadowColorOf(window.getComputedStyle(el).boxShadow) : 'rgba(17,17,17,1)';
-          })();
+          // Pre-measure this card's URL input height so the cloned input
+          // gets the correct height (fixes bug where it used another card's).
+          const cardUrlInput = card.querySelector('.resource-url-input');
+          const cardUrlRect = cardUrlInput ? cardUrlInput.getBoundingClientRect() : null;
 
+          // html2canvas 1.4.1 drops box-shadow, so the card is wrapped in a
+          // padded host and a real offset shadow div is drawn behind it (the
+          // 8px padding keeps the 4px shadow inside the canvas).
+          const cardEl = card.querySelector('.qr-card');
+          const cardShadow = cardEl ? window.getComputedStyle(cardEl).boxShadow : '';
+          const cardShadowColor = shadowColorOf(cardShadow);
           const cardHost = document.createElement('div');
           cardHost.style.cssText = 'padding: 8px; position: relative; width: max-content; background: transparent;';
-
-          const exportCard = document.createElement('div');
-          exportCard.style.cssText = `
-            box-sizing: border-box;
-            width: 320px;
-            background: #ffffff;
-            border: 3px solid #111111;
-            border-radius: 18px;
-            position: relative;
-            padding: 22px 22px 24px;
-          `;
-
-          const qrWrap = document.createElement('div');
-          qrWrap.style.cssText = `
-            box-sizing: border-box;
-            width: 200px;
-            height: 200px;
-            margin: 0 auto;
-            border-radius: 12px;
-            background-color: #ffffff;
-            background-image: url("${image.src}");
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-          `;
-
-          const titleEl = document.createElement('div');
-          titleEl.style.cssText = `
-            margin: 18px 0 12px;
-            text-align: center;
-            font-family: "Poppins", "DM Sans", sans-serif;
-            font-size: 19px;
-            font-weight: 900;
-            letter-spacing: -0.01em;
-            line-height: 1.25;
-            color: #111111;
-            word-break: break-word;
-          `;
-          titleEl.textContent = title;
-
-          const urlPill = document.createElement('div');
-          urlPill.style.cssText = `
-            box-sizing: border-box;
-            width: 100%;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6px 12px;
-            border: 2px solid #111111;
-            border-radius: 999px;
-            background: #FBF7EE;
-            color: #111111;
-            font-family: "DM Sans", sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            line-height: 1.4;
-            text-align: center;
-            word-break: break-all;
-          `;
-          urlPill.textContent = url || 'No link added';
-
-          exportCard.appendChild(qrWrap);
-          exportCard.appendChild(titleEl);
-          exportCard.appendChild(urlPill);
-          cardHost.appendChild(exportCard);
-
-          const anchor = card.querySelector('.qr-card') || card;
-          anchor.insertAdjacentElement('beforebegin', cardHost);
-
+          // Pin the card to its live grid size so it doesn't shrink-to-fit
+          // once lifted out of the grid into the max-content host.
+          const cardLiveRect = cardEl.getBoundingClientRect();
+          cardEl.style.width = `${Math.round(cardLiveRect.width)}px`;
+          cardEl.style.height = `${Math.round(cardLiveRect.height)}px`;
+          cardEl.parentNode.insertBefore(cardHost, cardEl);
+          cardHost.appendChild(cardEl);
           let canvas;
           try {
-            canvas = await html2canvas(cardHost, {
-              backgroundColor: null,
-              scale: 2,
-              useCORS: true,
-              imageTimeout: 15000,
-              onclone: (clonedDoc, el) => {
-                // Kill animations/transitions in the cloned document.
-                const style = clonedDoc.createElement('style');
-                style.textContent = `*, *::before, *::after { animation: none !important; transition: none !important; }`;
-                clonedDoc.head.appendChild(style);
+          canvas = await html2canvas(cardHost, {
+            backgroundColor: null,
+            scale: 2,
+            useCORS: true,
+            imageTimeout: 15000,
+            onclone: (clonedDoc, el) => {
+              // Kill animations/transitions in the cloned document — the
+              // .sheet enter animation lives on an ancestor but can still
+              // affect the cloned subtree when html2canvas re-parses CSS.
+              const style = clonedDoc.createElement('style');
+              style.textContent = `*, *::before, *::after { animation: none !important; transition: none !important; }`;
+              clonedDoc.head.appendChild(style);
 
-                // Draw the hard-offset shadow manually. el is the padded host:
-                // the card sits at (8,8), shadow offset +4, so a matching
-                // border-radius keeps the corners clean.
-                const shadow = clonedDoc.createElement('div');
-                shadow.style.cssText = `position:absolute; top:12px; left:12px; right:4px; bottom:4px; background:${cardShadow}; border-radius:18px;`;
-                el.insertBefore(shadow, el.firstChild);
+              // Force .sheet to final state if it's in the cloned tree.
+              const sheet = el.querySelector('.sheet');
+              if (sheet) {
+                sheet.style.animation = 'none';
+                sheet.style.opacity = '1';
+                sheet.style.transform = 'none';
               }
-            });
+
+              el.querySelectorAll('.action-cluster, .expand-button, .qr-reveal-icon').forEach(n => n.style.display = 'none');
+
+              // Draw the hard-offset shadow manually (html2canvas drops box-shadow).
+              // el is the padded host: card sits at (8,8), shadow offset +4.
+              const shadow = clonedDoc.createElement('div');
+              shadow.style.cssText = `position:absolute; top:12px; left:12px; right:4px; bottom:4px; background:${cardShadowColor}; border-radius:16px;`;
+              el.insertBefore(shadow, el.firstChild);
+              el.querySelector('.qr-card').style.position = 'relative';
+
+              const clonedSpace = el.querySelector('.qr-space');
+              if (clonedSpace) {
+                clonedSpace.style.aspectRatio = 'auto';
+                clonedSpace.style.width = `${spaceRect.width}px`;
+                clonedSpace.style.height = `${spaceRect.height}px`;
+                flattenQrSpaceBackground(clonedSpace);
+              }
+
+              // html2canvas also doesn't honor `object-fit` on <img> —
+              // it stretches the QR to fill the box instead of keeping
+              // its ratio. A div with background-size:contain gets the
+              // same visual result and IS respected by html2canvas.
+              const clonedImg = el.querySelector('.qr-image');
+              if (clonedImg) {
+                const bg = clonedDoc.createElement('div');
+                bg.className = clonedImg.className;
+                bg.style.backgroundImage = `url("${clonedImg.src}")`;
+                bg.style.backgroundSize = 'contain';
+                bg.style.backgroundPosition = 'center';
+                bg.style.backgroundRepeat = 'no-repeat';
+                bg.style.filter = 'none';
+                clonedImg.replaceWith(bg);
+              }
+
+              // html2canvas doesn't reliably rasterize form-field values —
+              // swap the title/url editable fields for plain text so both
+              // are guaranteed to actually show up in the exported PNG.
+              el.querySelectorAll('.resource-title').forEach(n => {
+                n.style.border = '1px solid transparent';
+              });
+              el.querySelectorAll('.resource-url-input').forEach(n => {
+                const span = clonedDoc.createElement('div');
+                span.textContent = n.value || 'No link added';
+                // Use this card's own measured rect (fixes bug where it used
+                // another card's input height).
+                const inputH = cardUrlRect ? cardUrlRect.height : 24;
+                const cs = window.getComputedStyle(n);
+                const lineH = parseFloat(cs.fontSize) * (parseFloat(cs.lineHeight) || 1.4);
+                const inputPad = parseFloat(cs.paddingTop) || 6.4;
+                // Center the text block vertically with real padding and a
+                // normal line-height so descenders (g, y, p, q, j) keep full
+                // clearance. Avoids flexbox (html2canvas 1.4.1 handles it
+                // poorly) and the old `line-height: inputHpx` baseline trick
+                // that clipped descenders at the bottom edge.
+                const vPad = Math.max((inputH - lineH - 2) / 2, inputPad, 4);
+                span.style.cssText = `
+                  display: block;
+                  box-sizing: border-box;
+                  width: 100%;
+                  height: ${inputH}px;
+                  line-height: 1.4;
+                  padding: ${vPad}px .46rem;
+                  border: 1px solid ${cs.borderTopColor};
+                  border-radius: ${cs.borderRadius};
+                  color: ${cs.color};
+                  background: ${cs.backgroundColor};
+                  font-family: "DM Sans", sans-serif;
+                  font-size: ${cs.fontSize};
+                  font-weight: 700;
+                  text-align: center;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                `;
+                n.replaceWith(span);
+              });
+            }
+          });
           } finally {
-            cardHost.remove();
+            cardEl.style.width = '';
+            cardEl.style.height = '';
+            cardHost.replaceWith(cardEl);
           }
           const link = document.createElement('a');
           link.href = canvas.toDataURL('image/png');
@@ -2666,83 +2187,7 @@
       scheduleSave();
       showStatus('New QR resource card added.');
       card.querySelector('.resource-title').focus({ preventScroll: true });
-      if (typeof applySearchFilter === 'function') applySearchFilter();
     });
-
-    // ---------- REV 69: real-time search (grid + pill) ----------
-    const searchBar = document.getElementById('search-bar');
-    const searchToggle = document.getElementById('search-toggle');
-    const searchInput = document.getElementById('search-input');
-    const searchClearButton = document.getElementById('search-clear');
-    const searchEmpty = document.getElementById('search-empty');
-    const searchEmptyText = document.getElementById('search-empty-text');
-    const searchEmptyClear = document.getElementById('search-empty-clear');
-
-    function cardSearchText(card) {
-      const title = card.querySelector('.resource-title');
-      const url = card.querySelector('.resource-url-input');
-      const rich = card.dataset && card.dataset.rich ? String(card.dataset.rich).replace(/<[^>]*>/g, ' ') : '';
-      return ((title ? title.textContent : '') + ' ' + (url ? url.value : '') + ' ' + rich).toLowerCase();
-    }
-
-    function applySearchFilter() {
-      if (!searchBar || searchBar.hidden) return;
-      const raw = searchInput.value.trim();
-      const q = raw.toLowerCase();
-      let visible = 0;
-      allCards().forEach(card => {
-        const hit = !q || cardSearchText(card).includes(q);
-        card.classList.toggle('search-hidden', !hit);
-        if (hit) visible++;
-      });
-      if (q && visible === 0) {
-        searchEmptyText.textContent = "No resources found matching '" + raw + "'";
-        searchEmpty.hidden = false;
-      } else {
-        searchEmpty.hidden = true;
-      }
-    }
-
-    function openSearchBar() {
-      searchBar.hidden = false;
-      searchToggle.setAttribute('aria-expanded', 'true');
-      setTimeout(() => {
-        if (searchInput && typeof searchInput.focus === 'function') {
-          try { searchInput.focus({ preventScroll: true }); } catch (e) { searchInput.focus(); }
-        }
-      }, 30);
-    }
-
-    function closeSearchBar({ restoreFocusToToggle = false } = {}) {
-      searchBar.hidden = true;
-      searchToggle.setAttribute('aria-expanded', 'false');
-      searchInput.value = '';
-      allCards().forEach(c => c.classList.remove('search-hidden'));
-      searchEmpty.hidden = true;
-      if (restoreFocusToToggle && typeof searchToggle.focus === 'function') searchToggle.focus();
-    }
-
-    if (searchToggle) {
-      searchToggle.addEventListener('click', () => {
-        if (searchBar.hidden) openSearchBar();
-        else closeSearchBar({ restoreFocusToToggle: true });
-      });
-    }
-    if (searchInput) searchInput.addEventListener('input', applySearchFilter);
-    if (searchClearButton) {
-      searchClearButton.addEventListener('click', () => closeSearchBar({ restoreFocusToToggle: true }));
-    }
-    if (searchEmptyClear) {
-      searchEmptyClear.addEventListener('click', () => closeSearchBar({ restoreFocusToToggle: true }));
-    }
-    if (searchInput) {
-      searchInput.addEventListener('keydown', event => {
-        if (event.key === 'Escape') {
-          event.stopPropagation();
-          closeSearchBar({ restoreFocusToToggle: true });
-        }
-      });
-    }
 
     saveBoardButton.addEventListener('click', async () => {
       saveBoardButton.disabled = true;
@@ -2795,12 +2240,8 @@
               sheet.style.transform = 'none';
             }
 
-            // REV 64: exclude every piece of UI chrome — header actions
-            // (Save Board / view toggle / Add Resource), the mobile utility
-            // strip, the sidebar Action Board, the pill chevrons, the help
-            // button, and blur/reveal badges — so exports are pure board.
-            el.querySelectorAll('.header-actions, #save-board-button, .view-mode-toggle, .add-resource-wrap, .utilities-row, .password-row, .status-region, .action-cluster, .capsule-toggle, .expand-button, .qr-reveal-icon, .logo-wrap, .help-icon, .desktop-sidebar, .mobile-bottom-nav, .fab, .editing-note, .footer-note, .sync-pill').forEach(n => {
-              n.style.setProperty('display', 'none', 'important');
+            el.querySelectorAll('.header-actions, #save-board-button, .password-row, .add-resource-wrap, .status-region, .action-cluster, .expand-button, .qr-reveal-icon, .desktop-sidebar, .mobile-bottom-nav, .fab, .editing-note, .footer-note, .sync-pill').forEach(n => {
+              n.style.display = 'none';
             });
 
             // Express a clone rect relative to the cloned shell root, so it maps
@@ -2822,7 +2263,6 @@
             });
 
             el.querySelectorAll('.qr-image').forEach(img => {
-              if (!img.getAttribute('src')) { img.remove(); return; }
               const bg = clonedDoc.createElement('div');
               bg.className = img.className;
               bg.style.backgroundImage = `url("${img.src}")`;
@@ -3229,7 +2669,7 @@
 
     // Keep toolbar focused on rich editor
     document.getElementById('expand-rich').addEventListener('focus', () => {
-      expandCurrentCard = expandCurrentCard; // no-op, just reference
+      /* REV 86: removed a self-assignment no-op that lived here */
     });
 
 // Save & Export expanded view
@@ -3467,8 +2907,6 @@
     });
 
     // Also update the original expand action to use the new editor
-    const originalExpandHandler = handleAction;
-    // We'll patch the expand action in handleAction below
 
     async function loadBoard() {
       try {
@@ -3508,51 +2946,76 @@
   </script>
 
   <!-- Retro-Neubrutalist navigation (REV 38) -->
-  <aside class="desktop-sidebar" aria-label="Primary">
+  <button type="button" class="fab" id="pageFab" data-requires-unlock aria-label="Add resource"><i data-lucide="plus" aria-hidden="true"></i></button>
+  </div><!-- /#app-content -->
+  <button id="sidebar-expand-btn" class="sidebar-expand-btn" type="button" aria-label="Expand sidebar" title="Show sidebar">
+   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m13 15 3-3-3-3"/></svg>
+  </button>
+  <aside class="desktop-sidebar" data-arc-shell id="app-sidebar" aria-label="Primary">
    <div class="sidebar-brand">
     <a href="index.html" class="sidebar-logo-link" aria-label="Go to Home" title="Go to Home"><img src="assets/logo.png" alt="ARC logo" class="sidebar-logo"></a>
     <div>
      <span class="sidebar-title">ARC</span>
     </div>
+    <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" type="button" aria-label="Toggle sidebar" title="Collapse sidebar">
+     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><polyline points="15 10 13 12 15 14"/></svg>
+    </button>
    </div>
    <nav class="sidebar-nav" aria-label="Modules">
     <a href="index.html" class="sidebar-link"><i data-lucide="home" aria-hidden="true"></i><span>Home</span></a>
     <a href="NEXUS.html" class="sidebar-link is-active"><i data-lucide="qr-code" aria-hidden="true"></i><span>Nexus</span></a>
     <a href="core.html" class="sidebar-link"><i data-lucide="list-checks" aria-hidden="true"></i><span>Core</span></a>
     <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="sidebar-link"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>Tracker</span></a>
+     <a href="feed.html" class="sidebar-link sidebar-notif-link"><i data-lucide="bell" aria-hidden="true"></i><span>Alerts</span><span class="notif-badge" aria-hidden="true"></span></a>
+     <a href="settings.html" class="sidebar-link"><i data-lucide="settings" aria-hidden="true"></i><span>Settings</span></a>
    </nav>
    <div class="sidebar-footer">
     <div class="utility-cluster">
      <button id="tourToggle" class="tour-toggle" type="button" aria-label="Start walkthrough tour" aria-haspopup="dialog"><i data-lucide="help-circle" aria-hidden="true"></i></button>
      <button id="soundToggle" class="sound-toggle" type="button" role="switch" aria-checked="true" aria-label="Sound on"><i data-lucide="volume-2" aria-hidden="true"></i><i data-lucide="volume-x" aria-hidden="true"></i></button>
+     <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button>
      <div class="sidebar-widget-slot" id="sidebarWidgetSlot"></div>
     </div>
-    <div class="sidebar-sync-slot" id="sidebarSyncSlot"></div>
+    <div class="sidebar-sync-slot" id="sidebarSyncSlot">
+     <!-- REV 74: universal Synced status capsule (below the utility stack) -->
+     <div class="sync-status-capsule inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border-[1.5px] border-[#111111] dark:border-white bg-[#FFFFFF] dark:bg-[#1E1E1E] shadow-[1px_1px_0px_#111111] dark:shadow-[1px_1px_0px_#FFFFFF] mt-3 select-none" id="sync-capsule">
+      <span class="relative flex h-2 w-2">
+       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 capsule-dot-ping"></span>
+       <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 capsule-dot-core"></span>
+      </span>
+      <span class="text-[11px] font-bold text-[#111111] dark:text-white tracking-tight leading-none capsule-label">Synced</span>
+     </div>
+    </div>
    </div>
   </aside>
 
-  <nav class="mobile-bottom-nav" aria-label="Primary">
+  <nav class="mobile-bottom-nav" data-arc-shell aria-label="Primary">
    <a href="index.html" class="mn-item"><i data-lucide="home" aria-hidden="true"></i><span>Home</span></a>
    <a href="NEXUS.html" class="mn-item is-active"><i data-lucide="qr-code" aria-hidden="true"></i><span>NEXUS</span></a>
    <a href="core.html" class="mn-item"><i data-lucide="list-checks" aria-hidden="true"></i><span>CORE</span></a>
-   <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="mn-item"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>TRACKER</span></a>
-  </nav>
+   <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="mn-item mn-tracker"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>TRACKER</span></a>
+    <a href="feed.html" class="mn-item mn-feed">
+      <span class="mn-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-badge" aria-hidden="true"></span>
+      </span>
+      <span>Alerts</span>
+    </a>
+   <a href="settings.html" class="mn-item mn-settings"><i data-lucide="settings" aria-hidden="true"></i><span>Settings</span></a>
+   </nav>
 
-  <button type="button" class="fab" id="pageFab" data-requires-unlock aria-label="Add resource"><i data-lucide="plus" aria-hidden="true"></i></button>
 
   <script>
     (function () {
       var sidebar = document.querySelector('.desktop-sidebar');
       if (!sidebar) return;
       var pw = document.getElementById('passwordWidget');
-      var pwRow = document.querySelector('.password-row');
       var syncEl = document.getElementById('sync-pill');
       var brandSub = document.querySelector('.brand-sub');
       var syncSlot = document.getElementById('sidebarSyncSlot');
       var widgetSlot = document.getElementById('sidebarWidgetSlot');
       var realSave = document.getElementById('save-board-button');
       var realAdd = document.getElementById('add-resource-button');
-      var searchBtn = document.getElementById('search-toggle');
       var fab = document.getElementById('pageFab');
       var themeBtn = document.getElementById('themeToggle');
       var soundBtn = document.getElementById('soundToggle');
@@ -3561,45 +3024,85 @@
       var cluster = document.querySelector('.utility-cluster');
       var headerActions = document.querySelector('.header-actions');
       var utilRow = document.getElementById('mobileUtilities');
+      var searchBtn = document.getElementById('search-toggle');
+      var viewBtn = document.getElementById('view-mode-toggle');
       var mq = window.matchMedia('(min-width:1024px)');
 
-      /* REV 59: relocating utility controls into the mobile top row and back.
-         passwordWidget keeps its popover anchor on desktop; on mobile the
-         panel anchors to the utilities row itself. */
       function layout() {
         var desktop = mq.matches;
         if (desktop) {
           if (widgetSlot && pw) widgetSlot.appendChild(pw);
-          if (syncSlot && syncEl) syncSlot.appendChild(syncEl);
           if (pw && pwTools && !pw.contains(pwTools)) pw.insertBefore(pwTools, pw.firstChild);
-          if (themeBtn && pw && !pw.contains(themeBtn)) pw.insertBefore(themeBtn, pwTools);
-          if (searchBtn && headerActions && !headerActions.contains(searchBtn)) headerActions.insertBefore(searchBtn, document.getElementById('view-mode-toggle'));
-          if (realSave && headerActions && !headerActions.contains(realSave)) headerActions.insertBefore(realSave, searchBtn);
+          if (realSave && headerActions && !headerActions.contains(realSave)) headerActions.appendChild(realSave);
           if (soundBtn && cluster && !cluster.contains(soundBtn)) cluster.insertBefore(soundBtn, widgetSlot);
+          if (themeBtn && cluster && !cluster.contains(themeBtn)) cluster.insertBefore(themeBtn, widgetSlot);
           if (tourBtn && cluster && !cluster.contains(tourBtn)) cluster.insertBefore(tourBtn, soundBtn);
+          if (viewBtn && headerActions && !headerActions.contains(viewBtn)) headerActions.appendChild(viewBtn);
+          if (searchBtn && headerActions && !headerActions.contains(searchBtn)) headerActions.appendChild(searchBtn);
           if (utilRow) utilRow.style.display = 'none';
         } else {
           if (syncEl && brandSub && !brandSub.contains(syncEl)) brandSub.appendChild(syncEl);
           if (utilRow) {
             utilRow.style.display = 'flex';
             if (realSave) utilRow.appendChild(realSave);
-            if (themeBtn) utilRow.appendChild(themeBtn);
-            if (soundBtn) utilRow.appendChild(soundBtn);
-            if (tourBtn) utilRow.appendChild(tourBtn);
-            if (pwTools) utilRow.appendChild(pwTools);
+            /* REV 87: view-toggle is desktop-header only (hidden in strip via CSS) */
             if (searchBtn) utilRow.appendChild(searchBtn);
+            if (tourBtn) utilRow.appendChild(tourBtn);
+            if (soundBtn) utilRow.appendChild(soundBtn);
+            if (themeBtn) utilRow.appendChild(themeBtn);
+            if (pwTools) utilRow.appendChild(pwTools);
           }
         }
       }
       layout();
-      if (mq.addEventListener) mq.addEventListener('change', layout);
-      else if (mq.addListener) mq.addListener(layout);
+      window.__arcRegisterLayout(mq, layout); /* REV 87: retire-on-swap (see spa.js) */
 
       if (fab && realAdd) {
         if (typeof editLocked !== 'undefined' && editLocked) fab.hidden = true;
         fab.addEventListener('click', function () { realAdd.click(); });
       }
       if (window.lucide) lucide.createIcons();
+    })();
+
+    (function () {
+      /* REV 69 restored: search expand/filter + pill-grid view toggle */
+      var sBtn = document.getElementById('search-toggle');
+      var bar = document.getElementById('search-bar');
+      var input = document.getElementById('search-bar-input');
+      var grid = document.getElementById('qr-grid');
+      function filter(q) {
+        if (!grid) return;
+        q = q.trim().toLowerCase();
+        grid.querySelectorAll('.resource-item').forEach(function (card) {
+          var hit = !q || (card.textContent || '').toLowerCase().indexOf(q) > -1;
+          card.style.display = hit ? '' : 'none';
+        });
+      }
+      if (sBtn && bar) {
+        sBtn.addEventListener('click', function () {
+          var willOpen = bar.hasAttribute('hidden');
+          if (willOpen) {
+            bar.removeAttribute('hidden');
+            sBtn.setAttribute('aria-expanded', 'true');
+            if (input) input.focus({ preventScroll: true });
+          } else {
+            bar.setAttribute('hidden', '');
+            sBtn.setAttribute('aria-expanded', 'false');
+            if (input) { input.value = ''; filter(''); }
+          }
+        });
+      }
+      if (input) input.addEventListener('input', function () { filter(input.value); });
+      var vBtn = document.getElementById('view-mode-toggle');
+      if (vBtn) {
+        vBtn.addEventListener('click', function () {
+          var pill = document.body.classList.toggle('nexus-view-pill');
+          vBtn.setAttribute('data-view-mode', pill ? 'pill' : 'grid');
+          vBtn.setAttribute('aria-label', pill ? 'Switch to grid view' : 'Switch to pill view');
+          var lbl = vBtn.querySelector('.vmt-label');
+          if (lbl) lbl.textContent = pill ? 'Pill' : 'Grid';
+        });
+      }
     })();
   </script>
   <script>
@@ -3628,14 +3131,6 @@
         }
       }
 
-      document.addEventListener('click', function (e) {
-        if (!window.SFX) return;
-        var t = e.target && e.target.closest ? e.target.closest('button, a, [role="button"], input[type="submit"]') : null;
-        if (!t) return;
-        if (t.closest('.tour-overlay')) return;
-        window.SFX.playButtonClick();
-      });
-
       var soundToggle = document.getElementById('soundToggle');
       if (soundToggle) {
         soundToggle.addEventListener('click', function () {
@@ -3659,37 +3154,6 @@
       document.addEventListener('DOMContentLoaded', function () {
         syncSoundUI();
         if (window.ArcTour) window.ArcTour.resume();
-      });
-    })();
-  </script>
-  <script>
-    (function () {
-      /* REV 63: desktop-only card view mode — Full Card grid vs Pill capsules.
-         Persisted per browser in localStorage (nexus_desktop_view) and applied
-         via body.nexus-view-pill so the pill layout CSS stays scoped to NEXUS. */
-      var KEY = 'nexus_desktop_view';
-      var toggle = document.getElementById('view-mode-toggle');
-      if (!toggle) return;
-      function apply(mode) {
-        var pill = mode === 'pill';
-        document.body.classList.toggle('nexus-view-pill', pill);
-        toggle.setAttribute('data-view-mode', mode);
-        toggle.setAttribute('aria-pressed', String(pill));
-        toggle.setAttribute('aria-label', pill ? 'Switch to Grid view' : 'Switch to Pill view');
-        var label = toggle.querySelector('span');
-        if (label) label.textContent = pill ? 'Pills' : 'Grid';
-        var icon = toggle.querySelector('svg, i');
-        if (icon) icon.setAttribute('data-lucide', pill ? 'list' : 'layout-grid');
-        if (window.lucide) lucide.createIcons();
-      }
-      var stored = null;
-      try { stored = localStorage.getItem(KEY); } catch (e) {}
-      apply(stored === 'pill' ? 'pill' : 'full');
-      toggle.addEventListener('click', function () {
-        var next = document.body.classList.contains('nexus-view-pill') ? 'full' : 'pill';
-        try { localStorage.setItem(KEY, next); } catch (e) {}
-        apply(next);
-        if (window.SFX && window.SFX.playButtonClick) window.SFX.playButtonClick();
       });
     })();
   </script>

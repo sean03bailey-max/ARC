@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FEED</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <!-- feed.html intentionally excludes: html2canvas (no export feature) -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script type="module" src="utils/soundEffects.js"></script>
+  <script src="utils/tour.js"></script>
+  <script src="utils/auth.js"></script>
+  <script src="utils/spa.js"></script>
+  <script src="utils/announcements.js"></script>
+  <script src="utils/mobile-nav.js" defer></script>
+  <script>
+    /* REV 70/72 synchronous pre-paint hydration. Tier keys:
+       arc_auth_tier1 (homepage/base), arc_auth_tier2 (board edit mode).
+       boot-unlocked ⇔ tier2 (FAB / compose tools), boot-t1 ⇔ inherited base. */
+    (function () {
+      try {
+        if (localStorage.getItem('arc-theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        if (localStorage.getItem('arc_sound_enabled') === 'false') document.documentElement.setAttribute('data-sound', 'off');
+      } catch (e) {}
+      try { window.ArcAuth && window.ArcAuth.migrateOnce(); } catch (e) {}
+      var boot = { locked: true, readAnnouncements: [], feedCache: null, feedPage: true };
+      try {
+        boot.locked = !window.ArcAuth.isTier2Unlocked();
+        boot.readAnnouncements = JSON.parse(localStorage.getItem('arc_read_announcements') || '[]') || [];
+        boot.feedCache = JSON.parse(localStorage.getItem('arc_cache_feed') || 'null');
+      } catch (e) {}
+      window.__ARC_BOOT = boot;
+      if (!boot.locked) document.documentElement.classList.add('boot-unlocked');
+      if (window.ArcAuth && window.ArcAuth.isTier1Unlocked()) document.documentElement.classList.add('boot-t1');
+      document.documentElement.classList.add('hydrated');
+    })();
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Poppins:wght@800;900&family=Libre+Franklin:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* REV 71: frame + typography tokens mirror NEXUS/CORE 1:1. The sheet
+       geometry (1170px frame, borders, padding) comes from the shared
+       neubrutal.css rules — no local max-width/padding overrides anymore. */
+    * { box-sizing: border-box; }
+
+    body.feed-page {
+      margin: 0;
+      /* REV 80: dot-field restored (matches the board shells edge-to-edge) */
+      background-color: #FFFDF8;
+      background-image: radial-gradient(circle, rgba(152, 32, 54, 0.30) 1.5px, transparent 1.5px);
+      background-size: 18px 18px;
+      font-family: "DM Sans", sans-serif;
+      color: var(--ink);
+    }
+    html[data-theme="dark"] body.feed-page { background-color: var(--bg-page, #16161c); background-image: radial-gradient(circle, rgba(255, 255, 255, 0.22) 1.9px, transparent 2px); background-size: 18px 18px; color: var(--text-primary, #FBF7EE); }
+
+    .board-shell { min-height: 100vh; }
+    /* REV 74: parking row for the lock/theme widget (relocates to the
+       sidebar cluster on desktop, utilities strip on mobile) */
+    .password-row { width: 100%; margin: .8rem 0 0; display: flex; justify-content: flex-end; }
+    @media (min-width:1024px) { .password-row[data-parking] { display: none; } }
+    /* REV 71 container parity: same shared frame cap as NEXUS/CORE */
+    .sheet { background: rgba(255,253,248,.97); max-width: 1170px; margin-left: auto; margin-right: auto; }
+    html[data-theme="dark"] .sheet { background: var(--bg-card, #1c1917); }
+    @media (max-width: 1023.98px) {
+      .sheet { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+    }
+
+    /* ----- Header: ? infoboard + heading row + action board ----- */
+    .sheet-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .9rem; /* REV 74: 1:1 with the NEXUS board-header rhythm */
+      /* REV 75: breathing room below the header block */
+      margin-bottom: 24px;
+    }
+    /* .logo-badge infoboard trigger owned by assets/neubrutal.css (REV 86 contract) */
+
+    html[data-theme="dark"] .page-heading { color: var(--text-primary, #FBF7EE); }
+    .page-heading { color: var(--maroon-dark); } /* REV 87: page accent */
+    /* REV 86: feed-local heading scale (page-scoped override of the hoisted
+       neubrutal base — responsive clamp + tighter tracking) */
+    .page-heading {
+      font-size: clamp(26px, 4vw, 34px);
+      letter-spacing: -.5px;
+      line-height: 1.1;
+      text-transform: none;
+    }
+    .page-subtitle {
+      max-width: 460px;
+      margin: 2px 0 0;
+      color: #6c6166;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: .01em;
+    }
+    /* Mobile: Synced pill rides inline beside the heading */
+    .heading-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    @media (min-width: 1024px) {
+    }
+
+    @media (max-width: 1023.98px) {
+    }
+
+    /* + Add Announcement (unlocked only) */
+    .add-announcement-button {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font: 800 13px "Libre Franklin", sans-serif;
+      letter-spacing: .03em;
+      padding: 9px 14px;
+      background: #FFFFFF;
+      color: #591925;
+      border: 2px solid #111111;
+      border-radius: 10px;
+      box-shadow: 2px 2px 0 #111111;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms linear;
+    }
+    .add-announcement-button svg { width: 15px; height: 15px; }
+    html.boot-unlocked .add-announcement-button { display: inline-flex; }
+    .add-announcement-button:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 #111111; background: #fffdf8; }
+    .add-announcement-button:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 #111111; }
+    html[data-theme="dark"] .add-announcement-button {
+      background: var(--bg-card, #1c1917);
+      color: var(--text-primary, #FBF7EE);
+      border-color: #FFFFFF;
+      box-shadow: 2px 2px 0 #FFFFFF;
+    }
+
+    /* Password widget (site-pattern compact port) */
+    .password-widget { position: relative; }
+    .pw-tools { display: flex; align-items: center; }
+    .password-toggle {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      background: #FFFFFF; color: var(--ink);
+      border: 2px solid var(--ink); border-radius: 10px;
+      box-shadow: 2px 2px 0 var(--ink);
+      cursor: pointer;
+      transition: transform 140ms cubic-bezier(.4,0,.2,1), box-shadow 140ms cubic-bezier(.4,0,.2,1);
+    }
+    .password-toggle:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--ink); }
+    .password-toggle:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
+    .password-toggle svg { width: 16px; height: 16px; } /* REV 79: lock icon parity */
+    html[data-theme="dark"] .password-toggle { background: var(--bg-card, #1c1917); color: var(--text-primary, #FBF7EE); border-color: var(--border-structural, #FFF); }
+    .password-toggle.is-unlocked { background: #27704c; border-color: #27704c !important; color: #fff; } /* REV 80: unlocked hydration */
+    html:not(.boot-unlocked) .renotify-tool { display: none !important; }
+    /* .password-panel open/close mechanics owned by assets/neubrutal.css
+       scoped rules (sidebar slot + utilities row) — REV 86 residual cleanup */
+    .password-input-inline {
+      width: 100%;
+      padding: 8px 10px;
+      font: 700 13px "DM Sans", sans-serif;
+      border: 2px solid var(--ink); border-radius: 10px;
+      background: #FFFFFF; color: var(--ink);
+      outline: none;
+    }
+    .password-input-inline:focus { box-shadow: 0 0 0 3px rgba(122,35,49,.18); }
+
+    /* Filter pills */
+    .feed-filters {
+      display: flex; gap: 8px;
+      overflow-x: auto;
+      padding: 4px 2px 12px;
+      scrollbar-width: none;
+    }
+    .feed-filters::-webkit-scrollbar { display: none; }
+    .filter-pill {
+      flex: 0 0 auto;
+      padding: 7px 16px;
+      font: 800 12px "Libre Franklin", sans-serif;
+      letter-spacing: .02em;
+      background: #FFFFFF; color: var(--ink);
+      border: 2px solid var(--ink); border-radius: 999px;
+      box-shadow: 2px 2px 0 var(--ink);
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+    .filter-pill:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--ink); }
+    .filter-pill.is-active { background: var(--ink); color: #FBF7EE; }
+    html[data-theme="dark"] .filter-pill { background: var(--bg-card, #1c1917); color: var(--text-primary, #FBF7EE); border-color: #FFFFFF; box-shadow: 2px 2px 0 #FFFFFF; }
+    html[data-theme="dark"] .filter-pill.is-active { background: var(--maroon); color: #fff; }
+
+    /* REV 86: removed the .pinned-banner component — no markup or JS ever
+       creates it (pinning renders as card states instead) */
+
+    /* Feed cards */
+    .feed-card {
+      position: relative;
+      background: #FFFFFF;
+      border: 2px solid var(--ink);
+      border-radius: 14px;
+      box-shadow: 4px 4px 0 var(--ink);
+      padding: 14px 16px;
+      margin-bottom: 16px; /* REV 75: clean 16px card rhythm */
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    @media (hover: hover) {
+      .feed-card:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
+    }
+    /* REV 75: drag-and-drop feedback (edit mode only) */
+    .feed-card[draggable="true"] { cursor: grab; }
+    .feed-card[draggable="false"] { cursor: pointer; }
+    .feed-card.dragging { opacity: 0.45; cursor: grabbing; }
+    .feed-card.drop-target { outline: 3px dashed var(--ink); outline-offset: 3px; }
+    html[data-theme="dark"] .feed-card { background: var(--bg-card, #1c1917); border-color: #FFFFFF; box-shadow: 4px 4px 0 #FFFFFF; }
+    html[data-theme="dark"] .feed-card:hover { box-shadow: 6px 6px 0 #FFFFFF; }
+
+    /* REV 71: PINNED card = primary accent red container, inverted content,
+       solid-black pin badge */
+    .feed-card.is-pinned,
+    html[data-theme="dark"] .feed-card.is-pinned {
+      background: #9B2C2C;
+      border-color: var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+    /* REV 90: pinned cards lift identically to unpinned — the rest rule above
+       was declared after :hover and silently blocked the lift (both themes) */
+    @media (hover: hover) {
+      .feed-card.is-pinned:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
+    }
+    html[data-theme="dark"] .feed-card.is-pinned {
+      box-shadow: 4px 4px 0 #FFFFFF;
+    }
+    @media (hover: hover) {
+      html[data-theme="dark"] .feed-card.is-pinned:hover { box-shadow: 6px 6px 0 #FFFFFF; }
+    }
+    .feed-card.is-pinned .fc-title,
+    .feed-card.is-pinned .fc-meta,
+    .feed-card.is-pinned .fc-content { color: #FFFFFF; }
+    .feed-card.is-pinned .cat-chip {
+      background: rgba(255,255,255,0.92);
+      /* REV 89: hardcoded ink — var(--maroon-dark) remaps to near-white in
+         dark mode and vanished against this permanently light surface */
+      color: #6b101f;
+    }
+    .feed-card.is-pinned .pin-flag { color: #111111; }
+    .feed-card.is-pinned .pin-flag svg { color: #111111; stroke-width: 2.75; }
+    .feed-card.is-pinned .fc-readmore { color: #FFFFFF; }
+    .feed-card.is-pinned .fc-link {
+      background: #FFFFFF; color: var(--maroon-dark);
+    }
+    .feed-card.is-pinned .fc-tool {
+      background: transparent; color: #FFFFFF; border-color: #FFFFFF; box-shadow: 2px 2px 0 rgba(0,0,0,.35);
+    }
+
+    .fc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+    .cat-chip {
+      font: 800 10px "Libre Franklin", sans-serif;
+      letter-spacing: .08em; text-transform: uppercase;
+      padding: 2px 9px; border-radius: 999px;
+      /* REV 89: chip surfaces stay light in both themes — hardcode dark ink
+         (var(--ink) remaps to near-white in dark mode) */
+      border: 1.5px solid #111111;
+      background: #FBF7EE; color: #111111;
+    }
+    .cat-urgent { background: #fdecec; color: #8f1d1d; }
+    .cat-dispatch { background: #fbe9e7; color: #8B1A2B; }
+    .cat-deployment { background: #e8f0fe; color: #1e40af; }
+    .cat-training { background: #ecfdf3; color: #166534; }
+    .cat-general { background: #f4f1ea; color: #4a4034; }
+    .pin-flag { display: inline-flex; align-items: center; gap: 4px; font: 800 10px "Libre Franklin", sans-serif; color: var(--maroon-dark); }
+    .pin-flag svg { width: 12px; height: 12px; }
+    .fc-title { margin: 0 0 4px; font: 800 15.5px "Poppins", sans-serif; letter-spacing: -.2px; }
+    .fc-meta { font: 700 11px "DM Sans", sans-serif; opacity: .7; margin-bottom: 8px; }
+    .fc-content { font-size: 13.5px; font-weight: 600; line-height: 1.5; margin: 0 0 10px; }
+    .fc-content.clamped { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+    .fc-readmore {
+      background: none; border: 0; padding: 0;
+      font: 800 12px "DM Sans", sans-serif; color: var(--maroon-dark);
+      cursor: pointer; text-decoration: underline;
+      margin: -4px 0 10px;
+    }
+    .fc-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .fc-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font: 800 12px "DM Sans", sans-serif;
+      color: var(--ink); background: #FBF7EE;
+      border: 2px solid var(--ink); border-radius: 10px;
+      box-shadow: 2px 2px 0 var(--ink);
+      padding: 6px 12px; text-decoration: none;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    .fc-link:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--ink); }
+    .fc-link svg { width: 14px; height: 14px; }
+    .fc-tool {
+      width: 30px; height: 30px;
+      display: none; align-items: center; justify-content: center;
+      background: #FFFFFF; color: var(--ink);
+      border: 2px solid var(--ink); border-radius: 8px;
+      box-shadow: 2px 2px 0 var(--ink);
+      cursor: pointer;
+    }
+    .fc-tool svg { width: 14px; height: 14px; }
+    html.boot-unlocked .fc-tool { display: inline-flex; }
+    .fc-tool:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--ink); }
+    .fc-tool:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+    .fc-tool.pin-on { background: #111111; color: #FFFFFF; border-color: #111111; }
+    .fc-tool.danger:hover { background: #fdecec; }
+    html[data-theme="dark"] .fc-tool {
+      background: transparent; border-color: #FFFFFF; color: var(--text-primary, #FBF7EE); box-shadow: 2px 2px 0 #FFFFFF;
+    }
+    .fc-spacer { flex: 1 1 auto; }
+
+    /* Compose / reader / infoboard layers share one dialog treatment */
+    .compose-layer {
+      position: fixed; inset: 0; z-index: 90;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(20, 8, 12, 0.45);
+      padding: 18px;
+    }
+    .compose-layer.is-open { display: flex; }
+    .compose-dialog {
+      width: min(560px, 100%);
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+      background: #FBF7EE;
+      border: 3px solid var(--ink);
+      border-radius: 16px;
+      box-shadow: 6px 6px 0 var(--ink);
+      padding: 18px;
+    }
+    html[data-theme="dark"] .compose-dialog { background: var(--bg-card, #1c1917); border-color: #FFFFFF; box-shadow: 6px 6px 0 #FFFFFF; }
+    .compose-dialog h3 { margin: 0 0 14px; font: 900 18px "Poppins", sans-serif; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font: 800 11px "Libre Franklin", sans-serif; letter-spacing: .04em; margin-bottom: 5px; }
+    .field input[type="text"], .field input[type="url"], .field select, .field textarea {
+      width: 100%;
+      font: 600 13.5px "DM Sans", sans-serif;
+      padding: 9px 11px;
+      border: 2px solid var(--ink); border-radius: 10px;
+      background: #FFFFFF; color: var(--ink);
+      outline: none;
+    }
+    .field textarea { min-height: 110px; resize: vertical; }
+    .field-check { display: flex; align-items: center; gap: 8px; font: 700 13px "DM Sans", sans-serif; margin-bottom: 14px; }
+        /* dialog-actions moved to neubrutal.css (Rule 1) */
+
+    .btn {
+      font: 800 13px "Libre Franklin", sans-serif;
+      padding: 9px 18px;
+      border: 2px solid var(--ink); border-radius: 10px;
+      box-shadow: 2px 2px 0 var(--ink);
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    .btn:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--ink); }
+    .btn:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+    .btn-primary { background: var(--maroon); color: #fff; }
+    .btn-ghost { background: #FFFFFF; color: var(--ink); }
+
+    /* Reader modal payload */
+    .reader-cat { margin-bottom: 10px; }
+    .reader-title { margin: 0 0 6px; font: 900 20px "Poppins", sans-serif; letter-spacing: -.3px; }
+    .reader-meta { font: 700 12px "DM Sans", sans-serif; opacity: .72; margin-bottom: 12px; }
+    .reader-body {
+      font-size: 14px; font-weight: 600; line-height: 1.6;
+      white-space: pre-line;
+      margin: 0 0 14px;
+    }
+    .infoboard-list { margin: 0; padding-left: 18px; font-size: 13.5px; font-weight: 600; line-height: 1.65; }
+    .infoboard-list li { margin-bottom: 6px; }
+
+    .feed-empty {
+      text-align: center;
+      font: 800 14px "DM Sans", sans-serif;
+      opacity: .75;
+      padding: 30px 10px;
+    }
+
+    /* Locked-action toast */
+
+    @media (min-width: 1024px) {
+      .mobile-bottom-nav, .fab { display: none !important; }
+    }
+  </style>
+  <link rel="stylesheet" href="assets/neubrutal.css">
+</head>
+<body class="feed-page">
+  <div id="app-content">
+  <div class="password-row" data-parking>
+<div class="password-widget" id="passwordWidget">
+            <div class="pw-tools" id="pwTools">
+            <button type="button" class="password-toggle" id="passwordToggle" aria-expanded="false" aria-label="Toggle edit lock" title="Edit lock"><i data-lucide="lock" aria-hidden="true"></i></button>
+            <div class="password-panel">
+              <input class="password-input-inline" id="passwordInput" type="password" placeholder="Input Password" autocomplete="off" spellcheck="false" aria-label="Edit password">
+            </div>
+          </div>
+        </div>
+  </div>
+  <main class="board-shell">
+  <div class="utilities-row" id="mobileUtilities" aria-label="Utility controls"></div>
+    <section class="sheet">
+      <header class="sheet-header">
+        <div class="brand-group">
+        <div class="heading-row">
+         <button type="button" class="logo-badge" id="feedInfoboardButton" aria-controls="feed-infoboard" aria-expanded="false" aria-label="How the announcements board works">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>
+         </button>
+         <h1 class="page-heading">ALERTS</h1>
+            <span id="sync-pill" class="sync-pill"><span class="sync-dot" aria-hidden="true"></span><span id="sync-pill-text">Synced</span></span>
+          </div>
+          <p class="page-subtitle">Operational dispatches — every announcement, one board.</p>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="add-announcement-button arc-action" id="addAnnouncementButton"><i data-lucide="plus" aria-hidden="true"></i><span>Add Announcement</span></button>
+        </div>
+      </header>
+
+      <!-- REV 74: lock + theme live in the Action Board sidebar (desktop) or
+           the utilities strip (mobile); this row is their parking spot. -->
+
+      <div class="feed-filters" role="tablist" aria-label="Announcement categories">
+        <button type="button" class="filter-pill is-active" data-filter="All">All</button>
+        <button type="button" class="filter-pill" data-filter="Urgent">Urgent</button>
+        <button type="button" class="filter-pill" data-filter="Operational Dispatch">Operational Dispatch</button>
+        <button type="button" class="filter-pill" data-filter="Deployment">Deployments</button>
+        <button type="button" class="filter-pill" data-filter="Training">Training</button>
+        <button type="button" class="filter-pill" data-filter="General">General</button>
+      </div>
+      <section id="feed-stream" aria-label="Announcements feed" data-cloak></section>
+    </section>
+  </main>
+
+  <!-- REV 71: utilities strip is a body-level HUD (fixed, centered) -->
+
+  <!-- Shared-layout navigation -->
+      <button type="button" class="fab" id="pageFab" aria-label="Compose announcement" title="Compose announcement"><i data-lucide="plus" aria-hidden="true"></i></button>
+</div><!-- /#app-content (REV 76 SPA dynamic view container) -->
+  <button id="sidebar-expand-btn" class="sidebar-expand-btn" type="button" aria-label="Expand sidebar" title="Show sidebar">
+   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m13 15 3-3-3-3"/></svg>
+  </button>
+<aside class="desktop-sidebar" data-arc-shell id="app-sidebar" aria-label="Primary">
+   <div class="sidebar-brand">
+    <a href="index.html" class="sidebar-logo-link" aria-label="Go to Home" title="Go to Home"><img src="assets/logo.png" alt="ARC logo" class="sidebar-logo"></a>
+    <div><span class="sidebar-title">ARC</span></div>
+    <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" type="button" aria-label="Toggle sidebar" title="Collapse sidebar">
+     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><polyline points="15 10 13 12 15 14"/></svg>
+    </button>
+   </div>
+   <nav class="sidebar-nav" aria-label="Modules">
+    <a href="index.html" class="sidebar-link"><i data-lucide="home" aria-hidden="true"></i><span>Home</span></a>
+    <a href="NEXUS.html" class="sidebar-link"><i data-lucide="qr-code" aria-hidden="true"></i><span>Nexus</span></a>
+    <a href="core.html" class="sidebar-link"><i data-lucide="list-checks" aria-hidden="true"></i><span>Core</span></a>
+    <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="sidebar-link"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>Tracker</span></a>
+     <a href="feed.html" class="sidebar-link sidebar-notif-link is-active"><i data-lucide="bell" aria-hidden="true"></i><span>Alerts</span><span class="notif-badge" aria-hidden="true"></span></a>
+     <a href="settings.html" class="sidebar-link"><i data-lucide="settings" aria-hidden="true"></i><span>Settings</span></a>
+   </nav>
+   <div class="sidebar-footer">
+    <div class="utility-cluster">
+     <button id="tourToggle" class="tour-toggle" type="button" aria-label="Start walkthrough tour" aria-haspopup="dialog"><i data-lucide="help-circle" aria-hidden="true"></i></button>
+     <button id="soundToggle" class="sound-toggle" type="button" role="switch" aria-checked="true" aria-label="Sound on"><i data-lucide="volume-2" aria-hidden="true"></i><i data-lucide="volume-x" aria-hidden="true"></i></button>
+     <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button>
+     <div class="sidebar-widget-slot" id="sidebarWidgetSlot">
+</div>
+    </div>
+    <div class="sidebar-sync-slot" id="sidebarSyncSlot">
+     <!-- REV 74: universal Synced status capsule (below the utility stack) -->
+     <div class="sync-status-capsule inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border-[1.5px] border-[#111111] dark:border-white bg-[#FFFFFF] dark:bg-[#1E1E1E] shadow-[1px_1px_0px_#111111] dark:shadow-[1px_1px_0px_#FFFFFF] mt-3 select-none" id="sync-capsule">
+      <span class="relative flex h-2 w-2">
+       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 capsule-dot-ping"></span>
+       <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 capsule-dot-core"></span>
+      </span>
+      <span class="text-[11px] font-bold text-[#111111] dark:text-white tracking-tight leading-none capsule-label">Synced</span>
+     </div>
+    </div>
+   </div>
+  </aside>
+
+  <nav class="mobile-bottom-nav" data-arc-shell aria-label="Primary">
+   <a href="index.html" class="mn-item"><i data-lucide="home" aria-hidden="true"></i><span>Home</span></a>
+   <a href="NEXUS.html" class="mn-item"><i data-lucide="qr-code" aria-hidden="true"></i><span>NEXUS</span></a>
+   <a href="core.html" class="mn-item"><i data-lucide="list-checks" aria-hidden="true"></i><span>CORE</span></a>
+   <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="mn-item mn-tracker"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>TRACKER</span></a>
+    <a href="feed.html" class="mn-item mn-feed is-active">
+      <span class="mn-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-badge" aria-hidden="true"></span>
+      </span>
+      <span>Alerts</span>
+    </a>
+   <a href="settings.html" class="mn-item mn-settings"><i data-lucide="settings" aria-hidden="true"></i><span>Settings</span></a>
+   </nav>
+
+
+  <!-- Compose / edit modal -->
+  <div class="compose-layer" id="compose-layer" role="dialog" aria-modal="true" aria-labelledby="compose-title-el">
+    <div class="compose-dialog">
+      <h3 id="compose-title-el">New Announcement</h3>
+      <div class="field">
+        <label for="compose-cat">Category</label>
+        <select id="compose-cat">
+          <option value="General">General</option>
+          <option value="Urgent">Urgent</option>
+          <option value="Operational Dispatch">Operational Dispatch</option>
+          <option value="Deployment">Deployment</option>
+          <option value="Training">Training</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="compose-heading">Title</label>
+        <input type="text" id="compose-heading" maxlength="120" placeholder="Announcement title">
+      </div>
+      <div class="field">
+        <label>Content</label>
+        <div class="rt-toolbar" id="rt-toolbar" role="toolbar" aria-label="Text formatting">
+         <button type="button" data-cmd="bold" title="Bold" aria-label="Bold"><b>B</b></button>
+         <button type="button" data-cmd="italic" title="Italic" aria-label="Italic"><i>I</i></button>
+         <button type="button" data-cmd="underline" title="Underline" aria-label="Underline"><u>U</u></button>
+         <button type="button" data-cmd="strikeThrough" title="Strikethrough" aria-label="Strikethrough"><s>S</s></button>
+         <button type="button" data-block="h1" title="Heading 1" aria-label="Heading 1">H1</button>
+         <button type="button" data-block="h2" title="Heading 2" aria-label="Heading 2">H2</button>
+        </div>
+        <div id="compose-body" class="rt-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Write the dispatch…"></div>
+      </div>
+      <div class="field">
+        <label for="compose-link">External link (optional)</label>
+        <input type="url" id="compose-link" placeholder="https://…">
+      </div>
+      <label class="field-check"><input type="checkbox" id="compose-pin"> Pin as urgent</label>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-ghost" id="compose-cancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="compose-save">Publish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REV 71: announcement detail view -->
+  <div class="compose-layer feed-reader" id="feed-reader" role="dialog" aria-modal="true" aria-labelledby="reader-title">
+    <div class="compose-dialog">
+      <div class="reader-cat" id="reader-cat"></div>
+      <h3 class="reader-title" id="reader-title"></h3>
+      <div class="reader-meta" id="reader-meta"></div>
+      <p class="reader-body" id="reader-body"></p>
+      <div class="fc-actions" id="reader-links"></div>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-primary" id="reader-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REV 71: infoboard (?) help modal -->
+  <div class="compose-layer" id="feed-infoboard" role="dialog" aria-modal="true" aria-labelledby="infoboard-title">
+    <div class="compose-dialog">
+      <h3 id="infoboard-title">How the Announcements Board Works</h3>
+      <ul class="infoboard-list">
+        <li><strong>Browse:</strong> scroll the stream — urgent announcements pinned by editors render red with a pin icon and always sort to the top.</li>
+        <li><strong>Filter:</strong> swipe or tap the category pills (Urgent, Operational Dispatch, Deployments, Training, General) to narrow the feed instantly.</li>
+        <li><strong>Read:</strong> tap any card to open the full announcement, complete with author, timestamp, and external action links.</li>
+        <li><strong>Compose:</strong> unlock editing, then press <em>+ Add Announcement</em> or the floating + button to publish a new dispatch.</li>
+        <li><strong>Manage:</strong> editors can Pin as urgent, edit, or delete any card from its action icons — multiple pins stay active at once; the bell badge tracks unread dispatches until you open this page.</li>
+      </ul>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-primary" id="infoboard-close">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete confirmation -->
+  <div class="compose-layer" id="delete-layer" role="dialog" aria-modal="true">
+    <div class="compose-dialog" style="width:min(420px,100%)">
+      <h3>Delete Announcement?</h3>
+      <p style="font:600 13.5px 'DM Sans',sans-serif;margin:0 0 16px" id="delete-copy">This removes the dispatch for every member.</p>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-ghost" id="delete-cancel">Keep</button>
+        <button type="button" class="btn btn-primary" id="delete-confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Re-notify confirmation -->
+  <div class="compose-layer" id="renotify-layer" role="dialog" aria-modal="true">
+    <div class="compose-dialog" style="width:min(420px,100%)">
+      <h3>Resend Notification?</h3>
+      <p style="font:600 13.5px 'DM Sans',sans-serif;margin:0 0 16px">Are you sure you want to resend this notification push?</p>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-ghost" id="renotify-cancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="renotify-confirm">Resend</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ---------- Permission (persistent two-tier lock, site pattern) ---------- */
+    const CORRECT_PASSWORD = 'arc143';
+    let editLocked = window.__ARC_BOOT ? window.__ARC_BOOT.locked !== false : true;
+    const passwordWidget = document.getElementById('passwordWidget');
+    const passwordToggle = document.getElementById('passwordToggle');
+    const passwordInput = document.getElementById('passwordInput');
+    const pwTools = document.getElementById('pwTools');
+
+    function applyLockState() {
+      /* REV 80: hydrate the lock visual (NEXUS/CORE convention) — the toggle
+         is a persistent singleton node, so this is idempotent per state */
+      passwordToggle.classList.toggle('is-unlocked', !editLocked);
+      passwordToggle.setAttribute('aria-label', editLocked ? 'Toggle edit lock' : 'Lock editing');
+      const desiredIcon = editLocked ? 'lock' : 'unlock';
+      if (!passwordToggle.querySelector('svg') || passwordToggle.dataset.icon !== desiredIcon) {
+        passwordToggle.dataset.icon = desiredIcon;
+        passwordToggle.innerHTML = '<i data-lucide="' + desiredIcon + '" aria-hidden="true"></i>';
+        if (window.lucide) lucide.createIcons();
+      }
+      passwordToggle.setAttribute('aria-expanded', String(!editLocked));
+      document.querySelectorAll('.fc-tool').forEach(el => { el.disabled = editLocked; });
+      /* REV 75: keep card draggability in lockstep with the lock */
+      document.querySelectorAll('.feed-card').forEach(c => { c.draggable = !editLocked; });
+      const fab = document.getElementById('pageFab');
+      if (fab) fab.hidden = editLocked;
+      const addBtn = document.getElementById('addAnnouncementButton');
+      if (addBtn) addBtn.disabled = editLocked;
+      document.documentElement.classList.toggle('boot-unlocked', !editLocked);
+    }
+    function flashNotice(msg) {
+      let t = document.getElementById('lockToast');
+      if (!t) { t = document.createElement('div'); t.id = 'lockToast'; t.className = 'lock-toast'; document.body.appendChild(t); }
+      t.textContent = msg || 'Unlock editing to make changes.';
+      t.classList.add('is-visible');
+      clearTimeout(flashNotice._t);
+      flashNotice._t = setTimeout(() => t.classList.remove('is-visible'), 2200);
+    }
+    passwordToggle.addEventListener('click', () => {
+      if (editLocked) {
+        const open = pwTools.classList.contains('is-open');
+        pwTools.classList.toggle('is-open', !open);
+        passwordToggle.setAttribute('aria-expanded', String(!open));
+        setTimeout(() => { if (pwTools.classList.contains('is-open')) passwordInput.focus({ preventScroll: true }); }, 60);
+      } else {
+        /* REV 72: relocking any board drops Tier 2 globally */
+        editLocked = true;
+        try { localStorage.setItem('arc_auth_tier2', 'false'); } catch (e) {}
+        pwTools.classList.remove('is-open');
+        applyLockState();
+      }
+    });
+    passwordInput.addEventListener('input', () => {
+      if (passwordInput.value === CORRECT_PASSWORD) {
+        editLocked = false;
+        try { localStorage.setItem('arc_auth_tier2', 'true'); } catch (e) {}
+        passwordInput.value = '';
+        pwTools.classList.remove('is-open');
+        applyLockState();
+      }
+    });
+    passwordInput.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') pwTools.classList.remove('is-open');
+      if (ev.key === 'Enter' && passwordInput.value && passwordInput.value !== CORRECT_PASSWORD) {
+        passwordInput.value = '';
+      }
+    });
+
+    /* ---------- REV 74: unified Action Board relocation (NEXUS parity) ----------
+       Desktop: lock+theme widget joins the sidebar cluster; tour/sound are
+       static cluster buttons. Mobile: the real controls relocate into the
+       utilities strip — no clones, one source of truth per control. */
+    (function () {
+      var utilRow = document.getElementById('mobileUtilities');
+      var pw = document.getElementById('passwordWidget');
+      var themeBtn = document.getElementById('themeToggle');
+      var soundBtn = document.getElementById('soundToggle');
+      var tourBtn = document.getElementById('tourToggle');
+      var pwTools = document.getElementById('pwTools');
+      var widgetSlot = document.getElementById('sidebarWidgetSlot');
+      var cluster = document.querySelector('.utility-cluster');
+      var mq = window.matchMedia('(min-width:1024px)');
+      function layout() {
+        var desktop = mq.matches;
+        if (desktop) {
+          if (widgetSlot && pw) widgetSlot.appendChild(pw);
+          if (soundBtn && cluster && !cluster.contains(soundBtn)) cluster.insertBefore(soundBtn, widgetSlot);
+          if (themeBtn && cluster && !cluster.contains(themeBtn)) cluster.insertBefore(themeBtn, widgetSlot);
+          if (tourBtn && cluster && !cluster.contains(tourBtn)) cluster.insertBefore(tourBtn, soundBtn);
+          if (utilRow) utilRow.style.display = 'none';
+        } else {
+          if (utilRow) {
+            utilRow.style.display = 'flex';
+            /* REV 77: shared utility order ? -> sound -> theme -> lock */
+            if (tourBtn) utilRow.appendChild(tourBtn);
+            if (soundBtn) utilRow.appendChild(soundBtn);
+            if (themeBtn) utilRow.appendChild(themeBtn);
+            if (pwTools) utilRow.appendChild(pwTools);
+          }
+        }
+        lucide.createIcons();
+      }
+      layout();
+
+      /* REV 80c: ALERTS has no search feature — remove the toggle */
+      window.__arcRegisterLayout(mq, layout); /* REV 87: retire-on-swap (see spa.js) */
+    })();
+
+    /* Theme / sound / tour handlers on the REAL buttons (single binding) */
+    (function () {
+      var themeBtn = document.getElementById('themeToggle');
+      if (themeBtn) themeBtn.addEventListener('click', function () {
+        var root = document.documentElement;
+        var dark = root.getAttribute('data-theme') === 'dark';
+        if (dark) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', 'dark');
+        try { localStorage.setItem('arc-theme', dark ? 'light' : 'dark'); } catch (e) {}
+      });
+      var soundBtn = document.getElementById('soundToggle');
+      if (soundBtn) soundBtn.addEventListener('click', function () {
+        var off = document.documentElement.getAttribute('data-sound') === 'off';
+        if (off) document.documentElement.removeAttribute('data-sound');
+        else document.documentElement.setAttribute('data-sound', 'off');
+        try { localStorage.setItem('arc_sound_enabled', off ? 'true' : 'false'); } catch (e) {}
+      });
+      var tourBtn = document.getElementById('tourToggle');
+      if (tourBtn) tourBtn.addEventListener('click', function () {
+        if (window.ArcTour) window.ArcTour.startFrom('settings');
+      });
+    })();
+
+    /* ---------- FEED application ---------- */
+    const streamEl = document.getElementById('feed-stream');
+    const syncEl = document.getElementById('sync-pill');
+    const syncText = document.getElementById('sync-pill-text');
+    const composeLayer = document.getElementById('compose-layer');
+    const deleteLayer = document.getElementById('delete-layer');
+    const renotifyLayer = document.getElementById('renotify-layer');
+    const readerLayer = document.getElementById('feed-reader');
+    let allItems = [];
+    let activeFilter = 'All';
+    let editingId = null;
+    let deletingId = null;
+    let renotifyId = null;
+
+    function setSync(state) {
+      /* REV 74: drive BOTH indicators — mobile inline pill + sidebar capsule */
+      syncEl.classList.remove('saving', 'error');
+      const cap = document.getElementById('sync-capsule');
+      if (cap) cap.classList.remove('is-saving', 'is-error');
+      if (state === 'saving') syncEl.classList.add('saving');
+      else if (state === 'error') syncEl.classList.add('error');
+      if (cap && state === 'saving') cap.classList.add('is-saving');
+      else if (cap && state === 'error') cap.classList.add('is-error');
+      const label = state === 'error' ? 'Sync failed' : (state === 'saving' ? 'Saving…' : 'Synced');
+      syncText.textContent = label;
+      const capLabel = cap ? cap.querySelector('.capsule-label') : null;
+      if (capLabel) capLabel.textContent = label;
+    }
+
+    function esc(s) {
+      return String(s === undefined || s === null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /* ---------- REV 76: rich text storage/rendering helpers ---------- */
+    const RT_ALLOWED = { B: 1, STRONG: 1, I: 1, EM: 1, U: 1, S: 1, STRIKE: 1, H1: 1, H2: 1, H3: 1, P: 1, BR: 1, DIV: 1, SPAN: 1, UL: 1, OL: 1, LI: 1, A: 1 };
+    function sanitizeRich(root) {
+      [...root.querySelectorAll('*')].forEach(el => {
+        if (!RT_ALLOWED[el.tagName]) {
+          const parent = el.parentNode;
+          if (parent) { while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el); }
+          return;
+        }
+        [...el.attributes].forEach(attr => {
+          const n = attr.name.toLowerCase();
+          if (n === 'href' && /^https?:/i.test(attr.value)) return;
+          el.removeAttribute(attr.name);
+        });
+        sanitizeRich(el);
+      });
+      return root;
+    }
+    function stripTags(html) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = String(html === undefined || html === null ? '' : html);
+      return tmp.textContent || '';
+    }
+    /* Render stored content for display/edit: legacy plain text (no tags,
+       newline-separated from the old textarea) gets escaped + <br>; rich
+       content passes through the whitelist sanitizer. */
+    function renderStoredBody(content) {
+      const raw = String(content === undefined || content === null ? '' : content);
+      if (!/<[a-z][\s\S]*>/i.test(raw)) {
+        return esc(raw).replace(/\r?\n/g, '<br>');
+      }
+      const tmp = document.createElement('div');
+      tmp.innerHTML = raw;
+      return sanitizeRich(tmp).innerHTML;
+    }
+
+    function fmtTime(ts) {
+      const d = new Date(ts);
+      if (isNaN(d)) return '';
+      const diff = Date.now() - d.getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + 'h ago';
+      if (hrs < 24 * 7) return Math.floor(hrs / 24) + 'd ago';
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
+             (d.getFullYear() !== new Date().getFullYear() ? ', ' + d.getFullYear() : '');
+    }
+
+    function catClass(cat) {
+      const c = String(cat || 'General').toLowerCase();
+      if (c.startsWith('urgent')) return 'cat-urgent';
+      if (c.includes('dispatch')) return 'cat-dispatch';
+      if (c.startsWith('deploy')) return 'cat-deployment';
+      if (c.startsWith('train')) return 'cat-training';
+      return 'cat-general';
+    }
+
+    function cardHtml(item) {
+      const link = item.externalLink
+        ? '<a class="fc-link" href="' + esc(item.externalLink) + '" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link" aria-hidden="true"></i>Open link</a>'
+        : '';
+      return '' +
+        '<article class="feed-card' + (item.isPinned ? ' is-pinned' : '') + '" data-feed-id="' + esc(item.id) + '">' +
+          '<div class="fc-top">' +
+            '<span class="cat-chip ' + catClass(item.category) + '">' + esc(item.category) + '</span>' +
+            (item.isPinned ? '<span class="pin-flag"><i data-lucide="pin" aria-hidden="true"></i>PINNED</span>' : '') +
+            '<span class="fc-spacer"></span>' +
+            '<button type="button" class="fc-tool renotify-tool" data-act="renotify" title="Re-notify" aria-label="Re-notify"><i data-lucide="megaphone" aria-hidden="true"></i></button>' +
+            '<button type="button" class="fc-tool' + (item.isPinned ? ' pin-on' : '') + '" data-act="pin" title="Pin as urgent" aria-label="Pin as urgent"><i data-lucide="pin" aria-hidden="true"></i></button>' +
+            '<button type="button" class="fc-tool" data-act="edit" title="Edit" aria-label="Edit announcement"><i data-lucide="pencil" aria-hidden="true"></i></button>' +
+            '<button type="button" class="fc-tool danger" data-act="delete" title="Delete" aria-label="Delete announcement"><i data-lucide="trash-2" aria-hidden="true"></i></button>' +
+          '</div>' +
+          '<h3 class="fc-title">' + esc(item.title) + '</h3>' +
+          '<div class="fc-meta">' + esc(item.author || 'ARC Council') + ' · ' + fmtTime(item.timestamp) + '</div>' +
+          '<p class="fc-content clamped">' + esc(stripTags(item.content)) + '</p>' +
+          '<button type="button" class="fc-readmore" hidden>Read more</button>' +
+          '<div class="fc-actions">' + link + '</div>' +
+        '</article>';
+    }
+
+    function render() {
+      /* REV 74 multi-pin + REV 75 custom order: pinned first, then the
+         locally persisted drag order (arc_feed_order) within each group. */
+      const matches = allItems.filter(it => activeFilter === 'All' || it.category === activeFilter);
+      let customOrder = [];
+      try { customOrder = JSON.parse(localStorage.getItem('arc_feed_order') || '[]'); } catch (e) {}
+      const oidx = id => { const i = customOrder.indexOf(id); return i === -1 ? 999999 : i; };
+      const ordered = matches.slice().sort((a, b) =>
+        ((b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0)) || (oidx(a.id) - oidx(b.id)));
+
+      streamEl.innerHTML = ordered.map(cardHtml).join('') ||
+        '<p class="feed-empty">No announcements in this category yet.</p>';
+
+      streamEl.querySelectorAll('.feed-card').forEach(card => {
+        const id = card.getAttribute('data-feed-id');
+        /* REV 75: dragging is an edit-mode exclusive capability */
+        card.draggable = !editLocked;
+        const content = card.querySelector('.fc-content');
+        const moreBtn = card.querySelector('.fc-readmore');
+        if (content.scrollHeight > content.clientHeight + 2) moreBtn.hidden = false;
+        moreBtn.addEventListener('click', ev => {
+          ev.stopPropagation();
+          const clampedNow = content.classList.toggle('clamped');
+          moreBtn.textContent = clampedNow ? 'Read more' : 'Show less';
+        });
+        card.querySelectorAll('.fc-tool').forEach(btn => {
+          btn.addEventListener('click', ev => {
+            ev.stopPropagation();
+            if (editLocked) { flashNotice(); return; }
+            const act = btn.getAttribute('data-act');
+            if (act === 'edit') openCompose(id);
+            else if (act === 'pin') {
+              /* REV 75: strict ceiling — max 3 simultaneous urgent pins */
+              const target = allItems.filter(it => it.id === id)[0];
+              const others = allItems.filter(it => it.isPinned && it.id !== id).length;
+              if (target && !target.isPinned && others >= 3) {
+                flashNotice('Maximum of 3 urgent announcements can be pinned simultaneously.');
+                return;
+              }
+              setSync('saving');
+              ArcFeed.togglePin(id).then(list => { allItems = list; render(); setSync('synced'); });
+            } else if (act === 'renotify') {
+              renotifyId = id;
+              renotifyLayer.classList.add('is-open');
+            } else if (act === 'delete') {
+              deletingId = id;
+              deleteLayer.classList.add('is-open');
+            }
+          });
+        });
+      });
+
+      lucide.createIcons();
+      streamEl.removeAttribute('data-cloak');
+    }
+
+    /* REV 71: detail view — clicking a card opens the full reading modal */
+    function openReader(id) {
+      const item = allItems.filter(it => it.id === id)[0];
+      if (!item) return;
+      document.getElementById('reader-cat').innerHTML =
+        '<span class="cat-chip ' + catClass(item.category) + '">' + esc(item.category) + '</span>' +
+        (item.isPinned ? ' <span class="pin-flag"><i data-lucide="pin" aria-hidden="true"></i>PINNED</span>' : '');
+      document.getElementById('reader-title').textContent = item.title;
+      document.getElementById('reader-meta').textContent =
+        (item.author || 'ARC Council') + ' · ' + new Date(item.timestamp).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+      document.getElementById('reader-body').innerHTML = renderStoredBody(item.content);
+      document.getElementById('reader-links').innerHTML = item.externalLink
+        ? '<a class="fc-link" href="' + esc(item.externalLink) + '" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link" aria-hidden="true"></i>Open external link</a>'
+        : '';
+      lucide.createIcons();
+      readerLayer.classList.add('is-open');
+    }
+    streamEl.addEventListener('click', ev => {
+      if (ev.target.closest('.fc-tool') || ev.target.closest('.fc-link') || ev.target.closest('.fc-readmore')) return;
+      const card = ev.target.closest('.feed-card');
+      if (card) openReader(card.getAttribute('data-feed-id'));
+    });
+
+    /* ---------- REV 75: drag-and-drop reordering (edit mode exclusive) ---------- */
+    (function () {
+      let dragId = null;
+      const clearDrops = () => streamEl.querySelectorAll('.feed-card.drop-target').forEach(c => c.classList.remove('drop-target'));
+      streamEl.addEventListener('dragstart', ev => {
+        if (editLocked) { ev.preventDefault(); return; }
+        const card = ev.target.closest('.feed-card');
+        if (!card) return;
+        dragId = card.getAttribute('data-feed-id');
+        card.classList.add('dragging');
+        try { ev.dataTransfer.setData('text/plain', dragId); } catch (e) {}
+        ev.dataTransfer.effectAllowed = 'move';
+      });
+      streamEl.addEventListener('dragover', ev => {
+        if (editLocked || !dragId) return;
+        ev.preventDefault();
+        ev.dataTransfer.dropEffect = 'move';
+        const card = ev.target.closest('.feed-card');
+        clearDrops();
+        if (card && card.getAttribute('data-feed-id') !== dragId) card.classList.add('drop-target');
+      });
+      streamEl.addEventListener('drop', ev => {
+        if (editLocked || !dragId) return;
+        ev.preventDefault();
+        clearDrops();
+        const card = ev.target.closest('.feed-card');
+        if (!card) { dragId = null; return; }
+        const targetId = card.getAttribute('data-feed-id');
+        if (targetId === dragId) { dragId = null; return; }
+        const seq = [...streamEl.querySelectorAll('.feed-card')].map(c => c.getAttribute('data-feed-id'));
+        const from = seq.indexOf(dragId);
+        const to = seq.indexOf(targetId);
+        if (from === -1 || to === -1) { dragId = null; return; }
+        seq.splice(to, 0, seq.splice(from, 1)[0]);
+        try { localStorage.setItem('arc_feed_order', JSON.stringify(seq)); } catch (e) {}
+        dragId = null;
+        render();
+      });
+      streamEl.addEventListener('dragend', () => {
+        dragId = null;
+        streamEl.querySelectorAll('.feed-card').forEach(c => c.classList.remove('dragging', 'drop-target'));
+      });
+    })();
+
+    function loadFeed() {
+      setSync('saving');
+      ArcFeed.fetchAnnouncements().then(list => {
+        allItems = list;
+        render();
+        setSync('synced');
+        if (window.__ARC_BOOT && window.__ARC_BOOT.feedPage) {
+          setTimeout(() => ArcFeed.markAllRead(allItems), 350);
+        }
+      }).catch(() => {
+        allItems = ArcFeed.seeds;
+        render();
+        setSync('error');
+      });
+    }
+
+    function openCompose(id) {
+      editingId = id || null;
+      const item = id ? allItems.filter(it => it.id === id)[0] : null;
+      document.getElementById('compose-title-el').textContent = item ? 'Edit Announcement' : 'New Announcement';
+      document.getElementById('compose-cat').value = item ? (item.category || 'General') : 'General';
+      document.getElementById('compose-heading').value = item ? item.title : '';
+      document.getElementById('compose-body').innerHTML = item ? renderStoredBody(item.content) : '';
+      document.getElementById('compose-link').value = item ? (item.externalLink || '') : '';
+      document.getElementById('compose-pin').checked = item ? !!item.isPinned : false;
+      composeLayer.classList.add('is-open');
+      setTimeout(() => document.getElementById('compose-heading').focus({ preventScroll: true }), 60);
+    }
+
+    function closeCompose() { composeLayer.classList.remove('is-open'); editingId = null; }
+
+    document.getElementById('pageFab').addEventListener('click', () => {
+      if (editLocked) { flashNotice(); return; }
+      openCompose(null);
+    });
+    document.getElementById('addAnnouncementButton').addEventListener('click', () => {
+      if (editLocked) { flashNotice(); return; }
+      openCompose(null);
+    });
+    document.getElementById('compose-cancel').addEventListener('click', closeCompose);
+
+    /* ---------- REV 76: rich text formatting toolbar ---------- */
+    (function () {
+      const editor = document.getElementById('compose-body');
+      const toolbar = document.getElementById('rt-toolbar');
+      if (!editor || !toolbar) return;
+      toolbar.addEventListener('mousedown', ev => {
+        const btn = ev.target.closest('button');
+        if (!btn) return;
+        ev.preventDefault(); // keep the editor selection
+        if (btn.dataset.cmd) {
+          document.execCommand(btn.dataset.cmd, false, null);
+        } else if (btn.dataset.block) {
+          const sel = window.getSelection();
+          const node = sel && sel.anchorNode ? (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement) : null;
+          const current = node ? node.closest('h1,h2,h3') : null;
+          const already = current && current.tagName.toLowerCase() === btn.dataset.block;
+          document.execCommand('formatBlock', false, already ? 'p' : '<' + btn.dataset.block + '>');
+        }
+        refreshStates();
+      });
+      function refreshStates() {
+        [...toolbar.querySelectorAll('button[data-cmd]')].forEach(btn => {
+          let on = false;
+          try { on = document.queryCommandState(btn.dataset.cmd); } catch (e) {}
+          btn.classList.toggle('rt-on', on);
+        });
+        const sel = window.getSelection();
+        const node = sel && sel.anchorNode && editor.contains(sel.anchorNode)
+          ? (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement) : null;
+        const block = node ? node.closest('h1,h2,h3') : null;
+        [...toolbar.querySelectorAll('button[data-block]')].forEach(btn => {
+          btn.classList.toggle('rt-on', !!block && block.tagName.toLowerCase() === btn.dataset.block);
+        });
+      }
+      document.addEventListener('selectionchange', () => {
+        if (composeLayer.classList.contains('is-open')) refreshStates();
+      });
+    })();
+    composeLayer.addEventListener('click', ev => { if (ev.target === composeLayer) closeCompose(); });
+    document.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') {
+        closeCompose();
+        deleteLayer.classList.remove('is-open');
+        renotifyLayer.classList.remove('is-open');
+        readerLayer.classList.remove('is-open');
+        infoboardLayer.classList.remove('is-open');
+      }
+    });
+    readerLayer.addEventListener('click', ev => { if (ev.target === readerLayer) readerLayer.classList.remove('is-open'); });
+    document.getElementById('reader-close').addEventListener('click', () => readerLayer.classList.remove('is-open'));
+
+    /* Infoboard (?) modal */
+    const infoboardLayer = document.getElementById('feed-infoboard');
+    const infoboardBtn = document.getElementById('feedInfoboardButton');
+    infoboardBtn.addEventListener('click', () => {
+      infoboardLayer.classList.add('is-open');
+      infoboardBtn.setAttribute('aria-expanded', 'true');
+    });
+    document.getElementById('infoboard-close').addEventListener('click', () => {
+      infoboardLayer.classList.remove('is-open');
+      infoboardBtn.setAttribute('aria-expanded', 'false');
+    });
+    infoboardLayer.addEventListener('click', ev => {
+      if (ev.target === infoboardLayer) { infoboardLayer.classList.remove('is-open'); infoboardBtn.setAttribute('aria-expanded', 'false'); }
+    });
+
+    document.getElementById('compose-save').addEventListener('click', () => {
+      const title = document.getElementById('compose-heading').value.trim();
+      const editor = document.getElementById('compose-body');
+      const content = editor.innerHTML.trim();
+      if (!title || !editor.textContent.trim()) { flashNotice('Title and content are required.'); return; }
+      /* REV 75: compose/edit path honors the same 3-pin ceiling */
+      const wantsPin = document.getElementById('compose-pin').checked;
+      if (wantsPin) {
+        const others = allItems.filter(it => it.isPinned && it.id !== editingId).length;
+        if (others >= 3) {
+          flashNotice('Maximum of 3 urgent announcements can be pinned simultaneously.');
+          return;
+        }
+      }
+      const payload = {
+        category: document.getElementById('compose-cat').value,
+        title: title,
+        content: content,
+        externalLink: document.getElementById('compose-link').value.trim(),
+        isPinned: wantsPin,
+        author: 'ARC Council Operations'
+      };
+      setSync('saving');
+      const done = list => {
+        allItems = list; render(); closeCompose(); setSync('synced');
+        ArcFeed.refreshBadges(list);
+      };
+      if (editingId) {
+        const existing = allItems.filter(it => it.id === editingId)[0] || {};
+        ArcFeed.updateAnnouncement(editingId, Object.assign({}, payload, { timestamp: existing.timestamp })).then(done);
+      } else {
+        const newItem = Object.assign({
+          id: 'ann-' + Date.now(),
+          timestamp: new Date().toISOString()
+        }, payload);
+        ArcFeed.addAnnouncement(newItem).then(done);
+        // The author obviously read their own post — don't self-badge.
+        try {
+          const r = ArcFeed.getReadIds();
+          if (r.indexOf(newItem.id) === -1) {
+            r.push(newItem.id);
+            localStorage.setItem('arc_read_announcements', JSON.stringify(r));
+          }
+        } catch (e) {}
+      }
+    });
+
+    document.getElementById('delete-cancel').addEventListener('click', () => {
+      deletingId = null; deleteLayer.classList.remove('is-open');
+    });
+    document.getElementById('delete-confirm').addEventListener('click', () => {
+      if (!deletingId) { deleteLayer.classList.remove('is-open'); return; }
+      setSync('saving');
+      ArcFeed.deleteAnnouncement(deletingId).then(list => {
+        allItems = list; render(); setSync('synced');
+        deletingId = null; deleteLayer.classList.remove('is-open');
+      });
+    });
+    deleteLayer.addEventListener('click', ev => {
+      if (ev.target === deleteLayer) { deletingId = null; deleteLayer.classList.remove('is-open'); }
+    });
+
+    document.getElementById('renotify-cancel').addEventListener('click', () => {
+      renotifyId = null; renotifyLayer.classList.remove('is-open');
+    });
+    document.getElementById('renotify-confirm').addEventListener('click', () => {
+      if (!renotifyId) { renotifyLayer.classList.remove('is-open'); return; }
+      // Trigger test notification as re-notify action
+      try {
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          var item = allItems.filter(function(it){return it.id===renotifyId;})[0];
+          var title = item ? item.title : 'ARC Alert';
+          new Notification(title, { body: 'Re-notified: ' + (item ? item.title : '') });
+        }
+      } catch(e) {}
+      // toast feedback
+      var t=document.getElementById('lockToast'); if(!t){t=document.createElement('div');t.id='lockToast';t.className='lock-toast';document.body.appendChild(t);} t.textContent='Notification resent.'; t.classList.add('is-visible'); setTimeout(function(){t.classList.remove('is-visible');},2200);
+      renotifyId = null; renotifyLayer.classList.remove('is-open');
+    });
+    renotifyLayer.addEventListener('click', ev => {
+      if (ev.target === renotifyLayer) { renotifyId = null; renotifyLayer.classList.remove('is-open'); }
+    });
+
+    // Category filters
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('is-active'));
+        pill.classList.add('is-active');
+        activeFilter = pill.getAttribute('data-filter');
+        render();
+      });
+    });
+
+    // REV 74: inline Synced pill is mobile-only (static in the heading row;
+    // desktop CSS hides it — status lives in the sidebar capsule).
+
+    applyLockState();
+    loadFeed();
+    if (window.ArcTour && window.ArcTour.resume) window.ArcTour.resume();
+    lucide.createIcons();
+  </script>
+  <style>
+    /* REV 79: dark-mode contrast calibration (end-of-body: wins the cascade
+       over neubrutal's later !important dark rules) */
+    html[data-theme="dark"] .fc-meta { color: #D4D4D8 !important; }
+    html[data-theme="dark"] .filter-pill { background: #262626 !important; color: #FBF7EE !important; }
+    html[data-theme="dark"] .fc-link {
+      background: #2E2E2E !important;
+      border-color: #FFFFFF !important;
+      color: #FBF7EE !important;
+    }
+    html[data-theme="dark"] .fc-link:hover { opacity: 0.85; }
+  </style>
+</body>
+</html>

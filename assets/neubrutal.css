@@ -1,10 +1,30 @@
-/* ==========================================================================
-   ARC Retro-Neubrutalist design system — REV 43 (solid white offsets, header parity, bright dots)
-   Dark theme recalibration — REV 59 (one color, one role)
-   Loaded by index.html, NEXUS.html, and core.html.
-   ========================================================================== */
 
+/* REV 84: z-index scale (Rule 6) */
 :root {
+  --z-sidebar: 60;
+  --z-dock: 50;
+  --z-strip-floating: 50;
+  --z-sticky-header: 30;
+  --z-expand: 65;
+  --z-tour: 2136;
+  --z-modal-layer: 2000;
+  --z-modal: 90;
+  --z-toast: 120;
+  --z-push-toast: 120;
+  --z-gate: 90;
+  --z-header-icon: 70;
+  --z-help-overlay: 75;
+  --z-expand-modal: 80;
+  --z-notif: 40;
+  --z-search: 45;
+  --z-card-overlay: 2;
+  --z-card-icon: 3;
+  --z-confirm: 90;
+
+  /* ---- Design tokens — REV 43 system, REV 59 dark recalibration ----
+     REV 86: merged the second :root into this block and dropped the
+     contradicting --red duplicate (the alias block's bright #DF171D lost
+     to this block's brand maroon anyway; --red resolves to maroon). */
   --maroon: #8B1A2B;
   --maroon-dark: #6b101f;
   --navy: #07133f;
@@ -16,6 +36,8 @@
   --shadow-ink: #111111;
   --surface: #FFFFFF;
   --muted: #71717A;
+  /* Homepage aliases (REV 84: Rule 1 — no parallel token names) */
+  --soft-red: #F5D5D5;
 }
 
 /* ---------- Dark theme tokens (REV 59: one color, one role) ---------- */
@@ -49,6 +71,7 @@ html[data-theme="dark"] {
 }
 .board-shell,
 .tracker-shell,
+.settings-shell,
 main.arc-dot-field {
   animation: page-enter 0.5s ease-out backwards;
 }
@@ -217,19 +240,20 @@ body,
   font-weight: 800;
   font-size: 13.5px;
   letter-spacing: 0.01em;
-  box-shadow: 5px 5px 0 var(--shadow);
+  /* REV 91c: interaction values matched EXACTLY to Settings' .notif-btn —
+     no rest shadow, 120ms ease, press fills the 1px shadow */
   cursor: pointer;
   text-align: left;
-  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease, color 150ms ease;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
 }
 .sidebar-link:hover {
-  transform: translate(-3px, -3px);
-  box-shadow: 9px 9px 0 var(--shadow);
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 #111111;
   background: #fffdf8;
 }
 .sidebar-link:active {
   transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0 var(--shadow);
+  box-shadow: 1px 1px 0 #111111;
 }
 .sidebar-link.is-active {
   background: var(--maroon);
@@ -257,19 +281,20 @@ body,
   display: flex;
   justify-content: flex-start;
 }
-.sidebar-sync-slot #syncStatus,
-.sidebar-sync-slot .sync-pill {
-  margin: 0;
-}
 
 /* ---------- REV 53: Action Board utility cluster (tour, sound, theme, lock) ---------- */
 .utility-cluster {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  /* REV 75: uniform 12px rhythm across all four utility buttons */
+  gap: 12px;
+  align-items: flex-start;
 }
 .utility-cluster .sidebar-widget-slot {
-  width: 100%;
+  /* REV 75: shrink to the lock button when closed; the inline input
+     expansion still grows inside the sidebar width when opened */
+  width: auto;
+  max-width: 100%;
 }
 body:has(.board-shell) .password-toggle,
 body:has(.tracker-shell) .password-toggle {
@@ -310,11 +335,9 @@ body:has(.board-shell) header.board-header {
   transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease;
 }
 /* Match the theme toggle to each page's Edit Lock button size. */
-body:has(.board-shell) .theme-toggle {
-  width: 36px;
-  height: 36px;
-}
-body:has(.tracker-shell) .theme-toggle {
+body:has(.board-shell) .theme-toggle,
+body:has(.tracker-shell) .theme-toggle,
+body:has(.settings-shell) .theme-toggle {
   width: 36px;
   height: 36px;
 }
@@ -471,9 +494,9 @@ main.arc-dot-field .tour-toggle {
   right: 72px;
   left: auto;
   bottom: auto;
-  z-index: 70;
-  width: 48px;
-  height: 48px;
+  z-index: var(--z-header-icon);
+  width: 38px;
+  height: 38px;
   border-radius: 6px;
 }
 main.arc-dot-field .tour-toggle svg {
@@ -486,9 +509,9 @@ main.arc-dot-field .sound-toggle {
   right: 128px;
   left: auto;
   bottom: auto;
-  z-index: 70;
-  width: 48px;
-  height: 48px;
+  z-index: var(--z-header-icon);
+  width: 38px;
+  height: 38px;
   border-radius: 6px;
 }
 main.arc-dot-field .sound-toggle svg {
@@ -500,7 +523,7 @@ main.arc-dot-field .sound-toggle svg {
 .tour-overlay {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: var(--z-modal-layer);
   display: none;
   pointer-events: none;
 }
@@ -525,7 +548,7 @@ main.arc-dot-field .sound-toggle svg {
   box-shadow: 4px 4px 0 #111111;
   padding: 1rem 1.1rem 1rem;
   pointer-events: auto;
-  z-index: 2;
+  z-index: var(--z-card-overlay);
 }
 .tour-step-chip {
   display: inline-block;
@@ -611,7 +634,7 @@ main.arc-dot-field .sound-toggle svg {
   align-items: center;
   justify-content: center;
   background: rgba(17, 17, 17, 0.45);
-  z-index: 3;
+  z-index: var(--z-card-icon);
   pointer-events: auto;
 }
 .tour-confirm-layer.is-open {
@@ -683,12 +706,8 @@ main.arc-dot-field .sound-toggle svg {
   border-radius: 8px;
   transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
 }
-.password-toggle svg {
-  transition: transform 200ms ease;
-}
-.pw-tools.is-open .password-toggle svg {
-  transform: rotate(90deg);
-}
+/* REV 71: lock icon no longer rotates on open — transitions reflect the
+   static lock/unlock state swap only. */
 .pw-tools {
   display: flex;
   align-items: center;
@@ -725,9 +744,9 @@ main.arc-dot-field .theme-toggle {
   right: 16px;
   left: auto;
   bottom: auto;
-  z-index: 70;
-  width: 48px;
-  height: 48px;
+  z-index: var(--z-header-icon);
+  width: 38px;
+  height: 38px;
   border-radius: 6px;
 }
 main.arc-dot-field .theme-toggle svg {
@@ -743,7 +762,7 @@ main.arc-dot-field .theme-toggle svg {
   left: 50%;
   transform: translateX(-50%);
   bottom: 14px;
-  z-index: 80;
+  z-index: var(--z-expand-modal);
   align-items: center;
   gap: 4px;
   padding: 6px 8px;
@@ -814,7 +833,7 @@ main.arc-dot-field .theme-toggle svg {
   position: fixed;
   right: 18px;
   bottom: calc(80px + env(safe-area-inset-bottom));
-  z-index: 75;
+  z-index: var(--z-help-overlay);
   width: 56px;
   height: 56px;
   display: flex;
@@ -847,7 +866,7 @@ main.arc-dot-field .theme-toggle svg {
     left: 0;
     bottom: 0;
     width: 260px;
-    z-index: 60;
+    z-index: var(--z-sidebar);
     flex-direction: column;
     background: var(--paper);
     border-right: 3px solid var(--ink);
@@ -855,10 +874,7 @@ main.arc-dot-field .theme-toggle svg {
     box-sizing: border-box;
     overflow-y: auto;
   }
-  .board-shell,
-  .tracker-shell {
-    padding-left: calc(260px + 2.25rem);
-  }
+  /* REV 78: sidebar offset moved to #app-content (collapse-aware) */
   /* NEXUS: symmetric insets — 36px breathing room either side of the board
      (sidebar left gap equal to the right viewport gap). */
   .board-shell {
@@ -1022,6 +1038,8 @@ body::before {
   padding-bottom: clamp(1.5rem, 2.8vw, 2.25rem);
 }
 .qr-grid {
+  display: grid;
+  width: 100%;
   grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
 }
@@ -1068,22 +1086,6 @@ body::before {
   border: 2px dashed #9B2C2C;
   border-radius: 10px;
 }
-/* REV 68: pill thumbnail DOM split — .pill-qr-mask is the circular clipping
-   layer and .qr-reveal-icon becomes an independent badge sibling. Outside
-   pill view the mask is layout-transparent so grid/capsule views keep the
-   original .qr-space grammar untouched. */
-.pill-qr-mask {
-  display: contents;
-}
-.pill-qr-empty-icon {
-  display: none;
-}
-.pill-qr-veil {
-  display: none;
-}
-/* Template imgs ship src-less; hide them in every view until a real QR is
-   attached, so their forced box + translucent fill never ghost over the
-   grid dropzone or mobile capsule. */
 .qr-image:not([src]),
 .qr-image[src=""] {
   display: none;
@@ -1117,24 +1119,51 @@ body::before {
   border-color: #27704c;
 }
 
-/* ---------- Heading help badges: fully circular, logo replaced by ? ---------- */
+/* ---------- REV 86: Heading help badges — one infoboard-trigger contract.
+   Applies to NEXUS .logo-wrap, CORE/FEED .logo-badge, SETTINGS .settings-badge:
+   36px circle · 2px ink border · 2px shadow · 20px #111 glyph · tactile
+   hover/active · #1E1E1E + white border in dark. ---------- */
 .logo-wrap,
-.logo-badge {
+.logo-badge,
+.settings-badge {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border: 2px solid var(--ink);
   border-radius: 50% !important;
+  box-shadow: 2px 2px 0 var(--shadow);
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.logo-wrap:hover,
+.logo-badge:hover,
+.settings-badge:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+.logo-wrap:active,
+.logo-badge:active,
+.settings-badge:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--shadow);
 }
 .logo-wrap::before,
-.logo-badge::before {
+.logo-badge::before,
+.settings-badge::before {
   border-radius: 50%;
 }
 .logo-wrap .help-icon,
-.logo-badge .help-icon {
-  position: static;
-  top: auto;
-  left: auto;
-  transform: none;
-  width: 30px;
-  height: 30px;
-  color: var(--maroon);
+.logo-badge .help-icon,
+.logo-badge svg,
+.settings-badge svg {
+  width: 20px;
+  height: 20px;
+  color: #111111 !important; /* REV 80b/86: crisp black glyph in light mode (single source) */
   opacity: 1;
   pointer-events: none;
 }
@@ -1149,41 +1178,129 @@ body::before {
 .logo-badge::after {
   display: none;
 }
-.expand-dialog {
-  border: 3px solid var(--ink);
-  border-radius: 28px;
+html[data-theme="dark"] .logo-wrap,
+html[data-theme="dark"] .logo-badge,
+html[data-theme="dark"] .settings-badge {
+  background: #1E1E1E;
+  border-color: #FFFFFF;
+  box-shadow: 2px 2px 0 #FFFFFF;
+}
+html[data-theme="dark"] .logo-badge svg,
+html[data-theme="dark"] .settings-badge svg,
+html[data-theme="dark"] .logo-wrap .help-icon,
+html[data-theme="dark"] .logo-badge .help-icon {
+  color: #FBF7EE !important;
+}
+
+/* ---------- REV 87: modal footer action (Got it) ---------- */
+.dialog-actions button {
+  font: 800 13px "Libre Franklin", sans-serif;
+  padding: 9px 16px;
+  background: var(--maroon);
+  color: #fff;
+  border: 2px solid #111111;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.dialog-actions button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+/* ---------- REV 91: Infoboard dialogs (Core/Nexus/Alerts/Settings) — one
+   container + typography contract, matching the help-modal canonical.
+   Scoped overrides: page markup untouched. ---------- */
+#feed-infoboard .compose-dialog,
+.settings-infoboard-dialog {
+  width: min(92vw, 560px);
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: "DM Sans", sans-serif; /* REV 91d: uniform dialog font (was per-page inherited) */
+  padding: 1.25rem 1.5rem; /* REV 91d: uniform wrapper padding (settings lost its inline padding) */
+  background: #FBF7EE;
+  border: 3px solid #111111;
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 var(--shadow);
+  color: #111111;
+}
+html[data-theme="dark"] #feed-infoboard .compose-dialog,
+html[data-theme="dark"] .settings-infoboard-dialog {
+  background: #FBF7EE;
+  border-color: #111111;
   box-shadow: 4px 4px 0 var(--shadow);
 }
-.confirmation-layer {
-  background-color: rgba(23, 23, 23, 0.5);
-  background-image: radial-gradient(circle, rgba(152, 32, 54, 0.18) 1.5px, transparent 1.5px);
-  background-size: 18px 18px;
+#feed-infoboard .compose-dialog h3,
+.settings-infoboard-dialog h3 {
+  margin: 0 0 .75rem;
+  font-family: "Poppins", "DM Sans", sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: -.01em;
+  color: #111111;
 }
-/* NEXUS expanded resource modal: shift right of the sidebar action board,
-   adaptive to every resize (sidebar is hidden below 1024px, so no shift there) */
-@media (min-width: 1024px) {
-  body:has(.board-shell) #expand-modal {
-    padding-left: 260px;
-    z-index: 65;
-  }
+#feed-infoboard .infoboard-list,
+.settings-infoboard-dialog .sib-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding-left: 1.25rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.7;
+  color: #111111;
+  overflow-y: auto;
 }
-.expand-card {
-  border: 2px solid var(--ink);
-  border-radius: 10px;
+#feed-infoboard .infoboard-list li,
+.settings-infoboard-dialog .sib-list li {
+  margin-bottom: .35rem;
 }
-/* REV 46: the QR dropzone panel is its own single bordered square — the
-   outer wrappers must stay borderless so no double-nested frame appears. */
-.expand-qr-card,
-.expand-editor-card {
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  border-radius: 0;
-  overflow: visible;
+#feed-infoboard .infoboard-list strong,
+.settings-infoboard-dialog .sib-list strong {
+  font-weight: 800;
+  color: #111111;
 }
-.expand-qr {
-  background: #fffdfb;
+#feed-infoboard .dialog-actions,
+.settings-infoboard-dialog .dialog-actions {
+  flex: 0 0 auto;
+  margin: 1rem 0 0; /* REV 91d: standardized footer separation (inline styles removed) */
+  padding: 0;
 }
+
+/* ---------- REV 87: shared page-header primitives (hoisted from page
+   inline blocks; color accents stay page-local by design). REV 86 note:
+   this block was authored then silently dropped by a failed anchor
+   replace — page copies had already been deleted, which regressed the
+   headings to 16px/400. This is the real insertion. ---------- */
+.page-heading {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  font-family: "Poppins", "DM Sans", sans-serif;
+  font-weight: 900;
+  font-size: 34px;
+  letter-spacing: -.01em;
+  line-height: 1.05;
+  text-align: left;
+  text-transform: uppercase;
+}
+.brand-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .4rem;
+  min-width: 0;
+}
+.password-row {
+  width: 100%;
+  margin: .8rem 0 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
 @media (min-width: 1024px) {
   .main-content {
     position: relative;
@@ -1196,35 +1313,99 @@ body::before {
   }
 }
 
-/* ---------- Help / guide modals on all pages ---------- */
+/* ---------- Help / guide modals on all pages ----------
+   REV 86: single canonical section (was defined three times with three
+   different veils; the REV 81 !important crutches are obsolete now that
+   the page-inline competitor skins are gone) */
 .help-modal-layer {
-  background: rgba(23, 23, 23, 0.55);
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(17, 17, 17, 0.55);
 }
+.help-modal-layer.is-open { display: flex; }
+/* REV 89: the wrapper CLIPS (overflow hidden + flex column); the BODY is the
+   scroll container — the scrollbar now lives inside the rounded borders
+   instead of bleeding past them, and the header/footer stay pinned. */
 .help-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(92vw, 560px);
+  max-height: 85vh;
+  overflow: hidden;
+  font-family: "DM Sans", sans-serif; /* REV 91d: uniform dialog font (was page-inherited) */
   border: 3px solid var(--ink);
   border-radius: 12px;
   box-shadow: 4px 4px 0 var(--shadow);
-  background: var(--paper);
-  color: var(--ink);
-}
-.help-modal-title {
-  color: var(--ink);
-}
-.help-modal-body {
-  color: var(--ink);
-}
-.help-modal-body h3 {
-  color: var(--ink);
-}
-.help-modal-body strong {
-  color: var(--ink);
+  background: #FBF7EE;
+  color: #111111;
 }
 .help-modal-header {
-  border-bottom-color: rgba(23, 23, 23, 0.15);
+  flex: 0 0 auto;
+  padding: 1.25rem 1.5rem; /* REV 91: header rhythm hoisted (was NEXUS-only) */
+  background: #FBF7EE;
+  color: #111111;
+  border-bottom: 2px solid #111111;
+}
+.help-modal-title {
+  margin: 0;
+  font-family: "Poppins", "DM Sans", sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: -.01em;
+}
+.help-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  /* REV 91: body typography hoisted (was NEXUS-only — CORE rendered flat) */
+  padding: 1.5rem;
+  line-height: 1.7;
+  font-size: 14px;
+}
+.help-modal-body h3 {
+  margin: 1.25rem 0 .5rem;
+  font-family: "Poppins", "DM Sans", sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+.help-modal-body h3:first-child { margin-top: 0; }
+.help-modal-body p { margin: .5rem 0; }
+.help-modal-body ul { margin: .5rem 0 1rem 1.25rem; }
+.help-modal-body li { margin: .35rem 0; }
+/* REV 91: footer action pinned under the body column, inset from the borders */
+.help-modal .dialog-actions {
+  flex: 0 0 auto;
+  padding: 1rem 1.5rem 1.25rem;
+}
+.help-modal-title,
+.help-modal-body,
+.help-modal-body h3,
+.help-modal-body strong {
+  color: #111111;
+}
+.help-modal-body .kbd {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: "Libre Franklin", sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  background: #FFFFFF;
+  color: #111111;
+  border: 1px solid #111111;
 }
 .help-modal-close {
-  background: #fff;
-  color: var(--ink);
+  background: #FFFFFF;
+  color: #111111;
   border: 2px solid var(--ink);
   border-radius: 8px;
 }
@@ -1298,10 +1479,16 @@ html[data-theme="dark"] .desktop-sidebar {
 html[data-theme="dark"] .sidebar-link {
   background: var(--bg-card);
   color: var(--text-primary);
-  border-color: var(--border-structural);
+  border-color: #FFFFFF; /* REV 91c: spec — white border in dark */
+  box-shadow: none;
 }
 html[data-theme="dark"] .sidebar-link:hover {
   background: var(--bg-card-hover);
+  box-shadow: 4px 4px 0 #FFFFFF;
+}
+html[data-theme="dark"] .sidebar-link:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #FFFFFF;
 }
 html[data-theme="dark"] .sidebar-link.is-active {
   background: var(--accent-primary);
@@ -1347,12 +1534,8 @@ html[data-theme="dark"] .mn-item:hover:not(.is-active) svg {
 html[data-theme="dark"] .sheet {
   background: var(--bg-card);
 }
-/* logo icon containers retain their white fill in dark mode */
-html[data-theme="dark"] .logo-wrap,
-html[data-theme="dark"] .logo-badge {
-  background: #fff;
-  border-color: #000 !important;
-}
+/* REV 86: logo/help badge dark treatment consolidated into the
+   infoboard-trigger contract (see the REV 86 heading-badge block) */
 
 /* index page */
 html[data-theme="dark"] .arc-logo {
@@ -1371,20 +1554,27 @@ html[data-theme="dark"] .arc-dot-field section p[style*="152, 32, 54"] {
 html[data-theme="dark"] .password-toggle {
   border-color: var(--border-structural) !important;
 }
+/* REV 87: unlocked lock reads GREEN in dark mode too (user ask) — the grey
+   override here previously bled onto NEXUS/FEED and killed the state cue.
+   --status-success keeps one green across light (#27704c page-local) and
+   dark (#3E9C63 token). */
 html[data-theme="dark"] .password-toggle.is-unlocked {
-  background: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-structural) !important;
+  background: var(--status-success) !important;
+  color: #FFFFFF !important;
+  border-color: var(--status-success) !important;
 }
 html[data-theme="dark"] .password-toggle.is-input-mode {
   background: var(--bg-card) !important;
   color: var(--text-primary) !important;
 }
 html[data-theme="dark"] .password-input-inline {
-  color: var(--ink) !important;
+  /* REV 87: FEED's inline lock input keeps a white surface in dark mode —
+     text must stay #111 (var(--ink) remaps to near-white in dark). */
+  color: #111111 !important;
 }
 html[data-theme="dark"] .password-input-inline::placeholder {
-  color: var(--text-secondary);
+  color: #111111;
+  opacity: .55;
 }
 html[data-theme="dark"] .guide-modal-body {
   color: var(--text-secondary);
@@ -1412,10 +1602,17 @@ html[data-theme="dark"] .arc-dot-field footer p {
 }
 
 /* NEXUS */
-html[data-theme="dark"] .page-subtitle,
 html[data-theme="dark"] .editing-note,
 html[data-theme="dark"] .footer-note {
   color: var(--text-secondary) !important;
+}
+html[data-theme="dark"] .page-subtitle {
+  color: #A1A1AA !important; /* REV 79/86: feed calibration, now global */
+}
+/* REV 86: breathing room between the QR grid and the footer note
+   (user ask — applies on every viewport; board-footer is NEXUS-only) */
+.board-footer {
+  margin-top: 2.25rem;
 }
 html[data-theme="dark"] .sync-pill,
 html[data-theme="dark"] #syncStatus {
@@ -1556,11 +1753,7 @@ html[data-theme="dark"] .expand-rich[contenteditable="false"] {
 html[data-theme="dark"] .expand-toolbar.is-locked {
   display: none !important;
 }
-html[data-theme="dark"] .help-modal-close {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border-color: var(--border-structural);
-}
+/* REV 89: dark .help-modal-close rule removed with the X button (Got it footer) */
 html[data-theme="dark"] #delete-modal-title {
   color: var(--status-warning) !important;
 }
@@ -1601,50 +1794,9 @@ html[data-theme="dark"] .tracker-table th {
   border-color: var(--border-structural) !important;
   border-right-color: var(--border-structural) !important;
 }
-/* Officer/Committee pastel gradients — dark-tinted for contrast */
-html[data-theme="dark"] .officer-cell {
-  background: #1a171d;
-  color: var(--text-primary);
-}
-html[data-theme="dark"] .officer-cell.lead {
-  background: linear-gradient(135deg, rgba(176, 222, 152, 0.16), rgba(156, 207, 130, 0.26));
-}
-html[data-theme="dark"] .officer-cell.internal {
-  background: linear-gradient(135deg, rgba(170, 216, 144, 0.16), rgba(148, 200, 120, 0.26));
-}
-html[data-theme="dark"] .officer-cell.external {
-  background: linear-gradient(135deg, rgba(164, 210, 136, 0.16), rgba(140, 193, 110, 0.26));
-}
-html[data-theme="dark"] .officer-cell.secretariat {
-  background: linear-gradient(135deg, rgba(158, 204, 128, 0.16), rgba(132, 186, 100, 0.26));
-}
-html[data-theme="dark"] .officer-cell.finance {
-  background: linear-gradient(135deg, rgba(152, 198, 120, 0.16), rgba(124, 179, 90, 0.26));
-}
-html[data-theme="dark"] .officer-cell.media {
-  background: linear-gradient(135deg, rgba(146, 192, 112, 0.16), rgba(116, 172, 80, 0.26));
-}
-html[data-theme="dark"] .officer-cell.fundraising {
-  background: linear-gradient(135deg, rgba(248, 220, 140, 0.16), rgba(240, 200, 100, 0.26));
-}
-html[data-theme="dark"] .officer-cell.safe {
-  background: linear-gradient(135deg, rgba(246, 214, 124, 0.16), rgba(238, 196, 90, 0.26));
-}
-html[data-theme="dark"] .officer-cell.community {
-  background: linear-gradient(135deg, rgba(244, 208, 108, 0.16), rgba(236, 192, 80, 0.26));
-}
-html[data-theme="dark"] .officer-cell.design {
-  background: linear-gradient(135deg, rgba(242, 202, 92, 0.16), rgba(234, 188, 70, 0.26));
-}
-html[data-theme="dark"] .officer-cell.formation {
-  background: linear-gradient(135deg, rgba(240, 196, 76, 0.16), rgba(232, 184, 60, 0.26));
-}
-html[data-theme="dark"] .officer-cell.recruitment {
-  background: linear-gradient(135deg, rgba(238, 190, 60, 0.16), rgba(230, 180, 50, 0.26));
-}
-html[data-theme="dark"] .officer-cell.deployment {
-  background: linear-gradient(135deg, rgba(236, 184, 44, 0.16), rgba(228, 176, 40, 0.26));
-}
+/* REV 86: the first officer-cell dark gradient set (0.16/0.26 alphas) was a
+   value-contradicting duplicate — the REV 66 set (0.35/0.45, later in this
+   file) is canonical and wins. Removed. */
 html[data-theme="dark"] .line-text,
 html[data-theme="dark"] .deadline-cell,
 html[data-theme="dark"] .deadline-text,
@@ -1686,27 +1838,8 @@ html[data-theme="dark"] .page-heading {
 /* ---------- Mobile utility bar (horizontal row) — shown only on mobile;
    populated by layout() with the save/theme/sound/tour/lock controls. ---------- */
 .utilities-row { display:none }
-.utilities-row .utilities-btn { flex:0 0 auto; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border:2px solid var(--ink); border-radius:8px; background:#fff; color:var(--ink); cursor:pointer; box-shadow:2px 2px 0 var(--shadow); transition:transform 140ms cubic-bezier(.4,0,.2,1),box-shadow 140ms cubic-bezier(.4,0,.2,1) }
-.utilities-row .utilities-btn:hover { transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--shadow) }
-.utilities-row .utilities-btn:active { transform:translate(2px,2px) !important; box-shadow:1px 1px 0 var(--shadow) !important }
-.utilities-row .utilities-btn:focus-visible { outline:3px solid var(--maroon); outline-offset:2px }
 
 /* ---------- REV 55: Edit lock bottom sheet (mobile) ---------- */
-.bottom-sheet-overlay { position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center }
-.bottom-sheet { position:absolute; bottom:0; left:50%; transform:translateX(-50%); background:var(--paper); border:3px solid var(--ink); border-radius:20px 20px 0 0; width:90%; max-width:280px; padding:1.5rem 1rem 1rem; box-shadow:0 4px 8px rgba(0,0,0,.1); display:none }
-.bottom-sheet.open { display:block }
-.bottom-sheet .close-btn { position:absolute; top:0.5rem; right:0.5rem; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:2px solid var(--ink); border-radius:8px; background:#fff; color:var(--ink); cursor:pointer; box-shadow:2px 2px 0 var(--shadow); transition:transform 140ms ease,box-shadow 140ms ease }
-.bottom-sheet .close-btn:hover { transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--shadow) }
-.bottom-sheet .close-btn:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--shadow) }
-.bottom-sheet h3 { margin:0 0 1rem; font-weight:900; font-size:18px; color:var(--maroon); line-height:1.2 }
-.bottom-sheet .password-input { width:100%; padding:.6rem .8rem; border:1px solid rgba(122,35,49,.35); border-radius:10px; background:#fff; color:#3a1720; font-weight:700; font-size:13px; outline:0; margin-bottom:1rem }
-.bottom-sheet .buttons { display:flex; gap:.5rem }
-.bottom-sheet .btn-cancel { flex:1; padding:.5rem .8rem; background:#fff; color:var(--ink); border:2px solid var(--ink); border-radius:8px; font-size:12px; font-weight:800; text-transform:uppercase; cursor:pointer; transition:transform 140ms ease,box-shadow 140ms ease }
-.bottom-sheet .btn-cancel:hover { transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--shadow) }
-.bottom-sheet .btn-cancel:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--shadow) }
-.bottom-sheet .btn-confirm { flex:1; padding:.5rem .8rem; background:var(--maroon); color:#fff; border:2px solid var(--maroon) !important; border-radius:8px; font-size:12px; font-weight:800; text-transform:uppercase; cursor:pointer; transition:transform 140ms ease,box-shadow 140ms ease }
-.bottom-sheet .btn-confirm:hover { transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--maroon) }
-.bottom-sheet .btn-confirm:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--maroon) }
 
 /* ---------- REV 55: NEXUS resource pill radius + expand transition ---------- */
 .resource-item .qr-card {
@@ -1724,7 +1857,7 @@ html[data-theme="dark"] .page-heading {
   left: 50%;
   transform: translateX(-50%);
   bottom: 12px;
-  z-index: 80;
+  z-index: var(--z-expand-modal);
   align-items: center;
   gap: 2px;
   padding: 4px 4px;
@@ -1771,7 +1904,7 @@ html[data-theme="dark"] .page-heading {
   color: #fff;
   box-shadow: 4px 4px 0 var(--shadow);
   cursor: pointer;
-  z-index: 75;
+  z-index: var(--z-help-overlay);
   -webkit-tap-highlight-color: transparent;
   outline: none;
 }
@@ -1786,21 +1919,8 @@ html[data-theme="dark"] .page-heading {
   outline: none;
   border: 3px solid var(--ink) !important;
 }
-.fab:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
 .fab[hidden] { display: none; }
 
-/* ---------- REV 55: Homepage — vertical column of utility controls ---------- */
-main.arc-dot-field .controls-column { display:flex; flex-direction:column; gap:.6rem; align-items:center; margin-top:1rem }
-main.arc-dot-field .controls-column .btn { width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; border:2px solid var(--ink); border-radius:8px; background:#fff; color:var(--ink); cursor:pointer; transition:transform 140ms cubic-bezier(.4,0,.2,1),box-shadow 140ms cubic-bezier(.4,0,.2,1) }
-main.arc-dot-field .controls-column .btn:hover { transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--shadow) }
-main.arc-dot-field .controls-column .btn:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--shadow) }
-main.arc-dot-field .controls-column .btn.theme { margin-bottom:.2rem }
-main.arc-dot-field .theme-toggle, main.arc-dot-field .sound-toggle, main.arc-dot-field .tour-toggle { /* keep existing fixed positions */ }
 
 /* ---------- REV 55: Tracker button border reversion ---------- */
 #trackerButton { border:3px solid var(--ink) !important; box-shadow:4px 4px 0 var(--ink) !important }
@@ -2040,6 +2160,9 @@ main.arc-dot-field .theme-toggle, main.arc-dot-field .sound-toggle, main.arc-dot
     min-width: 100%;
     max-width: 100%;
   }
+  /* REV 86: accept either toggle target — pages key is-open on the widget
+     (NEXUS) or the relocatable pw-tools (feed/core) */
+  .utilities-row .password-widget.is-open .password-panel,
   .utilities-row .pw-tools.is-open .password-panel {
     visibility: visible;
     opacity: 1;
@@ -2054,13 +2177,16 @@ main.arc-dot-field .theme-toggle, main.arc-dot-field .sound-toggle, main.arc-dot
     min-height: 0;
     padding: 0 .6rem;
     font-size: .8rem;
-    border: 2px solid var(--ink);
+    /* REV 87: the input surface is hardcoded white in BOTH themes, so the
+       text must be too — var(--ink) remaps to near-white in dark and rendered
+       the typed password invisible. */
+    border: 2px solid #111111;
     border-radius: 8px;
     background: #fff;
-    color: var(--ink);
+    color: #111111;
   }
   .utilities-row .pw-tools .password-panel .password-input::placeholder {
-    color: var(--ink);
+    color: #111111;
     opacity: .55;
   }
   /* Empty password row leaves no leftover gap once the lock moves up */
@@ -2088,13 +2214,15 @@ main.arc-dot-field .theme-toggle, main.arc-dot-field .sound-toggle, main.arc-dot
     border: 0;
     box-shadow: none;
   }
+  /* REV 87: the input surface stays white in dark (matches the sidebar slot)
+     — bg-card + near-white text rendered the typed password unreadable. */
   html[data-theme="dark"] .utilities-row .pw-tools .password-panel .password-input {
-    background: var(--bg-card);
-    color: var(--text-primary);
-    border-color: var(--border-structural);
+    background: #fff;
+    color: #111111;
+    border-color: #111111;
   }
   html[data-theme="dark"] .utilities-row .pw-tools .password-panel .password-input::placeholder {
-    color: var(--text-primary);
+    color: #111111;
     opacity: .55;
   }
 }
@@ -2130,116 +2258,8 @@ main.arc-dot-field .theme-toggle, main.arc-dot-field .sound-toggle, main.arc-dot
   }
 }
 
-/* ---------- REV 59: QR View modal — standalone popup showing a card's QR
-   image on desktop and mobile, matching the neubrutal dialog language. */
-.qr-view-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 2200;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: rgba(17, 17, 17, 0.55);
-  padding: 1rem;
-}
-.qr-view-layer.is-open {
-  display: flex;
-}
-.qr-view-dialog {
-  box-sizing: border-box;
-  width: min(92vw, 420px);
-  background: #FBF7EE;
-  border: 3px solid #111111;
-  border-radius: 20px;
-  box-shadow: 4px 4px 0 #111111;
-  padding: 1rem;
-  animation: qrViewIn 160ms cubic-bezier(.4, 0, .2, 1);
-}
-@keyframes qrViewIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-.qr-view-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.85rem;
-}
-.qr-view-title {
-  margin: 0;
-  font-family: "Poppins", "DM Sans", sans-serif;
-  font-size: 17px;
-  font-weight: 900;
-  letter-spacing: -0.01em;
-  color: #111111;
-}
-.qr-view-close {
-  flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #111111;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #111111;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 2px 2px 0 #111111;
-  transition: transform 140ms cubic-bezier(.4, 0, .2, 1), box-shadow 140ms cubic-bezier(.4, 0, .2, 1);
-}
-.qr-view-close:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 #111111;
-}
-.qr-view-close:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 #111111;
-}
-.qr-view-frame {
-  box-sizing: border-box;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #ffffff;
-  border: 2px solid #111111;
-  border-radius: 14px;
-  padding: 12px;
-  overflow: hidden;
-}
-.qr-view-image {
-  display: none;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-html[data-theme="dark"] .qr-view-dialog {
-  background: var(--bg-card);
-  border-color: var(--border-structural);
-}
-html[data-theme="dark"] .qr-view-title {
-  color: var(--text-primary);
-}
-html[data-theme="dark"] .qr-view-close {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border-color: var(--border-structural);
-}
-html[data-theme="dark"] .qr-view-frame {
-  background: var(--bg-card);
-  border-color: var(--border-structural);
-}
+
+
 
 /* ---------- REV 55 shared-section borders (structural) ---------- */
 html[data-theme="dark"] .mobile-bottom-nav .mn-item + .mn-item {
@@ -2265,42 +2285,6 @@ html[data-theme="dark"] #trackerButton:active {
   box-shadow: 2px 2px 0 rgba(255, 255, 255, 0.85) !important;
 }
 
-/* ---------- REV 55 edit-lock bottom sheet ---------- */
-html[data-theme="dark"] .bottom-sheet {
-  background: var(--bg-card);
-  border-color: var(--border-structural);
-}
-html[data-theme="dark"] .bottom-sheet .close-btn {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border-color: var(--border-structural);
-}
-html[data-theme="dark"] .bottom-sheet h3 {
-  color: var(--text-primary);
-}
-html[data-theme="dark"] .bottom-sheet .password-input {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border-color: var(--border-structural);
-}
-html[data-theme="dark"] .bottom-sheet .password-input::placeholder {
-  color: var(--text-secondary);
-}
-html[data-theme="dark"] .bottom-sheet .btn-cancel {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border-color: var(--border-structural);
-}
-html[data-theme="dark"] .bottom-sheet .btn-confirm {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary) !important;
-}
-html[data-theme="dark"] .bottom-sheet .btn-confirm:hover {
-  box-shadow: 4px 4px 0 var(--accent-primary-hover);
-}
-html[data-theme="dark"] .bottom-sheet .btn-confirm:active {
-  box-shadow: 1px 1px 0 var(--accent-primary-hover);
-}
 
 /* ---------- Inline-styled primaries → accent ---------- */
 html[data-theme="dark"] #save-board-button,
@@ -2311,11 +2295,8 @@ html[data-theme="dark"] .password-toggle:not(.is-unlocked) {
   background: var(--accent-primary) !important;
   color: #fff !important;
 }
-html[data-theme="dark"] .tracker-shell .password-toggle.is-unlocked {
-  background: var(--status-success) !important;
-  border-color: var(--status-success) !important;
-  color: #fff !important;
-}
+/* REV 87: tracker-scoped green rule folded into the global dark unlocked
+   rule above (same token, one source). */
 
 /* ---------- QR drop-zone border (decorative red tint neutralized) ---------- */
 html[data-theme="dark"] .qr-space,
@@ -2347,16 +2328,8 @@ html[data-theme="dark"] .qr-card {
 html[data-theme="dark"] .expand-card {
   border-color: var(--border-structural);
 }
-html[data-theme="dark"] .help-modal {
-  border-color: var(--border-structural);
-  color: var(--text-primary);
-}
-html[data-theme="dark"] .help-modal-title,
-html[data-theme="dark"] .help-modal-body,
-html[data-theme="dark"] .help-modal-body h3,
-html[data-theme="dark"] .help-modal-body strong {
-  color: var(--text-primary);
-}
+/* REV 89: dark help-modal text overrides removed — the modal keeps its
+   cream/#111 skin in both themes (light-on-light was unreadable). */
 html[data-theme="dark"] .guide-modal {
   border-color: var(--border-structural);
 }
@@ -2441,8 +2414,8 @@ main.arc-dot-field .tour-toggle {
   bottom: auto;
 }
 main.arc-dot-field .sound-toggle { top: 16px; }
-main.arc-dot-field .tour-toggle { top: calc(16px + 48px + 8px); }
-main.arc-dot-field .theme-toggle { top: calc(16px + 48px + 8px + 48px + 8px); }
+main.arc-dot-field .tour-toggle { top: calc(16px + 38px + 8px); }
+main.arc-dot-field .theme-toggle { top: calc(16px + 38px + 8px + 38px + 8px); }
 
 /* ---------- REV 61 §3: NEXUS dark-mode expand chevron ----------
    The lucide chevron strokes currentColor, so .capsule-toggle { color } is
@@ -2505,12 +2478,13 @@ html[data-theme="dark"] main.arc-dot-field nav a.arc-action[href="core.html"]:ac
   }
 }
 @media (max-width: 720px) {
-  .sheet-header {
+  /* REV 85: scoped to the tracker shell — FEED keeps its REV 75 24px base */
+  body:has(.tracker-shell) .sheet-header {
     margin-bottom: 18px;
   }
 }
 @media (min-width: 721px) and (max-width: 768px) {
-  .sheet-header {
+  body:has(.tracker-shell) .sheet-header {
     margin-bottom: 14px;
   }
 }
@@ -2635,9 +2609,6 @@ html[data-theme="dark"] .arc-logo:active {
     background-image: none;
   }
   body.nexus-view-pill .qr-card .qr-space::before,
-  body.nexus-view-pill .qr-card .qr-space::after {
-    display: none;
-  }
   body.nexus-view-pill .qr-card .qr-space .upload-hint {
     display: none;
   }
@@ -2856,66 +2827,7 @@ html[data-theme="dark"] .arc-logo:active {
      against the inside edge of the container border: inset:0 + 100% size is
      exactly the overflow clip region of the bordered round parent, so there
      are no perimeter gaps, light leaks, or jagged fringes in either theme. */
-  body.nexus-view-pill .qr-card .qr-space .pill-qr-veil {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: #FFFFFF;
-    border-radius: 50%;
-    z-index: 2;
-    pointer-events: none;
-  }
-  body.nexus-view-pill .qr-card .qr-space.has-image .pill-qr-veil {
-    display: flex;
-  }
-  body.nexus-view-pill .qr-card .qr-space .pill-qr-veil svg {
-    width: 26px;
-    height: 26px;
-    color: #111111;
-    stroke-width: 2;
-    transition: transform 150ms ease;
-  }
-  /* Hover feedback: icon nudge only (fill stays fully opaque) */
-  body.nexus-view-pill .qr-card .qr-space:hover .pill-qr-veil svg {
-    transform: scale(1.08);
-  }
-  /* REV 69b EMPTY pill: a clean WHITE disc — no upload copy, no veil click
-     indicator. The 48px circle cannot fit legible hint text; the grid/mutable
-     surfaces remain the upload affordance. Ring stays on the container. */
-  body.nexus-view-pill .qr-card .qr-space:not(.has-image) {
-    background-color: #FFFFFF;
-  }
-  body.nexus-view-pill .qr-card .qr-space .upload-hint,
-  body.nexus-view-pill .qr-card .qr-space .pill-qr-empty-icon {
-    display: none !important;
-  }
-  /* Legacy badge suppressed */
-  body.nexus-view-pill .qr-card .qr-space .qr-reveal-icon {
-    display: none !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-  /* Dark mode — same architecture, theme tokens swapped */
-  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space {
-    background-color: var(--bg-card-hover);
-    border-color: #FFFFFF;
-  }
-  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space:not(.has-image) {
-    background-color: var(--bg-card-hover);
-  }
-  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space.has-image {
-    border-color: #FFFFFF;
-  }
-  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space .pill-qr-veil {
-    background: var(--bg-card-hover);
-  }
-  html[data-theme="dark"] body.nexus-view-pill .qr-card .qr-space .pill-qr-veil svg {
-    color: var(--text-primary);
-  }
+
 }
 
 /* ---------- REV 66: CORE dark mode — darker pastel shades with readable text ----------
@@ -2925,12 +2837,6 @@ html[data-theme="dark"] .arc-logo:active {
 html[data-theme="dark"] .meta-cell {
   background: rgba(26, 21, 25, 0.85) !important;
   border-color: var(--border-structural);
-}
-html[data-theme="dark"] .meta-label {
-  color: var(--text-secondary) !important;
-}
-html[data-theme="dark"] .canva-text {
-  color: var(--text-primary) !important;
 }
 /* Column 1: Officer/Committee uses darker pastel gradients + light text */
 html[data-theme="dark"] .officer-cell {
@@ -3014,8 +2920,793 @@ html[data-theme="dark"] .tracker-table th {
 html[data-theme="dark"] .table-wrap {
   border-color: #ffffff;
 }
-/* REV 65: NEXUS header view-mode toggle keeps a black border in dark mode so
-   the light pill button reads clearly against the dark page. */
-html[data-theme="dark"] .view-mode-toggle {
+/* REV 87: NEXUS view-mode toggle — labelled rounded-rectangle switch.
+   Grid mode = paper surface/ink text; Pill mode = ink surface/paper text. */
+.view-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  height: 42px; /* REV 88: matches Save Board height in the header action row */
+  padding: 0 .9rem;
+  background: #FFFDF8;
+  color: #111111;
+  font-family: "Libre Franklin", sans-serif;
+  font-weight: 800;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
   border-color: #000000 !important;
 }
+.view-mode-toggle svg { width: 16px; height: 16px; flex: 0 0 auto; }
+.view-mode-toggle[data-view-mode="pill"] {
+  background: #111111;
+  color: #FFFDF8;
+}
+.view-mode-toggle[data-view-mode="pill"] svg { color: inherit; }
+/* REV 65/87: keeps a black border in dark mode so the light grid state reads
+   clearly against the dark page. */
+html[data-theme="dark"] .view-mode-toggle {
+  background: #FFFDF8;
+  color: #111111;
+  border-color: #000000 !important;
+}
+html[data-theme="dark"] .view-mode-toggle[data-view-mode="pill"] {
+  background: #111111;
+  color: #FFFDF8;
+  border-color: #FFFFFF !important;
+}
+/* ==========================================================================
+   REV 70: MOBILE OVERHAUL — full-width Twitter-style dock, floating FAB,
+   scroll dynamics, sticky utility strip, notifications badge, anti-FOUC
+   cloak, skeleton placeholders. Appended last on purpose: these overrides
+   win the cascade without disturbing earlier revision blocks.
+   ========================================================================== */
+
+/* ---------- Anti-flash cloak (removed attribute-by-attribute once real
+   or cached content is rendered into the container) ---------- */
+[data-cloak] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+.hydrated [data-cloak],
+[data-hydrated="true"] [data-cloak] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: opacity 150ms ease-in-out;
+}
+
+
+/* ---------- Full-width edge-to-edge bottom dock (Twitter pattern) ---------- */
+.mobile-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: none;
+  -webkit-transform: none;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  z-index: var(--z-notif);
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0;
+  margin: 0;
+  padding: 4px 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #FBF7EE;
+  border: 0;
+  border-top: 3px solid #111111;
+  border-radius: 0;
+  box-shadow: none;
+  transition: transform 220ms ease-in-out, opacity 200ms ease-in-out;
+  will-change: transform;
+}
+.mobile-bottom-nav .mn-item {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  min-height: 56px;
+  top: 0;
+  justify-content: center;
+  padding: 4px 0 6px;
+}
+.mobile-bottom-nav .mn-item + .mn-item {
+  border-left: 1px solid rgba(17, 17, 17, 0.35);
+}
+.mn-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Scroll-direction hide/show states (classes toggled by utils/mobile-nav.js) */
+.mobile-bottom-nav.translate-y-full,
+.fab.translate-y-full {
+  transform: translateY(100%) !important;
+}
+.mobile-bottom-nav.opacity-0,
+.fab.opacity-0 {
+  opacity: 0 !important;
+}
+.mobile-bottom-nav.pointer-events-none,
+.fab.pointer-events-none {
+  pointer-events: none !important;
+}
+
+html[data-theme="dark"] .mobile-bottom-nav {
+  background: var(--bg-card, #16161c);
+  border-top-color: #FFFFFF;
+}
+html[data-theme="dark"] .mobile-bottom-nav .mn-item + .mn-item {
+  border-left-color: rgba(255, 255, 255, 0.35);
+}
+
+/* ---------- Floating + FAB: standalone, above the dock, right-anchored ---------- */
+.fab {
+  position: fixed;
+  right: 16px;
+  /* REV 70b: --arc-dock-h is the REAL rendered dock height (set by
+     utils/mobile-nav.js) so the FAB always clears the bar regardless of
+     label wrapping or safe-area. */
+  bottom: calc(var(--arc-dock-h, 60px) + 14px + env(safe-area-inset-bottom));
+  width: 48px;
+  height: 48px;
+  z-index: var(--z-search);
+  background: #9B2C2C;
+  border: 2.5px solid #111111;
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 #111111;
+  transition: transform 220ms ease-in-out, opacity 200ms ease-in-out, background 120ms linear, box-shadow 120ms linear;
+  will-change: transform;
+}
+.fab:hover { background: #a8283a; }
+.fab:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #111111;
+}
+html[data-theme="dark"] .fab {
+  border-color: #FFFFFF;
+  box-shadow: 3px 3px 0 #FFFFFF;
+}
+html[data-theme="dark"] .fab:active {
+  box-shadow: 1px 1px 0 #FFFFFF;
+}
+.fab[hidden] { display: none !important; }
+/* Zero-flicker lock gating: the boot class is set synchronously in <head>,
+   so the FAB renders in its correct state on the very first frame. */
+html:not(.boot-unlocked) .fab { display: none !important; }
+
+/* ---------- Sticky mobile utility strip ---------- */
+@media (max-width: 1023.98px) {
+  .utilities-row {
+    position: sticky;
+    top: 8px;
+    z-index: var(--z-sticky-header);
+  }
+  /* REV 70b: JS docking fallback — ancestors with overflow:hidden defeat
+     native sticky, so utils/mobile-nav.js pins the strip position:fixed */
+}
+
+/* ---------- Clearance so the dock/FAB never cover the last cards ---------- */
+@media (max-width: 1023.98px) {
+  .board-shell .sheet {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- Notifications unread badge ---------- */
+.notif-badge {
+  display: none;
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  background: #9B2C2C;
+  color: #FFFFFF;
+  font-family: "DM Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+  text-align: center;
+  border-radius: 999px;
+  border: 1.5px solid #111111;
+  box-shadow: 1px 1px 0 #111111;
+  user-select: none;
+  pointer-events: none;
+  z-index: var(--z-card-overlay);
+  transition: transform 150ms ease-out, opacity 150ms ease-out;
+}
+.notif-badge.is-visible {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.notif-badge.badge-out {
+  transform: scale(0);
+  opacity: 0;
+}
+html[data-theme="dark"] .notif-badge {
+  border-color: #FFFFFF;
+  box-shadow: 1px 1px 0 #FFFFFF;
+}
+/* Desktop sidebar placement: badge hugs the link's right edge */
+.sidebar-notif-link {
+  position: relative;
+}
+.sidebar-notif-link .notif-badge {
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+}
+.sidebar-notif-link .notif-badge.badge-out {
+  transform: translateY(-50%) scale(0);
+}
+
+/* ==========================================================================
+   REV 71: ACTION BOARD STANDARD — universal Synced pill, compressed mobile
+   dock (soft-pill active state, no separators), fixed centered utilities
+   strip, homepage FEED button. Appended last: wins the cascade cleanly.
+   ========================================================================== */
+
+/* ---------- Universal Synced status component ---------- */
+.sync-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1.5px solid #111111;
+  border-radius: 999px;
+  background: #FFFFFF;
+  font-family: "DM Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #4a4145;
+  margin: 0;
+  white-space: nowrap;
+}
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-success, #1c7c31);
+  animation: arc-sync-pulse 1.6s ease-in-out infinite;
+}
+.sync-pill.saving .sync-dot { background: var(--status-warning, #d99a06); }
+.sync-pill.error  .sync-dot { background: #b91c1c; animation: none; }
+@keyframes arc-sync-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(28, 124, 49, 0.45); }
+  50%      { box-shadow: 0 0 0 4px rgba(28, 124, 49, 0); }
+}
+html[data-theme="dark"] .sync-pill {
+  background: var(--bg-card, #1c1917);
+  border-color: var(--border-structural, #FFFFFF);
+}
+
+/* ---------- Mobile dock: vertical compression ---------- */
+.mobile-bottom-nav {
+  padding: 3px 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.mobile-bottom-nav .mn-item {
+  min-height: 52px;
+  padding: 3px 0 2px;
+  gap: 1px;
+  border-radius: 12px;
+  transition: background 150ms ease;
+}
+.mobile-bottom-nav .mn-item svg {
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  stroke-width: 2.25;
+}
+.mobile-bottom-nav .mn-item span:last-child {
+  font-size: 10px;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+}
+/* De-clutter: no divider lines between tabs, any theme */
+.mobile-bottom-nav .mn-item + .mn-item,
+html[data-theme="dark"] .mobile-bottom-nav .mn-item + .mn-item {
+  border-left: 0 !important;
+}
+/* Soft pill active/hover indicator; maroon icon disc stays from base */
+.mobile-bottom-nav .mn-item:hover:not(.is-active) {
+  background: rgba(17, 17, 17, 0.05);
+}
+.mobile-bottom-nav .mn-item:active {
+  transform: none !important;
+  background: rgba(17, 17, 17, 0.08);
+}
+.mobile-bottom-nav .mn-item.is-active {
+  background: rgba(155, 44, 44, 0.10);
+}
+html[data-theme="dark"] .mobile-bottom-nav .mn-item:hover:not(.is-active) {
+  background: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .mobile-bottom-nav .mn-item.is-active {
+  background: rgba(155, 44, 44, 0.28);
+}
+/* Kill the generic press-translate flash on tabs only */
+.mobile-bottom-nav .mn-item:focus,
+.mobile-bottom-nav .mn-item:focus-visible {
+  outline: none;
+}
+
+/* Content clearance follows the shorter dock */
+@media (max-width: 1023.98px) {
+  .board-shell .sheet {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- Mobile utilities strip: fixed, horizontally centered HUD ---------- */
+@media (max-width: 1023.98px) {
+  .utilities-row {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 92vw;
+    z-index: var(--z-sticky-header);
+  }
+}
+
+
+/* ==========================================================================
+   REV 74: UNIVERSAL SYNC CAPSULE (sidebar Action Board), threshold-floating
+   mobile utilities bar, homepage stack equalization, FEED swipe/spacing.
+   Appended last: wins the cascade cleanly.
+   ========================================================================== */
+
+/* ---------- Synced status capsule (spec markup, state hooks) ----------
+   Base look comes from the Tailwind arbitrary utilities in the markup.
+   We mirror the dark variants here because the CDN's dark: variant keys off
+   prefers-color-scheme, not our data-theme attribute. */
+/* Light surface pinned explicitly: Tailwind Play's dark: variant keys off
+   prefers-color-scheme (not our data-theme), so without this pin the capsule
+   renders dark on dark-preference systems even in light theme. */
+.sync-status-capsule {
+  background: #FFFFFF !important;
+  border-color: #111111 !important;
+  box-shadow: 1px 1px 0px #111111 !important;
+}
+html[data-theme='dark'] .sync-status-capsule {
+  border-color: #FFFFFF !important;
+  background: #1E1E1E !important;
+  box-shadow: 1px 1px 0px #FFFFFF !important;
+}
+.sync-status-capsule { max-width: 100%; }
+.sync-status-capsule .capsule-label { color: #111111; }
+html[data-theme='dark'] .sync-status-capsule .capsule-label { color: #FFFFFF !important; }
+/* REV 81: font parity across pages */
+.sync-status-capsule .capsule-label { font-family: "DM Sans", sans-serif !important; }
+/* REV 81: font parity across pages */
+
+/* saving / error states: swap dot, stop the ping */
+.sync-status-capsule.is-saving span.capsule-dot-core,
+.sync-status-capsule.is-error span.capsule-dot-core { animation: none; }
+.sync-status-capsule.is-saving span.capsule-dot-core { background: #d99a06 !important; }
+.sync-status-capsule.is-saving span.capsule-dot-ping { background: #d99a06 !important; }
+.sync-status-capsule.is-error span.capsule-dot-core { background: #b91c1c !important; }
+.sync-status-capsule.is-saving span.capsule-dot-ping,
+.sync-status-capsule.is-error span.capsule-dot-ping { display: none !important; }
+/* REV 74: on desktop the sidebar capsule is THE sync indicator;
+   inline pills are a mobile-only affordance */
+@media (min-width: 1024px) { .sync-pill { display: none !important; } }
+
+/* identical placement below the sidebar utility cluster on every board */
+.sidebar-sync-slot { display: flex; align-items: flex-start; margin-top: 0; }
+/* REV 75: footer column joins the uniform 12px rhythm (was 0.6rem) */
+.sidebar-footer { gap: 12px; }
+/* REV 75: the slot owns the 12px offset; the capsule never stacks its own
+   Tailwind mt-3 on top of it. Homepage capsule rides in .home-sync-wrap. */
+.sync-status-capsule { margin-top: 0 !important; }
+/* REV 75: unified Synced typography across NEXUS / CORE / FEED */
+.sync-status-capsule .capsule-label {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1 !important;
+}
+
+/* ---------- Mobile utilities bar: flow at top, floating pill on scroll ---------- */
+@media (max-width: 1023.98px) {
+  .utilities-row {
+    position: static;
+    left: auto;
+    top: auto;
+    transform: none;
+    width: max-content;
+    max-width: 92vw;
+    /* REV 86: uniform strip-to-sheet separation on every board (user ask;
+       supersedes the REV 80c flush decision) */
+    margin: 10px auto 12px;
+    z-index: auto;
+    gap: 8px !important;
+    /* REV 80b: opaque Neobrutalist surface, static + floating */
+    background: #FBF7EE !important;
+    border: 2px solid #111111 !important;
+    border-radius: 14px;
+    box-shadow: 2px 2px 0 #111111 !important;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  /* REV 80: the REV 59 tracker-shell dock rule (ID specificity) pins
+     #mobileUtilities to width:auto + clamp margins — compact + centered
+     wins on CORE too */
+  body:has(.tracker-shell) #mobileUtilities,
+  #mobileUtilities {
+    width: max-content !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  /* REV 80c: 12px margin removed — strip sits flush with the sheet */
+  html[data-theme="dark"] .utilities-row {
+    background: #1E1E1E !important;
+    border-color: #FFFFFF !important;
+    box-shadow: 2px 2px 0 #FFFFFF !important;
+  }
+  /* REV 86: pill/grid switch is a desktop-header control — never in the strip */
+  .utilities-row .view-mode-toggle {
+    display: none !important;
+  }
+  /* Threshold-triggered floating pill (mobile-nav.js toggles .is-floating) */
+  .utilities-row.is-floating {
+    /* explicit zeroing: auto side-margins resolve unpredictably against
+       left:50% + translateX(-50%) anchoring on some shells */
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: var(--z-dock);
+    background: #FBF7EE !important;
+    border: 2px solid #111111 !important;
+    box-shadow: 4px 4px 0 rgba(17, 17, 17, 0.85) !important;
+  }
+  html[data-theme="dark"] .utilities-row #search-toggle {
+    background: #2A2A2A !important;
+    border-color: #FFFFFF !important;
+    color: #FBF7EE !important;
+  }
+  html[data-theme="dark"] .utilities-row #search-toggle svg { color: #FBF7EE !important; }
+  html[data-theme='dark'] .utilities-row.is-floating {
+    box-shadow: 4px 4px 0 rgba(255, 255, 255, 0.7);
+  }
+}
+
+/* ---------- Homepage: bell joins the uniform 56px rhythm ---------- */
+
+/* Synced capsule rides below the stack, right-aligned to it */
+main.arc-dot-field .home-sync-wrap {
+  /* REV 79: Synced capsule anchored bottom-left */
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  top: auto;
+  right: auto;
+  z-index: var(--z-notif);
+}
+
+/* ---------- FEED category row: swipe polish + breathing room ---------- */
+.feed-filters {
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 0;
+  /* REV 75: header-to-category breathing room */
+  margin-bottom: 16px;
+}
+/* REV 75: category-to-feed separation */
+#feed-stream { margin-top: 20px; }
+
+/* ---------- Pinned card chip borders invert on red ---------- */
+.feed-card.is-pinned .cat-chip { border-color: #FFFFFF !important; }
+
+/* ---------- Homepage Tier-1 gate modal ---------- */
+.gate-modal-layer {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(17, 17, 17, 0.55);
+  align-items: center; justify-content: center;
+  z-index: var(--z-modal);
+  padding: 20px;
+}
+.gate-modal-layer.is-open { display: flex; }
+.gate-modal {
+  width: min(420px, 100%);
+  background: #FBF7EE;
+  border: 3px solid #111111;
+  border-radius: 14px;
+  box-shadow: 6px 6px 0 #111111;
+  padding: 22px;
+}
+html[data-theme='dark'] .gate-modal {
+  background: var(--bg-card, #1c1917);
+  border-color: #FFFFFF;
+  box-shadow: 6px 6px 0 #FFFFFF;
+}
+.gate-modal h3 {
+  margin: 0 0 10px;
+  font: 900 18px 'Poppins', sans-serif;
+  letter-spacing: -0.2px;
+  color: #9B2C2C;
+}
+html[data-theme='dark'] .gate-modal h3 { color: #ff9d9d; }
+.gate-modal p { margin: 0 0 16px; font: 600 13.5px 'DM Sans', sans-serif; line-height: 1.5; }
+.gate-modal .dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.gate-modal button {
+  font: 800 13px 'Libre Franklin', sans-serif;
+  padding: 9px 16px;
+  background: #111111; color: #FBF7EE;
+  border: 2px solid #111111; border-radius: 10px;
+  box-shadow: 2px 2px 0 rgba(17,17,17,.35);
+  cursor: pointer;
+}
+.gate-modal button:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 rgba(17,17,17,.35); }
+
+/* ==========================================================================
+   REV 76: SPA SHELL — sidebar collapse toggle, floating expand trigger.
+   Desktop (>=1024px) only; the sidebar is persistent shell chrome.
+   ========================================================================== */
+.sidebar-toggle-btn {
+  /* REV 77: compact 28px, flush top-right of the ARC header row */
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #FBF7EE;
+  color: #111111;
+  border: 2px solid #111111;
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 #111111;
+  cursor: pointer;
+  user-select: none;
+  flex: 0 0 auto;
+  transition: transform 140ms cubic-bezier(.4,0,.2,1), box-shadow 140ms cubic-bezier(.4,0,.2,1), background 140ms linear;
+}
+.sidebar-toggle-btn svg { width: 16px; height: 16px; }
+.sidebar-toggle-btn:hover { background: #fffdf8; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 #111111; }
+.sidebar-toggle-btn:active { transform: translate(1px, 1px); box-shadow: 0 0 0 #111111; }
+html[data-theme="dark"] .sidebar-toggle-btn {
+  background: #1E1E1E;
+  color: #FBF7EE;
+  border-color: #FFFFFF;
+  box-shadow: 2px 2px 0 #FFFFFF;
+}
+html[data-theme="dark"] .sidebar-toggle-btn:hover { box-shadow: 3px 3px 0 #FFFFFF; }
+
+.sidebar-expand-btn {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: var(--z-header-icon);
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  background: #FBF7EE;
+  color: #111111;
+  border: 2px solid #111111;
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 #111111;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 140ms cubic-bezier(.4,0,.2,1), box-shadow 140ms cubic-bezier(.4,0,.2,1), background 140ms linear;
+}
+.sidebar-expand-btn svg { width: 20px; height: 20px; }
+.sidebar-expand-btn:hover { background: #fffdf8; transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #111111; }
+.sidebar-expand-btn:active { transform: translate(1px, 1px); box-shadow: 0 0 0 #111111; }
+html[data-theme="dark"] .sidebar-expand-btn {
+  background: #1E1E1E;
+  color: #FBF7EE;
+  border-color: #FFFFFF;
+  box-shadow: 3px 3px 0 #FFFFFF;
+}
+
+@media (min-width: 1024px) {
+  .desktop-sidebar {
+    transition: transform 300ms ease-in-out, visibility 300ms ease-in-out;
+  }
+  body.sidebar-collapsed .desktop-sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    pointer-events: none;
+  }
+  body.sidebar-collapsed .board-shell,
+  body.sidebar-collapsed .tracker-shell,
+  body.sidebar-collapsed #expand-modal {
+    padding-left: 2.25rem;
+  }
+  body.sidebar-collapsed .sidebar-expand-btn { display: inline-flex; }
+}
+@media (max-width: 1023.98px) {
+  .sidebar-toggle-btn, .sidebar-expand-btn { display: none !important; }
+}
+
+/* ---------- REV 76: rich text announcement editor ---------- */
+.rt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.rt-toolbar button {
+  min-width: 30px;
+  height: 28px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: 800 12px "Libre Franklin", sans-serif;
+  background: #FFFFFF;
+  color: var(--ink, #111111);
+  border: 2px solid var(--ink, #111111);
+  border-radius: 6px;
+  box-shadow: 2px 2px 0 var(--ink, #111111);
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+.rt-toolbar button:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink, #111111); }
+.rt-toolbar button:active { transform: translate(1px, 1px); box-shadow: 0 0 0 var(--ink, #111111); }
+.rt-toolbar button.rt-on { background: var(--ink, #111111); color: #FBF7EE; }
+html[data-theme="dark"] .rt-toolbar button { background: var(--bg-card, #1c1917); color: var(--text-primary, #FBF7EE); border-color: #FFFFFF; box-shadow: 2px 2px 0 #FFFFFF; }
+html[data-theme="dark"] .rt-toolbar button.rt-on { background: var(--maroon, #8B1A2B); color: #fff; }
+.rt-editor {
+  min-height: 130px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 10px 12px;
+  background: #FFFFFF;
+  color: #111111;
+  border: 2px solid var(--ink, #111111);
+  border-radius: 8px;
+  font: 500 13px/1.55 "DM Sans", sans-serif;
+  text-align: left;
+  outline: none;
+  word-break: break-word;
+}
+.rt-editor:focus { box-shadow: 0 0 0 3px rgba(122,35,49,.15); }
+.rt-editor:empty::before { content: attr(data-placeholder); color: #9a8f93; pointer-events: none; }
+.rt-editor h1 { font: 900 20px "Poppins", sans-serif; margin: 10px 0 6px; letter-spacing: -0.3px; }
+.rt-editor h2 { font: 900 16px "Poppins", sans-serif; margin: 8px 0 5px; letter-spacing: -0.2px; }
+.rt-editor p { margin: 0 0 6px; }
+html[data-theme="dark"] .rt-editor { background: var(--bg-card, #1c1917); color: var(--text-primary, #FBF7EE); border-color: #FFFFFF; }
+.reader-body h1 { font: 900 20px "Poppins", sans-serif; margin: 0 0 8px; letter-spacing: -0.3px; }
+.reader-body h2 { font: 900 16px "Poppins", sans-serif; margin: 0 0 7px; letter-spacing: -0.2px; }
+.reader-body p { margin: 0 0 6px; }
+.reader-body u, .reader-body s { text-decoration: underline; }
+.reader-body s { text-decoration: line-through; }
+
+/* ==========================================================================
+   REV 77: shell containment + responsive board containers
+   ========================================================================== */
+#app-content {
+  min-width: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ==========================================================================
+   REV 79: universal background shell tokens
+   ========================================================================== */
+:root {
+  color-scheme: light; /* REV 81: light canvas/scrollbars — kills dark edge bands + scrollbar flash */
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+html {
+  scrollbar-gutter: stable; /* REV 80: no content jump between routes */
+  /* REV 88: SPA swap stabilization — the document never collapses below the
+     viewport, so the scrollbar thumb stops flashing while the router swaps. */
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  /* REV 87: the dot-field lives on the ROOT so it paints the full canvas —
+     including the scrollbar-gutter strip that previously showed as a blank
+     band at the right edge (body's background stopped at its own box). */
+  background-color: #FFFDF8;
+  background-image: radial-gradient(circle, rgba(152, 32, 54, 0.30) 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
+}
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  margin: 0;
+  /* REV 90: no overflow on body — a non-visible body overflow makes BODY the
+     scroll container, which defeats html scrollbar-gutter:stable (the root
+     cause of the persistent swap layout shift). html owns the clip. */
+}
+/* REV 88: router transition — spa.js adds .routing before it tears down the
+   old view and removes it a frame after the new view has laid out, so the
+   height recalculation happens behind an opacity mask instead of visibly
+   jumping. */
+#app-content {
+  transition: opacity .15s ease;
+}
+#app-content.routing {
+  opacity: 0;
+}
+html[data-theme="dark"] {
+  background-color: #121212;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.22) 1.9px, transparent 2px);
+  background-size: 18px 18px;
+}
+
+/* ==========================================================================
+   REV 78: container offset parity, homepage capsule anchor
+   ========================================================================== */
+@media (min-width: 1024px) {
+  #app-content {
+    padding-left: calc(260px + 2.25rem);
+    padding-right: 2.25rem;
+    transition: padding-left 300ms ease-in-out;
+  }
+  /* REV 78: horizontal spacing owned by #app-content — shells surrender
+     their legacy asymmetric paddings so all views share one centered frame */
+  .board-shell,
+  .tracker-shell {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  body.sidebar-collapsed #app-content { padding-left: 2.25rem; }
+  /* expand modal rides the same offset */
+  body:has(.board-shell) #expand-modal { padding-left: calc(260px + 2.25rem); }
+  body.sidebar-collapsed #expand-modal { padding-left: 2.25rem; }
+}
+
+/* Homepage: ONLY the Synced capsule moves to the bottom-left corner */
+
+/* Homepage ALERTS button: Tier-1 lock-state tokens */
+/* REV 79: ALERTS locks uniformly with its siblings (same dimming), but
+   remains the clickable Tier-1 gate */
+html:not(.boot-t1) #alertsButton {
+  pointer-events: auto;
+  opacity: 0.5;
+}
+html:not(.boot-t1) #alertsButton:hover { opacity: 0.75; }
+html[data-theme="dark"] #alertsButton {
+  border-color: #111111 !important;
+}
+
+/* ===== REV 86: the duplicate REV 81 help-modal block that lived here was
+   collapsed into the single canonical section at the top of the file ===== */
+
+/* ===== Lock Toast (from NEXUS, Rule 1) ===== */
+.lock-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translate(-50%, 12px);
+      background: #2a0d13;
+      color: #fff;
+      padding: .6rem 1rem;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: var(--z-dock);
+      box-shadow: 0 10px 24px rgba(0,0,0,.3);
+    }
+    .lock-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+/* ===== Dialog Actions (from FEED, Rule 1) ===== */
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }

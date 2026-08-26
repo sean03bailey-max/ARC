@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — ARC</title>
+    <!-- settings.html intentionally excludes: html2canvas (no export), announcements.js (no badge) -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script type="module" src="utils/soundEffects.js"></script>
+  <script src="utils/tour.js"></script>
+  <script src="utils/auth.js"></script>
+  <script src="utils/spa.js"></script>
+  <script src="utils/mobile-nav.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Poppins:wght@800;900&family=Libre+Franklin:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('arc-theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        if (localStorage.getItem('arc_sound_enabled') === 'false') document.documentElement.setAttribute('data-sound', 'off');
+      } catch (e) {}
+      try { window.ArcAuth && window.ArcAuth.migrateOnce(); } catch (e) {}
+      document.documentElement.classList.add('hydrated');
+    })();
+  </script>
+  <style>
+    /* color tokens owned by assets/neubrutal.css :root (Rule 1) */
+
+    /* REV 87: html/body background owned by assets/neubrutal.css (dot-field on root) */
+    #app-content { min-width: 0; width: 100%; overflow-x: hidden; }
+    @media (min-width: 1024px) {
+      #app-content { padding-left: calc(260px + 2.25rem); padding-right: 2.25rem; transition: padding-left 300ms ease-in-out; }
+      body.sidebar-collapsed #app-content { padding-left: 2.25rem; }
+    }
+
+    .settings-shell { min-height: 100vh; padding: 28px 36px 60px; }
+    @media (max-width: 1023.98px) {
+      /* REV 86: strip-to-sheet separation owned by the shared neubrutal token
+       (12px); the local REV 80b margin-top was superseded */
+    }
+    .view-container { width: 100%; max-width: 1170px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+    .settings-sheet {
+      background: rgba(255, 253, 248, 0.97);
+      border: 3px solid #111111;
+      border-radius: 10px;
+      box-shadow: 4px 4px 0 #111111;
+      padding: clamp(1.4rem, 3vw, 2.4rem);
+    }
+    html[data-theme="dark"] .settings-sheet { background: #1c1917; border-color: #FFFFFF; box-shadow: 4px 4px 0 #FFFFFF; }
+
+    .settings-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 8px; }
+    /* REV 87: badge centers against the heading's first line (boards' brand-top pattern) */
+    .settings-badge { margin-top: 0; }
+    /* .settings-badge infoboard trigger owned by assets/neubrutal.css (REV 86 contract) */
+    .page-heading { color: var(--maroon); } /* typography hoisted to neubrutal (REV 86); accent stays local */
+    .page-subtitle { margin: 4px 0 0; font: 500 13px "DM Sans", sans-serif; color: #6c6166; max-width: 460px; }
+
+    /* ---- Notification settings card ---- */
+    .notif-card {
+      background: #FFFFFF;
+      border: 2px solid #111111;
+      border-radius: 16px;
+      box-shadow: 3px 3px 0 #111111;
+      padding: 22px;
+      margin-top: 24px; /* REV 90: spacing inside the merged sheet (was the view-container gap) */
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    html[data-theme="dark"] .notif-card { background: #1E1E1E; border-color: #FFFFFF; box-shadow: 3px 3px 0 #FFFFFF; }
+    .notif-head { display: flex; align-items: center; gap: 14px; }
+    .notif-bell {
+      width: 44px; height: 44px; flex: 0 0 auto;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--maroon); color: #FFFFFF;
+      border: 2px solid #111111; border-radius: 10px;
+      box-shadow: 2px 2px 0 #111111;
+    }
+    .notif-bell svg { width: 20px; height: 20px; }
+    html[data-theme="dark"] .notif-bell { border-color: #FFFFFF; box-shadow: 2px 2px 0 #FFFFFF; }
+    .notif-title { font: 800 17px "Poppins", sans-serif; letter-spacing: -0.2px; margin: 0; }
+    .notif-sub { margin: 2px 0 0; font: 500 12.5px "DM Sans", sans-serif; color: #6c6166; }
+    html[data-theme="dark"] .notif-sub { color: #A1A1AA; }
+    .status-pill {
+      margin-left: auto;
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 12px; border-radius: 999px;
+      border: 2px solid #111111;
+      font: 800 11px "Libre Franklin", sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
+      background: #DFF0D8; color: #27704C;
+    }
+    .status-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #27704C; }
+    .status-pill.is-disabled { background: #E8E4E0; color: #6c6166; }
+    .status-pill.is-disabled .dot { background: #9a9a9a; }
+    html[data-theme="dark"] .status-pill { background: #233327; color: #7fd499; border-color: #FFFFFF; }
+    html[data-theme="dark"] .status-pill.is-disabled { background: #2A2A2A; color: #A1A1AA; }
+
+    .notif-banner {
+      display: flex; align-items: center; gap: 12px;
+      background: #FDF6E3;
+      border: 2px solid #111111;
+      border-radius: 10px;
+      box-shadow: 2px 2px 0 #111111;
+      padding: 12px 14px;
+      font: 700 12.5px "DM Sans", sans-serif; line-height: 1.45;
+    }
+    html[data-theme="dark"] .notif-banner { background: #2A2417; border-color: #FFFFFF; box-shadow: 2px 2px 0 #FFFFFF; color: #FBF7EE; }
+    .notif-banner .banner-bell { color: #B91C1C; flex: 0 0 auto; display: inline-flex; }
+    .notif-banner .banner-bell svg { width: 18px; height: 18px; }
+    html[data-theme="dark"] .notif-banner .banner-bell { color: #F87171; }
+
+    .notif-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .notif-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 20px;
+      font: 800 13px "Libre Franklin", sans-serif; text-transform: uppercase; letter-spacing: 0.05em;
+      border: 2px solid #111111; border-radius: 10px;
+      cursor: pointer; text-decoration: none;
+      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+    .notif-btn svg { width: 16px; height: 16px; }
+    .notif-btn:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0 #111111; }
+    .notif-btn:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 #111111; }
+    .notif-btn.btn-primary { background: #FFFFFF; color: #07133F; }
+    .notif-btn.btn-primary.is-off { background: var(--maroon); color: #FFFFFF; }
+    .notif-btn.btn-ghost { background: #FFFDF8; color: #111111; }
+    html[data-theme="dark"] .notif-btn.btn-primary { background: #2A2A2A; color: #FBF7EE; border-color: #FFFFFF; }
+    html[data-theme="dark"] .notif-btn.btn-primary.is-off { background: var(--maroon); color: #fff; }
+    html[data-theme="dark"] .notif-btn.btn-ghost { background: #1c1917; color: #FBF7EE; border-color: #FFFFFF; }
+    .notif-helper { margin: 0; font: 500 12px "DM Sans", sans-serif; color: #8a7f84; }
+    html[data-theme="dark"] .notif-helper { color: #A1A1AA; }
+
+    /* ---- push toast (Send Test / Re-notify delivery) ---- */
+    .push-toast {
+      position: fixed; top: 20px; right: 20px; z-index: 120;
+      width: min(360px, calc(100vw - 40px));
+      background: #FFFFFF;
+      border: 2px solid #111111; border-radius: 14px;
+      box-shadow: 5px 5px 0 #111111;
+      padding: 14px 16px;
+      transform: translateX(calc(100% + 40px));
+      transition: transform 260ms cubic-bezier(.22,.8,.3,1);
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .push-toast.is-visible { transform: translateX(0); }
+    html[data-theme="dark"] .push-toast { background: #1E1E1E; border-color: #FFFFFF; box-shadow: 5px 5px 0 #FFFFFF; }
+    .push-toast .pt-bell {
+      width: 36px; height: 36px; flex: 0 0 auto;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--maroon); color: #fff;
+      border: 2px solid #111111; border-radius: 10px;
+    }
+    .push-toast .pt-bell svg { width: 16px; height: 16px; }
+    html[data-theme="dark"] .push-toast .pt-bell { border-color: #FFFFFF; }
+    .push-toast .pt-title { margin: 0 0 2px; font: 800 13px "Poppins", sans-serif; }
+    .push-toast .pt-body { margin: 0; font: 500 12px "DM Sans", sans-serif; color: #6c6166; }
+    html[data-theme="dark"] .push-toast .pt-body { color: #A1A1AA; }
+
+    /* ---- confirm layer (Re-notify) ---- */
+    html[data-theme="dark"] .confirm-dialog { background: #1c1917; border-color: #FFFFFF; box-shadow: 6px 6px 0 #FFFFFF; }
+    .confirm-dialog .dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .confirm-dialog button { font: 800 13px "Libre Franklin", sans-serif; padding: 9px 16px; border: 2px solid #111111; border-radius: 10px; cursor: pointer; background: #FFFFFF; color: #111111; }
+  </style>
+  <link rel="stylesheet" href="assets/neubrutal.css">
+</head>
+<body class="settings-page">
+  <div id="app-content">
+    <main class="settings-shell">
+      <div id="mobileUtilities" class="utilities-row" aria-label="Utility controls"></div>
+      <div class="view-container">
+        <!-- REV 90: single merged sheet — header + notification card share one
+             container (the second sheet wrapper was removed) -->
+        <section class="settings-sheet">
+          <header class="settings-header">
+            <button type="button" class="settings-badge" id="settings-infoboard-btn" aria-label="Open Settings help guide" aria-expanded="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            </button>
+            <div>
+              <h1 class="page-heading">Settings</h1>
+              <p class="page-subtitle">Preferences for your ARC workspace.</p>
+            </div>
+          </header>
+
+          <div class="notif-card">
+            <div class="notif-head">
+              <span class="notif-bell">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              </span>
+              <div>
+                <h3 class="notif-title">Deployment Notifications</h3>
+                <p class="notif-sub">Get notified when administrators post new operational dispatches</p>
+              </div>
+              <span class="status-pill" id="notify-status-pill"><span class="dot"></span><span id="notify-status-text">Enabled</span></span>
+            </div>
+
+            <div class="notif-banner">
+              <span class="banner-bell">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              </span>
+              <span>Live alerts are available while the app is open. Background delivery requires Web Push server keys.</span>
+            </div>
+
+            <div class="notif-actions">
+              <button type="button" class="notif-btn btn-primary" id="notify-toggle">
+                <svg class="ic-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <svg class="ic-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+                <span id="notify-toggle-label">Turn Off</span>
+              </button>
+              <button type="button" class="notif-btn btn-ghost" id="notify-send-test">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <span>Send Test</span>
+              </button>
+            </div>
+
+            <p class="notif-helper">On iPhone or iPad, install the site to your Home Screen to receive background Web Push alerts.</p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- push toast -->
+  <div class="push-toast" id="push-toast" role="status">
+    <span class="pt-bell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </span>
+    <div>
+      <p class="pt-title" id="push-toast-title">Deployment Notification</p>
+      <p class="pt-body" id="push-toast-body"></p>
+    </div>
+  </div>
+
+  <!-- persistent sidebar -->
+  <aside class="desktop-sidebar" data-arc-shell id="app-sidebar" aria-label="Primary">
+   <div class="sidebar-brand">
+    <a href="index.html" class="sidebar-logo-link" aria-label="Go to Home" title="Go to Home"><img src="assets/logo.png" alt="ARC logo" class="sidebar-logo"></a>
+    <div><span class="sidebar-title">ARC</span></div>
+   </div>
+   <nav class="sidebar-nav" aria-label="Modules">
+    <a href="index.html" class="sidebar-link"><i data-lucide="home" aria-hidden="true"></i><span>Home</span></a>
+    <a href="NEXUS.html" class="sidebar-link"><i data-lucide="qr-code" aria-hidden="true"></i><span>Nexus</span></a>
+    <a href="core.html" class="sidebar-link"><i data-lucide="list-checks" aria-hidden="true"></i><span>Core</span></a>
+    <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="sidebar-link"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>Tracker</span></a>
+    <a href="feed.html" class="sidebar-link sidebar-notif-link"><i data-lucide="bell" aria-hidden="true"></i><span>Alerts</span><span class="notif-badge" aria-hidden="true"></span></a>
+    <a href="settings.html" class="sidebar-link is-active"><i data-lucide="settings" aria-hidden="true"></i><span>Settings</span></a>
+   </nav>
+   <div class="sidebar-footer">
+    <div class="utility-cluster">
+     <button id="tourToggle" class="tour-toggle" type="button" aria-label="Start walkthrough tour" aria-haspopup="dialog"><i data-lucide="help-circle" aria-hidden="true"></i></button>
+     <button id="soundToggle" class="sound-toggle" type="button" role="switch" aria-checked="true" aria-label="Sound on"><i data-lucide="volume-2" aria-hidden="true"></i><i data-lucide="volume-x" aria-hidden="true"></i></button>
+     <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button>
+    </div>
+    <div class="sidebar-sync-slot">
+     <div class="sync-status-capsule inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border-[1.5px] border-[#111111] dark:border-white bg-[#FFFFFF] dark:bg-[#1E1E1E] shadow-[1px_1px_0px_#111111] dark:shadow-[1px_1px_0px_#FFFFFF] select-none" id="sync-capsule">
+      <span class="relative flex h-2 w-2">
+       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 capsule-dot-ping"></span>
+       <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 capsule-dot-core"></span>
+      </span>
+      <span class="text-[11px] font-bold text-[#111111] dark:text-white tracking-tight leading-none capsule-label">Synced</span>
+     </div>
+    </div>
+   </div>
+  </aside>
+
+  <button id="sidebar-expand-btn" class="sidebar-expand-btn" type="button" aria-label="Expand sidebar" title="Show sidebar">
+   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m13 15 3-3-3-3"/></svg>
+  </button>
+
+  <nav class="mobile-bottom-nav" data-arc-shell aria-label="Primary">
+   <a href="index.html" class="mn-item"><i data-lucide="home" aria-hidden="true"></i><span>Home</span></a>
+   <a href="NEXUS.html" class="mn-item"><i data-lucide="qr-code" aria-hidden="true"></i><span>NEXUS</span></a>
+   <a href="core.html" class="mn-item"><i data-lucide="list-checks" aria-hidden="true"></i><span>CORE</span></a>
+   <a href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" class="mn-item mn-tracker"><i data-lucide="clipboard-list" aria-hidden="true"></i><span>TRACKER</span></a>
+   <a href="feed.html" class="mn-item mn-feed"><i data-lucide="bell" aria-hidden="true"></i><span>Alerts</span></a>
+   <a href="settings.html" class="mn-item is-active"><i data-lucide="settings" aria-hidden="true"></i><span>Settings</span></a>
+  </nav>
+
+  <script>
+    /* ---------- Settings logic ---------- */
+    (function () {
+      var KEY = 'arc_notify_enabled';
+      var pill = document.getElementById('notify-status-pill');
+      var pillText = document.getElementById('notify-status-text');
+      var toggleBtn = document.getElementById('notify-toggle');
+      var toggleLabel = document.getElementById('notify-toggle-label');
+      var icOn = toggleBtn.querySelector('.ic-on');
+      var icOff = toggleBtn.querySelector('.ic-off');
+
+      function enabled() {
+        try { return localStorage.getItem(KEY) !== 'false'; } catch (e) { return true; }
+      }
+      function render() {
+        var on = enabled();
+        pill.classList.toggle('is-disabled', !on);
+        pillText.textContent = on ? 'Enabled' : 'Disabled';
+        toggleBtn.classList.toggle('is-off', !on);
+        toggleLabel.textContent = on ? 'Turn Off' : 'Turn On';
+        if (icOn) icOn.style.display = on ? '' : 'none';
+        if (icOff) icOff.style.display = on ? 'none' : '';
+      }
+      toggleBtn.addEventListener('click', function () {
+        try { localStorage.setItem(KEY, enabled() ? 'false' : 'true'); } catch (e) {}
+        render();
+        if (window.SFX) window.SFX.playButtonClick();
+      });
+      render();
+
+      /* push toast */
+      var toast = document.getElementById('push-toast');
+      var toastTimer = null;
+      window.showPushToast = function (title, body) {
+        document.getElementById('push-toast-title').textContent = title;
+        document.getElementById('push-toast-body').textContent = body;
+        toast.classList.add('is-visible');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.classList.remove('is-visible'); }, 4200);
+      };
+      document.getElementById('notify-send-test').addEventListener('click', function () {
+        showPushToast('Test Notification', 'Local delivery is working. This is what an operational dispatch alert looks like.');
+        if (window.SFX) window.SFX.playUnlockSound();
+      });
+
+      /* theme toggle */
+      var themeBtn = document.getElementById('themeToggle');
+      if (themeBtn) themeBtn.addEventListener('click', function () {
+        var root = document.documentElement;
+        var dark = root.getAttribute('data-theme') === 'dark';
+        if (dark) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', 'dark');
+        try { localStorage.setItem('arc-theme', dark ? 'light' : 'dark'); } catch (e) {}
+      });
+
+      /* sound toggle */
+      var soundBtn = document.getElementById('soundToggle');
+      if (soundBtn) soundBtn.addEventListener('click', function () {
+        var off = document.documentElement.getAttribute('data-sound') === 'off';
+        if (off) document.documentElement.removeAttribute('data-sound');
+        else document.documentElement.setAttribute('data-sound', 'off');
+        try { localStorage.setItem('arc_sound_enabled', off ? 'true' : 'false'); } catch (e) {}
+        soundBtn.setAttribute('aria-checked', String(!off));
+      });
+
+      /* tour */
+      var tourBtn = document.getElementById('tourToggle');
+      if (tourBtn) tourBtn.addEventListener('click', function () {
+        if (window.ArcTour) window.ArcTour.startFrom('settings');
+      });
+    })();
+  </script>
+
+  <!-- infoboard modal -->
+  <div class="settings-infoboard-layer" id="settings-infoboard" role="dialog" aria-modal="true" aria-labelledby="sib-title">
+    <div class="settings-infoboard-dialog">
+      <h3 id="sib-title">Settings Guide</h3>
+      <ul class="sib-list">
+        <li><strong>Deployment Notifications:</strong> turn deployment alerts on or off. When enabled, you receive a live alert whenever an administrator posts a new operational dispatch on the ALERTS board.</li>
+        <li><strong>Send Test:</strong> fires a sample push notification so you can confirm that local delivery is working on this device.</li>
+        <li><strong>Sound &amp; Theme:</strong> toggle UI click sounds and switch between light and dark mode using the utility dock.</li>
+      </ul>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-primary" id="sib-close">Got it</button>
+      </div>
+    </div>
+  </div>
+  <style>
+    .settings-infoboard-layer { position: fixed; inset: 0; z-index: 90; display: none; align-items: center; justify-content: center; background: rgba(17,17,17,0.55); padding: 20px; }
+    .settings-infoboard-layer.is-open { display: flex; }
+    /* REV 91: infoboard container/title/list geometry + dark treatment owned
+       by assets/neubrutal.css (cream/#111 in both themes) */
+    .sib-list { margin: 0; padding: 0 0 0 18px; font: 500 13px/1.55 "DM Sans", sans-serif; }
+    .sib-list li { margin-bottom: 8px; }
+    .sib-list strong { font-weight: 800; }
+    /* .dialog-actions layout owned by assets/neubrutal.css (gap 10px) */
+    /* .dialog-actions button skin owned by assets/neubrutal.css (REV 87) */
+  </style>
+  <script>
+    /* infoboard open/close */
+    (function () {
+      var btn = document.getElementById('settings-infoboard-btn');
+      var layer = document.getElementById('settings-infoboard');
+      if (!btn || !layer) return;
+      btn.addEventListener('click', function () { layer.classList.add('is-open'); });
+      document.getElementById('sib-close').addEventListener('click', function () { layer.classList.remove('is-open'); });
+      layer.addEventListener('click', function (ev) { if (ev.target === layer) layer.classList.remove('is-open'); });
+    })();
+
+    /* REV 80b/81: layout() — relocates persistent cluster buttons between
+       the sidebar cluster (desktop) and the utilities strip (mobile) */
+    (function () {
+      var utilRow = document.getElementById('mobileUtilities');
+      var themeBtn = document.getElementById('themeToggle');
+      var soundBtn = document.getElementById('soundToggle');
+      var tourBtn = document.getElementById('tourToggle');
+      var cluster = document.querySelector('.utility-cluster');
+      var mq = window.matchMedia('(min-width:1024px)');
+      function layout() {
+        var desktop = mq.matches;
+        if (desktop) {
+          if (soundBtn && cluster && !cluster.contains(soundBtn)) cluster.insertBefore(soundBtn, utilRow.parentNode === cluster ? utilRow : null);
+          if (tourBtn && cluster && !cluster.contains(tourBtn)) cluster.insertBefore(tourBtn, soundBtn || utilRow);
+          if (themeBtn && cluster && !cluster.contains(themeBtn)) cluster.insertBefore(themeBtn, soundBtn || tourBtn || utilRow);
+          if (utilRow) utilRow.style.display = 'none';
+        } else {
+          if (utilRow) {
+            utilRow.style.display = 'flex';
+            if (tourBtn) utilRow.appendChild(tourBtn);
+            if (soundBtn) utilRow.appendChild(soundBtn);
+            if (themeBtn) utilRow.appendChild(themeBtn);
+          }
+        }
+        if (window.lucide) lucide.createIcons();
+      }
+      layout();
+      window.__arcRegisterLayout(mq, layout); /* REV 87: retire-on-swap (see spa.js) */
+    })();
+
+    /* theme / sound / tour handlers on the persistent buttons */
+    (function () {
+      var themeBtn = document.getElementById('themeToggle');
+      if (themeBtn) themeBtn.addEventListener('click', function () {
+        var root = document.documentElement;
+        var dark = root.getAttribute('data-theme') === 'dark';
+        if (dark) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', 'dark');
+        try { localStorage.setItem('arc-theme', dark ? 'light' : 'dark'); } catch (e) {}
+      });
+      var soundBtn = document.getElementById('soundToggle');
+      if (soundBtn) soundBtn.addEventListener('click', function () {
+        var off = document.documentElement.getAttribute('data-sound') === 'off';
+        if (off) document.documentElement.removeAttribute('data-sound');
+        else document.documentElement.setAttribute('data-sound', 'off');
+        try { localStorage.setItem('arc_sound_enabled', off ? 'true' : 'false'); } catch (e) {}
+      });
+      var tourBtn = document.getElementById('tourToggle');
+      if (tourBtn) tourBtn.addEventListener('click', function () {
+        if (window.ArcTour) window.ArcTour.startFrom('settings');
+      });
+    })();
+
+    if (window.lucide) lucide.createIcons();
+  </script>
+</body>
+</html>

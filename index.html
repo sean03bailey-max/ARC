@@ -6,28 +6,30 @@
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+      <!-- index.html intentionally excludes: spa.js (full nav, no SPA swaps), announcements.js (no badge), html2canvas (no export), mobile-nav.js (no dock/strip), auth.js (no board lock) -->
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script type="module" src="utils/soundEffects.js"></script>
   <script src="utils/tour.js"></script>
+  <script src="utils/auth.js"></script>
   <script>
     (function () {
       try {
         if (localStorage.getItem('arc-theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
         if (localStorage.getItem('arc_sound_enabled') === 'false') document.documentElement.setAttribute('data-sound', 'off');
       } catch (e) {}
+      try { window.ArcAuth && window.ArcAuth.migrateOnce(); } catch (e) {}
+      /* REV 72 two-tier pre-paint: boot-t1 ⇔ base access (tier1 inherited
+         from tier2). CSS keys off this class so locked/unlocked visuals are
+         correct on frame 0 — no permission pop-in. */
+      var t1 = window.ArcAuth ? window.ArcAuth.isTier1Unlocked() : false;
+      if (t1) document.documentElement.classList.add('boot-t1');
+      document.documentElement.classList.add('hydrated');
     })();
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Poppins:wght@800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Poppins:wght@800;900&family=Libre+Franklin:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --red: #8B1A2B;
-      --navy: #07133f;
-      --paper: #FBF7EE;
-      --soft-red: #f3d9d5;
-      --ink: #111111;
-      --rule: #111111;
-    }
+    /* :root tokens moved to neubrutal.css (Rule 1) */
 
     * { box-sizing: border-box; }
 
@@ -41,15 +43,7 @@
       font-family: "Poppins", "DM Sans", sans-serif;
     }
 
-    .arc-dot-field {
-      background-color: var(--paper);
-      background-image: radial-gradient(circle, rgba(223, 23, 29, 0.9) 2.2px, transparent 2.45px);
-      background-size: 19px 19px;
-    }
 
-    .arc-wash {
-      background: radial-gradient(circle at center, rgba(255, 253, 248, 0.98) 0%, rgba(255, 253, 248, 0.94) 42%, rgba(255, 253, 248, 0.75) 100%);
-    }
 
     .rise-in {
       animation: rise-in 0.72s cubic-bezier(.22,.8,.3,1) both;
@@ -83,19 +77,9 @@
     .arc-action,
     .arc-logo {
       position: relative;
-      border: 1px solid var(--rule);
-      border-radius: 6px;
-      box-shadow: 5px 5px 0 var(--ink);
-      transition: transform 180ms ease, box-shadow 180ms ease;
+      /* border/radius/shadow/transition owned by assets/neubrutal.css */
     }
 
-    .arc-action:hover,
-    .arc-action:focus-visible,
-    .arc-logo:hover,
-    .arc-logo:focus-within {
-      transform: translate(-3px, -3px);
-      box-shadow: 9px 9px 0 var(--ink);
-    }
 
     /* REV 50: homepage action/nav buttons carry the same weight and depth
        as the Unlock button (2px border, 5px rest shadow, 9px hover shadow). */
@@ -118,15 +102,6 @@
     #trackerButton {
       border: 3px solid var(--ink) !important;
       box-shadow: 4px 4px 0 var(--ink) !important;
-    }
-    #trackerButton:hover,
-    #trackerButton:focus-visible {
-      transform: translate(-2px, -2px) !important;
-      box-shadow: 6px 6px 0 var(--ink) !important;
-    }
-    #trackerButton:active {
-      transform: translate(2px, 2px) !important;
-      box-shadow: 2px 2px 0 var(--ink) !important;
     }
 
     .arc-logo {
@@ -230,7 +205,6 @@
       align-items: center;
       justify-content: center;
       padding: 1.5rem;
-      background: rgba(7, 19, 63, 0.7);
       backdrop-filter: blur(4px);
     }
     .guide-modal-layer.is-open { display: flex; }
@@ -239,9 +213,7 @@
       max-height: 85vh;
       overflow-y: auto;
       background: var(--paper);
-      border: 2px solid var(--rule);
       border-radius: 12px;
-      box-shadow: 0 20px 50px rgba(7,19,63,.3), 0 0 0 1px rgba(7,19,63,.1);
       animation: modal-enter 0.3s cubic-bezier(.22,.8,.3,1) both;
     }
     @keyframes modal-enter {
@@ -270,14 +242,10 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(7,19,63,.15);
       border-radius: 8px;
-      background: #fff;
-      color: var(--navy);
       cursor: pointer;
       transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
     }
-    .guide-modal-close:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
     .guide-modal-close svg { width: 20px; height: 20px; }
     .guide-modal-body {
       padding: 1.5rem;
@@ -396,7 +364,6 @@
       outline: 2px solid var(--maroon);
       outline-offset: 2px;
     }
-    .password-toggle:not(.is-unlocked) { background: #df171d !important; color: #fff !important; }
     .password-toggle.arc-action:hover, .password-toggle.arc-action:focus-visible {
       transform: translate(-3px, -3px);
       box-shadow: 9px 9px 0 var(--ink);
@@ -439,24 +406,6 @@
       75% { transform: translateX(4px); }
     }
 
-    .lock-toast {
-      position: fixed;
-      left: 50%;
-      bottom: 24px;
-      transform: translate(-50%, 12px);
-      background: var(--navy);
-      color: #fff;
-      padding: .6rem 1rem;
-      border-radius: 10px;
-      font-size: 12.5px;
-      font-weight: 700;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .2s ease, transform .2s ease;
-      z-index: 50;
-      box-shadow: 0 10px 24px rgba(0,0,0,.3);
-    }
-    .lock-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
 
     /* Grayscale lock overlay */
     .page-locked {
@@ -465,17 +414,57 @@
     }
     .page-unlocked {
       filter: grayscale(0%);
-      transition: filter 0.5s ease;
+    }
+
+    /* REV 72 zero-flicker: pre-paint locked/unlocked states mirror what
+       checkAuthState() will conclude, keyed off the <head> boot class. */
+    html:not(.boot-t1) nav a.arc-action {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    /* REV 91: the ALERTS gate exception is retired — the button now dims and
+       ignores clicks exactly like its siblings while the homepage is locked */
+    html:not(.boot-t1) .page-filterable:not(.page-unlocked) {
+      filter: grayscale(100%);
+    }
+    html.boot-t1 .page-filterable { filter: grayscale(0%); }
+    /* Unlocked toggle skin before JS swaps the icon markup */
+    html.boot-t1 #passwordToggle {
+      background: #fff !important;
+      border-color: var(--rule) !important;
+      color: var(--navy) !important;
+      box-shadow: 5px 5px 0 var(--ink);
     }
   </style>
   <link rel="stylesheet" href="assets/neubrutal.css">
  </head>
- <body class="w-full overflow-x-hidden" style="background: rgb(255, 253, 248);">
+ <body class="w-full" style="background: rgb(255, 253, 248);">
 <main class="arc-dot-field relative flex min-h-screen w-full items-center justify-center overflow-hidden px-5 py-12 sm:px-8">
    <div class="arc-wash absolute inset-0"></div>
    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode"><i data-lucide="sun" aria-hidden="true"></i><i data-lucide="moon" aria-hidden="true"></i></button>
    <button id="tourToggle" class="tour-toggle" type="button" aria-label="Start walkthrough tour" aria-haspopup="dialog"><i data-lucide="help-circle" aria-hidden="true"></i></button>
    <button id="soundToggle" class="sound-toggle" type="button" role="switch" aria-checked="true" aria-label="Sound on"><i data-lucide="volume-2" aria-hidden="true"></i><i data-lucide="volume-x" aria-hidden="true"></i></button>
+      <!-- REV 74: universal Synced capsule rides below the utility stack -->
+   <div class="home-sync-wrap">
+    <div class="sync-status-capsule inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border-[1.5px] border-[#111111] dark:border-white bg-[#FFFFFF] dark:bg-[#1E1E1E] shadow-[1px_1px_0px_#111111] dark:shadow-[1px_1px_0px_#FFFFFF] select-none" id="sync-capsule-home">
+     <span class="relative flex h-2 w-2">
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 capsule-dot-ping"></span>
+      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 capsule-dot-core"></span>
+     </span>
+     <span class="text-[11px] font-bold text-[#111111] dark:text-white tracking-tight leading-none capsule-label">Synced</span>
+    </div>
+   </div>
+   <!-- REV 74: Tier-1 gate modal (locked bell clicks) -->
+   <div class="gate-modal-layer" id="gateModal" role="dialog" aria-modal="true" aria-labelledby="gateModalTitle">
+    <div class="gate-modal">
+     <h3 id="gateModalTitle">Access Restricted</h3>
+     <p>Please unlock the board first to access operational alerts.</p>
+     <div class="dialog-actions">
+      <button type="button" id="gateModalUnlock">Unlock</button>
+      <button type="button" id="gateModalClose">Close</button>
+     </div>
+    </div>
+   </div>
    <section class="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center text-center">
     <div class="page-filterable">
      <div class="rise-in flex justify-center">
@@ -488,7 +477,7 @@
        <div class="rise-in rise-delay-2 mt-8 h-px w-16 bg-[#982036] mx-auto"></div>
      </div>
 <div class="password-row rise-in rise-delay-2 my-7">
-       <div class="auth-stack">
+       <div class="auth-stack mx-auto flex justify-center">
         <div class="password-widget" id="passwordWidget">
           <button id="passwordToggle" class="password-toggle bounce arc-action" type="button" aria-expanded="false" aria-label="Unlock access" style="background:#982036;color:#fff;">
             <i data-lucide="lock" aria-hidden="true" width="18" height="18"></i>
@@ -499,18 +488,23 @@
        </div>
       </div>
      <div class="page-filterable">
-      <h1 class="rise-in rise-delay-2 mt-0 max-w-3xl" style="color: rgb(7, 19, 63); font-weight: 900; font-size: 38px; letter-spacing: -0.02rem; line-height: 1.05;">Welcome to ARC</h1>
-      <p class="rise-in rise-delay-3 mt-5 max-w-2xl leading-relaxed" style="color: rgb(76, 83, 103); font-size: 19px; line-height: 1.6;">Your central space for council operations, shared deliverables, and quick-access files that help us efficiently serve with purpose.</p>
-      <nav class="rise-in rise-delay-4 mt-6 flex w-full flex-col justify-center gap-3 sm:flex-row sm:flex-wrap" aria-label="ARC destinations">
-       <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="NEXUS.html" style="background: rgb(139, 26, 43); color: rgb(255, 255, 255);">
+      <h1 class="rise-in rise-delay-2 mt-0 max-w-3xl mx-auto" style="color: rgb(7, 19, 63); font-weight: 900; font-size: 38px; letter-spacing: -0.02rem; line-height: 1.05;">Welcome to ARC</h1>
+      <p class="rise-in rise-delay-3 mt-5 max-w-2xl mx-auto leading-relaxed" style="color: rgb(76, 83, 103); font-size: 19px; line-height: 1.6;">Your central space for council operations, shared deliverables, and quick-access files that help us efficiently serve with purpose.</p>
+      <nav class="rise-in rise-delay-4 mt-6 grid w-full grid-cols-2 gap-3 justify-center sm:flex sm:flex-row sm:flex-wrap" aria-label="ARC destinations">
+<!-- REV 89: full-sized Settings button moved to the mini gear in the top-right quick-action stack -->
+<a id="alertsButton" class="arc-action focus-ring inline-flex w-full sm:w-auto sm:min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="feed.html" aria-label="Open operational alerts" style="background: rgb(255, 253, 248); color: rgb(7, 19, 63);">
+        <i data-lucide="bell" width="18" height="18" aria-hidden="true"></i>
+        <span>ALERTS</span>
+       </a>
+       <a class="arc-action focus-ring inline-flex w-full sm:w-auto sm:min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="NEXUS.html" style="background: rgb(139, 26, 43); color: rgb(255, 255, 255);">
         <i data-lucide="qr-code" width="18" height="18" aria-hidden="true"></i>
         <span>NEXUS</span>
        </a>
-       <a id="trackerButton" class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" style="background: rgb(7, 19, 63); color: rgb(255, 255, 255); border: 3px solid #111111 !important;">
+       <a id="trackerButton" class="arc-action focus-ring inline-flex w-full sm:w-auto sm:min-w-[190px] items-center justify-center gap-2 px-5 py-4 text-sm font-bold uppercase tracking-[0.08em]" href="https://red-cross-scheduler.vercel.app/" target="_blank" rel="noopener noreferrer" style="background: rgb(7, 19, 63); color: rgb(255, 255, 255); border: 3px solid #111111 !important;">
         <i data-lucide="clipboard-list" width="18" height="18" aria-hidden="true"></i>
         <span>Tracker</span>
        </a>
-       <a class="arc-action focus-ring inline-flex min-w-[190px] items-center justify-center gap-2 px-5 py-[14px] text-sm font-bold uppercase tracking-[0.08em]" href="core.html" style="background: rgb(255, 253, 248); color: rgb(7, 19, 63);">
+       <a class="arc-action focus-ring inline-flex w-full sm:w-auto sm:min-w-[190px] items-center justify-center gap-2 px-5 py-[14px] text-sm font-bold uppercase tracking-[0.08em]" href="core.html" style="background: rgb(255, 253, 248); color: rgb(7, 19, 63);">
         <i data-lucide="list-checks" width="18" height="18" aria-hidden="true"></i>
         <span>CORE</span>
        </a>
@@ -536,6 +530,8 @@
        <p>External scheduling system (red-cross-scheduler.vercel.app) for managing volunteer shifts, event timetables, and availability tracking.</p>
        <h3><span class="guide-module core">CORE</span> — Deliverables Tracker</h3>
        <p>A structured monthly tracker for officer and committee deliverables. Manage status (Not Started → In Progress → Completed), deadlines, and remarks with real-time multi-user sync.</p>
+       <h3><span class="guide-module nexus" style="background:rgba(155,44,44,.12);color:#9B2C2C;border-color:#9B2C2C;">FEED</span> — Announcements Board</h3>
+       <p>The council-wide dispatch board. Browse operational announcements in a chronological stream, swipe the category pills to filter by urgency tier (Urgent, Operational Dispatch, Deployments, Training, General), and tap any card to read it in full. Editors can publish new dispatches and Pin as urgent — pinned cards render red and always sort to the top. The bell badge tracks unread dispatches until you open the board.</p>
        <p style="margin-top: 1rem; font-size: 13px; color: #6b6b7a;">Click any module button below to navigate. Use the <strong>Unlock</strong> button to access editing features on NEXUS and CORE.</p>
       </div>
      </div>
@@ -550,7 +546,7 @@
     const passwordWidget = document.getElementById("passwordWidget");
     const passwordToggle = document.getElementById("passwordToggle");
     const passwordInputInline = passwordToggle.querySelector(".password-input-inline");
-    const navButtons = document.querySelectorAll("nav a.arc-action");
+    const navButtons = [...document.querySelectorAll("nav a.arc-action")]; /* REV 91: ALERTS included — full locked parity */
     const pageFilterable = document.querySelectorAll(".page-filterable");
 
     // Guide Modal elements
@@ -575,7 +571,7 @@
     function updateLockUI() {
       passwordToggle.classList.toggle("is-unlocked", !isLocked);
       passwordToggle.setAttribute("aria-label", isLocked ? "Unlock access" : "Lock access");
-      
+
       if (isLocked) {
         passwordToggle.innerHTML = '<i data-lucide="lock" aria-hidden="true" width="18" height="18"></i><span>Unlock</span><input type="password" class="password-input-inline" placeholder="Input Password" autocomplete="off" spellcheck="false" aria-label="Password">';
       } else {
@@ -640,7 +636,7 @@
     function setLocked(locked) {
       isLocked = locked;
       updateLockUI();
-      
+
       // Apply grayscale filter to page content — but not to the auth
       // button itself, which lives outside .page-filterable specifically
       // so it stays in full, high-contrast color as the active call to
@@ -658,15 +654,16 @@
           btn.style.opacity = "";
         });
       }
-      
-      // Persist to sessionStorage
-      sessionStorage.setItem("arc_homepage_unlocked", locked ? "false" : "true");
+
+      /* REV 72 two-tier: homepage lock = Tier 1 only. Tier 2 (board edit
+         mode) is intentionally untouched here — strict isolation. */
+      document.documentElement.classList.toggle("boot-t1", !locked);
+      if (window.ArcAuth) window.ArcAuth.setTier1(!locked);
     }
 
-    // Check sessionStorage on load
+    // REV 72: restore from the persistent tier keys on load.
     function checkAuthState() {
-      const stored = sessionStorage.getItem("arc_homepage_unlocked");
-      if (stored === "true") {
+      if (window.ArcAuth && window.ArcAuth.isTier1Unlocked()) {
         isLocked = false;
       }
       setLocked(isLocked);
@@ -675,7 +672,7 @@
     passwordToggle.addEventListener("click", (e) => {
       // Don't trigger if clicking the inline input
       if (e.target.classList.contains("password-input-inline")) return;
-      
+
       if (isLocked) {
         openPasswordWidget();
       } else {
@@ -751,6 +748,36 @@
       checkAuthState();
       if (passwordInputInline) bindInlineInput(passwordInputInline);
     });
+
+    /* ===== REV 74: Tier-1 gate on the FEED/Notifications button ===== */
+    (function () {
+      const bell = document.getElementById("alertsButton");
+      const gateLayer = document.getElementById("gateModal");
+      if (!bell || !gateLayer) return;
+      bell.addEventListener("click", (e) => {
+        /* REV 90: gate on the page's VISIBLE lock state — isTier1Unlocked()
+           ORs in tier2, so anyone who had ever unlocked a board bypassed this
+           gate while the homepage showed LOCKED. */
+        if (document.documentElement.classList.contains("boot-t1")) return; // proceed to FEED
+        e.preventDefault();
+        gateLayer.classList.add("is-open");
+      });
+      function closeGate() { gateLayer.classList.remove("is-open"); }
+      document.getElementById("gateModalClose").addEventListener("click", closeGate);
+      gateLayer.addEventListener("click", (ev) => { if (ev.target === gateLayer) closeGate(); });
+      document.getElementById("gateModalUnlock").addEventListener("click", () => {
+        closeGate();
+        // Spotlight the Tier-1 unlock control and focus its input
+        try { passwordToggle.click(); } catch (err) {}
+        setTimeout(() => {
+          const inp = passwordToggle.querySelector(".password-input-inline");
+          if (inp) inp.focus({ preventScroll: true });
+        }, 220);
+      });
+      document.addEventListener("keydown", (ev) => {
+        if (ev.key === "Escape" && gateLayer.classList.contains("is-open")) closeGate();
+      });
+    })();
   </script>
   <script>
     (function () {
@@ -778,15 +805,6 @@
         }
       }
 
-      document.addEventListener('click', function (e) {
-        if (!window.SFX) return;
-        var t = e.target && e.target.closest ? e.target.closest('button, a, [role="button"], input[type="submit"]') : null;
-        if (!t) return;
-        if (t.closest('.tour-overlay')) return;
-        // Homepage unlock button has its own two-stage latch sound.
-        if (t.id === 'passwordToggle' && document.querySelector('main.arc-dot-field')) return;
-        window.SFX.playButtonClick();
-      });
 
       var pwToggle = document.getElementById('passwordToggle');
       if (pwToggle && document.querySelector('main.arc-dot-field')) {

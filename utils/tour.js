@@ -7,7 +7,9 @@
   'use strict';
 
   var SESSION_KEY = 'arc_tour_session';
-  var ORDER = ['home', 'nexus', 'core', 'tracker'];
+  /* REV 71: FEED joins the global walkthrough sequence (appended after the
+     external TRACKER step so every pre-existing step index is untouched). */
+  var ORDER = ['home', 'nexus', 'core', 'tracker', 'alerts', 'settings'];
   var configs = {};
   var seq = [];
   var state = null; // { idx, total }
@@ -34,7 +36,7 @@
         },
         {
           title: 'Basic Navigation',
-          text: 'Jump between NEXUS (the QR resource board), TRACKER (the external scheduler), and CORE (the deliverables tracker) using these buttons.',
+          text: 'Jump between ALERTS (the operational dispatch board), NEXUS (the QR resource board), TRACKER (the external scheduler), and CORE (the deliverables tracker) using these buttons.',
           target: 'nav[aria-label="ARC destinations"]',
           placement: 'top'
         },
@@ -47,7 +49,11 @@
             check: function () {
               var t = document.getElementById('passwordToggle');
               if (t && t.classList.contains('is-unlocked')) return true;
-              try { return sessionStorage.getItem('arc_homepage_unlocked') === 'true'; } catch (e) { return false; }
+              /* REV 72 two-tier: base access = tier1, inherited by tier2 */
+              try {
+                if (localStorage.getItem('arc_auth_tier1') === 'true') return true;
+                return localStorage.getItem('arc_auth_tier2') === 'true';
+              } catch (e) { return false; }
             },
             hint: 'Unlock the dashboard to continue',
             autoAdvance: true,
@@ -147,7 +153,7 @@
         },
         {
           title: 'Board Overview & Sync',
-          text: 'The header frames the board: the NEXUS tagline describes what lives here, and the sync pill reports live save status (Synced / Saving / Error). The header actions on the right \u2014 Save Board, the card view toggle, and Add Resource \u2014 are your main board controls.',
+          text: 'The header frames the board: the NEXUS tagline describes what lives here, and the Synced capsule in the Action Board reports live save status (Synced / Saving / Error). The header actions on the right \u2014 Save Board, the card view toggle, and Add Resource \u2014 are your main board controls.',
           target: 'header.board-header',
           placement: 'bottom'
         },
@@ -217,11 +223,6 @@
                 if (rr.width > 0 && rr.height > 0) return { x: rr.left, y: rr.top, w: rr.width, h: rr.height };
               }
             }
-            var sheet = document.querySelector('.bottom-sheet.open');
-            if (isMob && sheet) {
-              var sr = sheet.getBoundingClientRect();
-              if (sr.width > 0 && sr.height > 0) return { x: sr.left, y: sr.top, w: sr.width, h: sr.height };
-            }
             return '.mobile-bottom-nav';
           },
           placement: 'top',
@@ -231,7 +232,8 @@
             check: function () {
               var t = document.getElementById('passwordToggle');
               if (t && t.classList.contains('is-unlocked')) return true;
-              return false;
+              /* REV 72 two-tier: board editing = tier2 only */
+              try { return localStorage.getItem('arc_auth_tier2') === 'true'; } catch (e) { return false; }
             },
             hint: 'Unlock editing to continue',
             autoAdvance: true,
@@ -240,8 +242,6 @@
               // so the mask tracks the input area, not the underlying toggle.
               var drawer = document.querySelector('#mobileUtilities .pw-tools.is-open');
               if (drawer && window.innerWidth < 1024) return drawer;
-              var sheet = document.querySelector('.bottom-sheet.open');
-              if (sheet && window.innerWidth < 1024) return sheet;
               return document.getElementById('passwordToggle');
             },
             focus: function () {
@@ -257,14 +257,12 @@
                 if (isActive() && seq[state.idx] && seq[state.idx].gate) position(seq[state.idx]);
               };
               var panel = document.querySelector('#mobileUtilities .password-panel');
-              var sheet = document.querySelector('.bottom-sheet');
               var once = function (el) {
                 if (!el) return;
                 var h = function () { repositionGate(); el.removeEventListener('transitionend', h); };
                 el.addEventListener('transitionend', h);
               };
               once(panel);
-              once(sheet);
               [50, 160, 300, 480, 700].forEach(function (d) {
                 setTimeout(repositionGate, d);
               });
@@ -280,7 +278,7 @@
       steps: [
         {
           title: 'Board Overview & Sync',
-          text: 'CORE is the officers\u2019 deliverables tracker. The header shows the current period\u2019s context and live sync status, and Save image exports the whole sheet as a clean PNG. The Month / Last updated / Updated by cards below summarize this period.',
+          text: 'CORE is the officers\u2019 deliverables tracker. The header shows the current period\u2019s context and live sync status in the sidebar capsule, and Save image exports the whole sheet as a clean PNG. The Month / Last updated / Updated by cards below summarize this period.',
           target: function () {
             var h = document.querySelector('.sheet-header');
             var m = document.querySelector('.meta-grid');
@@ -315,7 +313,96 @@
         }
       ]
     },
-    tracker: DEFAULT_TRACKER
+    tracker: DEFAULT_TRACKER,
+    /* REV 71: dedicated FEED announcements walkthrough */
+    alerts: {
+      url: 'feed.html',
+      steps: [
+        {
+          title: 'Announcements Board',
+          text: 'FEED is the council-wide dispatch board. Urgent announcements pinned by editors render red with a pin icon and always sort to the top of the stream. The badge on the bell tracks what you haven\u2019t read yet.',
+          target: '.sheet-header',
+          placement: 'bottom'
+        },
+        {
+          title: 'Filter by Category',
+          text: 'Swipe or tap the category pills to narrow the feed instantly \u2014 Urgent, Operational Dispatch, Deployments, Training, or General. Filtering is always available, even while the board is locked.',
+          target: '.feed-filters',
+          placement: 'bottom'
+        },
+        {
+          title: 'Compose & Manage',
+          text: 'Unlock editing and press + Add Announcement (or the floating + button) to publish. Editors can open any card to read it in full, then Pin as urgent, edit, or delete it from its action icons.',
+          target: function () {
+            var add = document.getElementById('addAnnouncementButton');
+            var fabEl = document.getElementById('pageFab');
+            /* REV 71: validity by rendered rect, not offsetParent —
+               offsetParent is null for position:fixed (FAB) and inside
+               display:none subtrees (desktop-only header actions). */
+            var ar = add ? add.getBoundingClientRect() : null;
+            var fr = fabEl ? fabEl.getBoundingClientRect() : null;
+            var aOk = !!(ar && ar.width > 1 && ar.height > 1);
+            var fOk = !!(fr && fr.width > 1 && fr.height > 1);
+            if (aOk && fOk) {
+              var x = Math.min(ar.left, fr.left), y = Math.min(ar.top, fr.top);
+              var rgt = Math.max(ar.right, fr.right), btm = Math.max(ar.bottom, fr.bottom);
+              return { x: x, y: y, w: rgt - x, h: btm - y };
+            }
+            if (fOk) return fabEl;
+            /* REV 78: locked desktop — spotlight the sidebar lock (the unlock
+               affordance) instead of a zero-rect hidden button */
+            if (!aOk) {
+              var lockBtn = document.querySelector('#passwordWidget .password-toggle');
+              if (lockBtn) return lockBtn;
+            }
+            return add || fabEl;
+          },
+          placement: 'bottom',
+          pad: 8
+        },
+        {
+          title: 'Re-notify',
+          text: 'Editors see a megaphone Re-notify button on every card — tap it to resend that announcement as a fresh push (requires edit mode).',
+          target: '.feed-card .fc-tool[data-act="renotify"]',
+          placement: 'bottom',
+          pad: 8,
+          requiresUnlock: true
+        },
+        {
+          title: 'Stay In Sync',
+          text: 'The pulsing Synced capsule in the Action Board confirms your changes are saved to the shared board for every officer \u2014 on mobile the compact status pill rides beside the FEED heading.',
+          target: '.sync-status-capsule',
+          placement: 'bottom',
+          pad: 8
+        },
+        {
+          title: 'Sidebar Collapse',
+          text: 'Need more workspace? This panel button collapses the Action Board sidebar to widen the board \u2014 and the floating trigger at the top-left brings it back.',
+          target: '#sidebar-toggle-btn',
+          placement: 'left',
+          desktopOnly: true,
+          pad: 6
+        },
+        {
+          title: 'Settings',
+          text: 'Open Settings from the Action Board or the dock to tune your workspace \u2014 including deployment notification preferences and a test alert.',
+          target: '.sidebar-link[href="settings.html"], .mn-item[href="settings.html"]',
+          placement: 'right'
+        }
+      ]
+    },
+    settings: {
+      url: 'settings.html',
+      steps: [
+        {
+          title: 'Settings',
+          text: 'Manage deployment notification preferences — enable or disable alerts and send a test push from the Settings view.',
+          target: '.sidebar-link[href="settings.html"]',
+          placement: 'right',
+          pad: 8
+        }
+      ]
+    }
   };
 
   var overlay, spotlight, tooltip, modal;
@@ -373,7 +460,7 @@
       if (!c || !c.steps) continue;
       for (var s = 0; s < c.steps.length; s++) {
         var st = c.steps[s];
-        out.push({ page: p, title: st.title, text: st.text, target: st.target, placement: st.placement, action: st.action, actionLabel: st.actionLabel, external: c.external, gate: st.gate, mobileOnly: st.mobileOnly, desktopOnly: st.desktopOnly, pad: st.pad, scrollTo: st.scrollTo });
+        out.push({ page: p, title: st.title, text: st.text, target: st.target, placement: st.placement, action: st.action, actionLabel: st.actionLabel, external: c.external, gate: st.gate, mobileOnly: st.mobileOnly, desktopOnly: st.desktopOnly, pad: st.pad, scrollTo: st.scrollTo, requiresUnlock: st.requiresUnlock });
       }
     }
     return out;
@@ -385,7 +472,10 @@
   }
   function onPage(name) {
     var path = (location.pathname.split('/').pop() || '').toLowerCase();
-    var want = (name === 'home' ? 'index.html' : name + '.html').toLowerCase();
+    /* REV 77: resolve the filename through the page config so renamed keys
+       (alerts -> feed.html) keep working */
+    var c = configs[name] || DEFAULT_CONFIG[name];
+    var want = (name === 'home' ? 'index.html' : (c && c.url) ? c.url : name + '.html').toLowerCase();
     return path === want;
   }
   function isActive() {
@@ -402,6 +492,7 @@
     if (!step) return true;
     if (step.mobileOnly && window.innerWidth >= 1024) return false;
     if (step.desktopOnly && window.innerWidth < 1024) return false;
+    if (step.requiresUnlock && !(window.ArcAuth && window.ArcAuth.isTier2Unlocked())) return false;
     return true;
   }
   function applicableCount(arr) {
@@ -520,17 +611,43 @@
     else if (place === 'right' && spaceRight < tw + M) place = spaceLeft >= tw + M ? 'left' : 'right';
     else if (place === 'left' && spaceLeft < tw + M) place = spaceRight >= tw + M ? 'right' : 'left';
 
-    var left, top;
-    if (place === 'bottom') { left = r.x + r.w / 2 - tw / 2; top = r.y + r.h + 12; }
-    else if (place === 'top') { left = r.x + r.w / 2 - tw / 2; top = r.y - th - 12; }
-    else if (place === 'right') { left = r.x + r.w + 12; top = r.y + r.h / 2 - th / 2; }
-    else { left = r.x - tw - 12; top = r.y + r.h / 2 - th / 2; }
+    function coordsFor(p) {
+      /* REV 71: anchor the tooltip to the SPOTLIGHT box (raw ± pad) with a
+         fixed clearance gap, so the rendered gap never depends on pad being
+         present in the step config. Cross-axis stays centered on the raw rect. */
+      var GAP = pad + 22;
+      var l, t;
+      if (p === 'bottom') { l = r.x + r.w / 2 - tw / 2; t = sb + GAP; }
+      else if (p === 'top') { l = r.x + r.w / 2 - tw / 2; t = st - GAP - th; }
+      else if (p === 'right') { l = sr + GAP; t = r.y + r.h / 2 - th / 2; }
+      else { l = sl - GAP - tw; t = r.y + r.h / 2 - th / 2; }
+      // Clamp within viewport edges so nothing is ever cropped.
+      l = Math.min(Math.max(l, M), Math.max(M, window.innerWidth - tw - M));
+      t = Math.min(Math.max(t, M), Math.max(M, window.innerHeight - th - M));
+      return { left: Math.round(l), top: Math.round(t) };
+    }
+    var sl = r.x - pad, sr = r.x + r.w + pad, st = r.y - pad, sb = r.y + r.h + pad;
 
-    // Clamp within viewport edges so nothing is ever cropped.
-    left = Math.min(Math.max(left, M), Math.max(M, window.innerWidth - tw - M));
-    top = Math.min(Math.max(top, M), Math.max(M, window.innerHeight - th - M));
-    tooltip.style.left = Math.round(left) + 'px';
-    tooltip.style.top = Math.round(top) + 'px';
+    /* REV 71 anti-collision: the tooltip must NEVER sit on top of the
+       spotlighted target. GAP-anchored candidates already embed clearance,
+       so try each side in preference order and take the first whose clamped
+       box clears the spotlight. If every side collides (tiny viewports),
+       keep the preferred side — viewport containment wins over clearance. */
+    function hitsTarget(c) {
+      var m = 10; // sanity margin beyond the visual spotlight
+      return c.left < sr + m && c.left + tw > sl - m && c.top < sb + m && c.top + th > st - m;
+    }
+    var tryOrder;
+    if (place === 'bottom' || place === 'top') tryOrder = [place, place === 'bottom' ? 'top' : 'bottom', 'right', 'left'];
+    else tryOrder = [place, place === 'right' ? 'left' : 'right', 'bottom', 'top'];
+    var chosen = null;
+    for (var i = 0; i < tryOrder.length; i++) {
+      var cand = coordsFor(tryOrder[i]);
+      if (!hitsTarget(cand)) { chosen = cand; break; }
+    }
+    if (!chosen) chosen = coordsFor(place);
+    tooltip.style.left = chosen.left + 'px';
+    tooltip.style.top = chosen.top + 'px';
   }
 
   /* ---------- rendering ---------- */
@@ -565,6 +682,14 @@
       action.textContent = step.actionLabel || 'Open Tracker';
       tooltip.querySelector('.tour-actions').insertBefore(action, next);
     }
+
+    /* REV 77: pre-step auto-scroll — guarantee the spotlight target is fully
+       in view before measuring; the rAF/250/800ms reposition timers absorb
+       the smooth scroll. */
+    try {
+      var scEl = resolveTarget(typeof step.target === 'function' ? step.target() : step.target);
+      if (scEl && scEl.scrollIntoView) scEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    } catch (e) {}
 
     overlay.style.display = 'block';
     hideConfirm();
