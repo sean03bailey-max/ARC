@@ -40,6 +40,8 @@
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Poppins:wght@800;900&family=Libre+Franklin:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
+    * { box-sizing: border-box; }
+
     :root {
       --maroon: #8B1A2B;
       --maroon-dark: #6b101f;
@@ -57,8 +59,7 @@
        scaled down for compact icon-only controls (logo badge, password
        toggle) so the shadow doesn't overpower a small element. */
 
-    * { box-sizing: border-box; }
-
+    
     body {
       width: 100%;
       min-height: 100vh;
@@ -282,9 +283,6 @@
     .password-input {
       /* base input skin owned by neubrutal scoped rules (sidebar slot / utilities row) */
     }
-    .password-input:not(:placeholder-shown) {
-      box-shadow: 0 0 0 3px rgba(122,35,49,.14), 0 8px 18px rgba(20,2,7,.12);
-    }
     .password-input.is-wrong { animation: pw-shake .32s ease; border-color: #c23b48; }
     @keyframes pw-shake {
       25% { transform: translateX(-4px); }
@@ -388,7 +386,7 @@
     .qr-space.has-image { border-style: solid; }
 
     /* REV 69: grid-only locked treatment — pill view must RETAIN its ring */
-    body:not(.nexus-view-pill) .qr-space.is-locked.has-image { cursor: pointer; border-color: transparent; overflow: hidden; }
+    body:not(.nexus-view-pill) .qr-space.is-locked.has-image { cursor: pointer; overflow: hidden; border-color: var(--ink); }
 
     /* REV 69: restore tactile Neobrutalist hover physics on the grid QR
        container / dropzone. Scoped OUT of pill view (its circle keeps its own
@@ -589,6 +587,20 @@
       background: #fffdfb;
       box-shadow: 0 15px 40px rgba(0,0,0,.35);
     }
+
+    /* REV 93: locked QR popup — lightweight viewer modal */
+    .qr-popup-dialog {
+      width: min(88vw, 340px);
+      padding: 1rem 1.1rem;
+      border: 3px solid #111111;
+      border-radius: 14px;
+      background: #fffdfb;
+      box-shadow: 4px 4px 0 #111111;
+      text-align: center;
+    }
+    .qr-popup-dialog .qr-popup-qr { border-radius: 10px; overflow: hidden; box-shadow: 4px 4px 0 #111111; }
+    html[data-theme="dark"] .qr-popup-dialog { background: #FBF7EE; border-color: #111111; box-shadow: 4px 4px 0 #FFFFFF; }
+    html[data-theme="dark"] .qr-popup-dialog .qr-popup-qr { box-shadow: 4px 4px 0 #FFFFFF; }
 
     .expand-dialog {
       position: relative;
@@ -1206,12 +1218,12 @@
        </div>
       <div class="brand-sub">
        <p id="board-tagline" class="page-subtitle" data-template-id="tagline" contenteditable="false" spellcheck="true">Scan less, find faster — every ARC link and QR code, one board.</p>
-       <p id="sync-pill" class="sync-pill"><i data-lucide="check-circle-2" aria-hidden="true"></i><span id="sync-pill-text">Synced</span></p>
+        <span id="syncStatus" class="sync-pill"><span class="sync-dot" aria-hidden="true"></span><span id="syncStatusText">Synced</span></span>
       </div>
      </div>
 <div class="header-actions">
        <button id="save-board-button" class="save-board-button arc-action" type="button" style="background: #8B1A2B; color: rgb(255, 255, 255); font-weight:800;font-size:13px;"><i data-lucide="save" aria-hidden="true"></i><span>Save Board</span></button>
-       <div class="add-resource-wrap"><button id="add-resource-button" class="add-resource-button arc-action" type="button" data-requires-unlock style="background:#fff;color:#591925;font-weight:800;font-size:14px;"><i data-lucide="plus" aria-hidden="true"></i><span>Add Resource</span></button></div>
+       <div class="add-resource-wrap"><button id="add-resource-button" class="add-resource-button arc-action" type="button" data-requires-unlock style="background:#fff;color:#591925;font-weight:800;font-size:14px;width:160px;"><i data-lucide="plus" aria-hidden="true"></i><span>Add Resource</span></button></div>
        <button id="view-mode-toggle" class="view-mode-toggle arc-action" type="button" data-view-mode="grid" aria-label="Switch to pill view" title="Toggle pill / grid view"><i data-lucide="layout-grid" aria-hidden="true"></i><span class="vmt-label">Grid</span></button>
        <button id="search-toggle" class="search-toggle arc-action-sm" type="button" aria-label="Search board" aria-expanded="false" aria-controls="search-bar"><i data-lucide="search" aria-hidden="true"></i></button>
       </div>
@@ -1239,6 +1251,21 @@
      <button id="delete-confirm-button" class="modal-delete" type="button">Delete Card</button>
     </div>
    </section>
+  </div>
+
+  <!-- REV 93: locked-QR popup viewer (lightweight, separate from expand editor) -->
+  <div id="qr-popup" class="confirmation-layer" role="presentation">
+    <section class="confirmation-dialog qr-popup-dialog" role="dialog" aria-modal="true" aria-label="QR resource preview">
+      <button id="qr-popup-close" class="expand-close" type="button" aria-label="Close">&times;</button>
+      <div class="expand-split" style="grid-template-columns: 1fr; justify-items: center; gap: .75rem;">
+        <h3 id="qr-popup-title" style="font: 800 18px 'Poppins', sans-serif; color: #111111; text-align: center; letter-spacing: -.2px; margin: 0;">Title</h3>
+        <div class="expand-qr" style="width: min(100%, 260px); max-width: 260px;">
+          <img id="qr-popup-img" class="expand-modal-image is-revealed" aria-hidden="true" alt="QR code">
+        </div>
+        <p id="qr-popup-url" style="font:700 12px 'DM Sans',sans-serif; color:#6b5e60; margin:.35rem 0 0; text-align:center; word-break:break-all; max-width:100%;"></p>
+        <p id="qr-popup-desc" style="font:500 12px/1.45 'DM Sans',sans-serif; color:#3a1720; margin:.3rem 0 0; text-align:center; max-height:72px; overflow:auto; max-width:100%;"></p>
+      </div>
+    </section>
   </div>
 
 <div id="expand-modal" class="confirmation-layer" role="presentation">
@@ -1384,8 +1411,8 @@
     const expandModalTitle = document.getElementById('expand-modal-title');
     const expandDialog = document.querySelector('.expand-dialog');
     const resizeHandle = document.getElementById('expand-resize-handle');
-    const syncPill = document.getElementById('sync-pill');
-    const syncPillText = document.getElementById('sync-pill-text');
+    const syncStatusEl = document.getElementById('syncStatus');
+    const syncStatusTextEl = document.getElementById('syncStatusText');
 
     // Help Modal elements
     const helpModal = document.getElementById('helpModal');
@@ -1573,15 +1600,15 @@
     }
 
     function setSyncStatus(state) {
-      syncPill.classList.remove('saving', 'error');
+      syncStatusEl.classList.remove('saving', 'error');
       if (state === 'saving') {
-        syncPill.classList.add('saving');
-        syncPillText.textContent = 'Saving…';
+        syncStatusEl.classList.add('saving');
+        syncStatusTextEl.textContent = 'Saving…';
       } else if (state === 'error') {
-        syncPill.classList.add('error');
-        syncPillText.textContent = 'Sync failed — will retry';
+        syncStatusEl.classList.add('error');
+        syncStatusTextEl.textContent = 'Sync failed — will retry';
       } else {
-        syncPillText.textContent = 'Synced';
+        syncStatusTextEl.textContent = 'Synced';
       }
     }
 
@@ -1774,7 +1801,8 @@
         if (editLocked) {
           const image = space.querySelector('.qr-image');
           if (image) {
-            image.classList.toggle('is-revealed');
+            // REV 93: locked QR → lightweight popup viewer (not full editor)
+            openQrPopup(card);
             return;
           }
           flashLockedNotice();
@@ -1788,7 +1816,8 @@
           if (editLocked) {
             const image = space.querySelector('.qr-image');
             if (image) {
-              image.classList.toggle('is-revealed');
+              // REV 93: keyboard parity — same action as mouse click (popup viewer)
+              openQrPopup(card);
               return;
             }
             flashLockedNotice();
@@ -2224,6 +2253,8 @@
           scale: 2,
           useCORS: true,
           imageTimeout: 15000,
+          windowWidth: 1440,
+          windowHeight: 900,
           onclone: (clonedDoc, el) => {
             // Kill all animations/transitions in the cloned document so the
             // enter animation (.sheet { animation: enter .65s ... }) doesn't
@@ -2240,7 +2271,7 @@
               sheet.style.transform = 'none';
             }
 
-            el.querySelectorAll('.header-actions, #save-board-button, .password-row, .add-resource-wrap, .status-region, .action-cluster, .expand-button, .qr-reveal-icon, .desktop-sidebar, .mobile-bottom-nav, .fab, .editing-note, .footer-note, .sync-pill').forEach(n => {
+            el.querySelectorAll('.header-actions, #save-board-button, .password-row, .add-resource-wrap, .status-region, .action-cluster, .expand-button, .qr-reveal-icon, .desktop-sidebar, .mobile-bottom-nav, .fab, .editing-note, .footer-note, .sync-pill, .utilities-row').forEach(n => {
               n.style.display = 'none';
             });
 
@@ -2446,6 +2477,40 @@
       if (event.key === 'Escape' && deleteModal.classList.contains('is-open')) closeDeleteModal();
       if (event.key === 'Escape' && expandModal.classList.contains('is-open')) closeExpandModal();
       if (event.key === 'Escape' && helpModal.classList.contains('is-open')) closeHelpModal();
+      // REV 93: popup viewer close
+      if (event.key === 'Escape' && document.getElementById('qr-popup')?.classList.contains('is-open')) { document.getElementById('qr-popup').classList.remove('is-open'); document.body.style.overflow = ''; }
+    });
+
+    const qrPopup = document.getElementById('qr-popup');
+    const qrPopupClose = document.getElementById('qr-popup-close');
+    const qrPopupImg = document.getElementById('qr-popup-img');
+    const qrPopupTitle = document.getElementById('qr-popup-title');
+
+    function openQrPopup(card) {
+      const img = card ? card.dataset.image : '';
+      const title = card ? (card.querySelector('.resource-title')?.textContent?.trim() || 'QR Resource') : 'QR Resource';
+      const url = card ? (card.querySelector('.resource-url-input')?.value?.trim() || '') : '';
+      const rich = card ? (card.dataset.rich || '') : '';
+      const urlEl = document.getElementById('qr-popup-url');
+      const descEl = document.getElementById('qr-popup-desc');
+      if (urlEl) { urlEl.textContent = url; urlEl.style.display = url ? 'block' : 'none'; if (url) urlEl.setAttribute('data-url', url); }
+      if (descEl) { const t = rich ? rich.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : ''; descEl.textContent = t.slice(0, 160); descEl.style.display = t ? 'block' : 'none'; }
+      if (qrPopupImg) { qrPopupImg.src = img || ''; qrPopupImg.style.display = img ? 'block' : 'none'; }
+      if (qrPopupTitle) qrPopupTitle.textContent = title;
+      if (qrPopup) qrPopup.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+      lucide.createIcons();
+    }
+    function closeQrPopup() {
+      if (qrPopup) qrPopup.classList.remove('is-open');
+      document.body.style.overflow = '';
+      if (qrPopupImg) qrPopupImg.src = '';
+      const urlEl = document.getElementById('qr-popup-url'); if (urlEl) { urlEl.textContent = ''; urlEl.style.display = 'none'; }
+      const descEl = document.getElementById('qr-popup-desc'); if (descEl) { descEl.textContent = ''; descEl.style.display = 'none'; }
+    }
+    if (qrPopupClose) qrPopupClose.addEventListener('click', closeQrPopup);
+    if (qrPopup) qrPopup.addEventListener('click', event => {
+      if (event.target === qrPopup) closeQrPopup();
     });
 
     // -------- Help Modal Functionality --------
@@ -3010,7 +3075,7 @@
       var sidebar = document.querySelector('.desktop-sidebar');
       if (!sidebar) return;
       var pw = document.getElementById('passwordWidget');
-      var syncEl = document.getElementById('sync-pill');
+      var syncStatusEl = document.getElementById('syncStatus');
       var brandSub = document.querySelector('.brand-sub');
       var syncSlot = document.getElementById('sidebarSyncSlot');
       var widgetSlot = document.getElementById('sidebarWidgetSlot');
@@ -3041,7 +3106,7 @@
           if (searchBtn && headerActions && !headerActions.contains(searchBtn)) headerActions.appendChild(searchBtn);
           if (utilRow) utilRow.style.display = 'none';
         } else {
-          if (syncEl && brandSub && !brandSub.contains(syncEl)) brandSub.appendChild(syncEl);
+          if (syncStatusEl && brandSub && !brandSub.contains(syncStatusEl)) brandSub.appendChild(syncStatusEl);
           if (utilRow) {
             utilRow.style.display = 'flex';
             if (realSave) utilRow.appendChild(realSave);

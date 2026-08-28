@@ -1,10 +1,10 @@
-/* REV 76: SPA soft router + desktop sidebar collapse.
-   Boards-only (NEXUS <-> CORE <-> FEED), desktop-only (>=1024px).
-   The sidebar, mobile dock and utility strip are persistent shell chrome —
-   a swap replaces only #app-content children plus the page's own <style>
-   blocks, then executes the fetched page's inline scripts inside one
-   isolated Function scope (avoids global `const` redeclaration crashes).
-   Home and the external TRACKER stay full page loads by design. */
+/* REV 93: SPA soft router + desktop sidebar collapse.
+   Viewport-agnostic (works at all breakpoints). The sidebar, mobile dock
+   and utility strip are persistent shell chrome — a swap replaces only
+   #app-content children plus the page's own <style> blocks, then executes
+   the fetched page's inline scripts inside one isolated Function scope
+   (avoids global `const` redeclaration crashes). Home and the external
+   TRACKER stay full page loads by design. */
 (function () {
   'use strict';
   if (window.__SPA_SHELL) return;

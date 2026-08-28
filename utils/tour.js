@@ -148,7 +148,7 @@
         {
           title: 'Action Board Controls',
           text: 'The Action Board stacks the Walkthrough (?), Sound, Dark Mode, and Edit Lock buttons in order. Use them to restart this tour, mute or unmute button sounds, switch themes, and lock or unlock editing.',
-          target: '.utility-cluster, #mobileUtilities',
+          target: '.utility-cluster, #mobileUtilities, .password-toggle',
           placement: 'right'
         },
         {
@@ -284,7 +284,9 @@
             var m = document.querySelector('.meta-grid');
             var a = h ? h.getBoundingClientRect() : null;
             var b = m ? m.getBoundingClientRect() : null;
+            var isDesktop = window.innerWidth >= 1024;
             if (!a && !b) return null;
+            if (!isDesktop) return (a ? { x: a.left, y: a.top, w: a.width, h: a.height } : { x: b.left, y: b.top, w: b.width, h: b.height });
             if (!a) return { x: b.left, y: b.top, w: b.width, h: b.height };
             if (!b) return { x: a.left, y: a.top, w: a.width, h: a.height };
             var x = Math.min(a.left, b.left), y = Math.min(a.top, b.top);

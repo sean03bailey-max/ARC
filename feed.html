@@ -39,11 +39,17 @@
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Poppins:wght@800;900&family=Libre+Franklin:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
+    * { box-sizing: border-box; }
+
     /* REV 71: frame + typography tokens mirror NEXUS/CORE 1:1. The sheet
        geometry (1170px frame, borders, padding) comes from the shared
        neubrutal.css rules — no local max-width/padding overrides anymore. */
-    * { box-sizing: border-box; }
-
+    /* REV 96: feed header subtitle/ sync reposition below heading */
+    .brand-group .page-subtitle { margin-left: 46px; }
+    .brand-group #syncStatus { margin: 8px 0 0 46px; } /* below subtitle */
+    .sheet-header { margin-bottom: 12px; border-bottom-width: 1px; }
+    .feed-filters { margin-top: 12px; }
+    
     body.feed-page {
       margin: 0;
       /* REV 80: dot-field restored (matches the board shells edge-to-edge) */
@@ -90,7 +96,7 @@
     }
     .page-subtitle {
       max-width: 460px;
-      margin: 2px 0 0;
+      margin: 2px 0 0 46px;
       color: #6c6166;
       font-size: 13px;
       font-weight: 500;
@@ -404,9 +410,9 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>
          </button>
          <h1 class="page-heading">ALERTS</h1>
-            <span id="sync-pill" class="sync-pill"><span class="sync-dot" aria-hidden="true"></span><span id="sync-pill-text">Synced</span></span>
           </div>
           <p class="page-subtitle">Operational dispatches — every announcement, one board.</p>
+          <span id="syncStatus" class="sync-pill"><span class="sync-dot" aria-hidden="true"></span><span id="syncStatusText">Synced</span></span>
         </div>
         <div class="header-actions">
           <button type="button" class="add-announcement-button arc-action" id="addAnnouncementButton"><i data-lucide="plus" aria-hidden="true"></i><span>Add Announcement</span></button>
@@ -718,8 +724,8 @@
 
     /* ---------- FEED application ---------- */
     const streamEl = document.getElementById('feed-stream');
-    const syncEl = document.getElementById('sync-pill');
-    const syncText = document.getElementById('sync-pill-text');
+    const syncEl = document.getElementById('syncStatus');
+    const syncText = document.getElementById('syncStatusText');
     const composeLayer = document.getElementById('compose-layer');
     const deleteLayer = document.getElementById('delete-layer');
     const renotifyLayer = document.getElementById('renotify-layer');

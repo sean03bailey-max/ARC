@@ -38,6 +38,8 @@
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Poppins:wght@800;900&family=Libre+Franklin:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
+    * { box-sizing: border-box; }
+
     :root {
       --maroon: #8B1A2B;
       --maroon-dark: #6b101f;
@@ -57,8 +59,7 @@
        scaled down for compact icon-only controls (logo badge, password
        toggle) so the shadow doesn't overpower a small element. */
 
-    * { box-sizing: border-box; }
-
+    
     body {
       margin: 0;
       width: 100%;
@@ -405,9 +406,6 @@
     /* REV 54: isolated popover — the expanded password field drops below the
        lock button instead of reflowing adjacent utility buttons. */
 
-    .password-input:not(:placeholder-shown) {
-      box-shadow: 0 0 0 3px rgba(152,32,54,.14), 0 6px 14px rgba(89,25,37,.18);
-    }
     .password-input.is-wrong { animation: pw-shake .32s ease; border-color: #c23b48; }
     @keyframes pw-shake {
       25% { transform: translateX(-4px); }
@@ -1310,7 +1308,7 @@ try {
         let sheetRect = null;
         let sheetRadius = 10;
         const canvas = await html2canvas(document.querySelector(".tracker-shell"), {
-          backgroundColor: "#fffdf8", scale: 2, useCORS: true, imageTimeout: 15000,
+          backgroundColor: "#fffdf8", scale: 2, useCORS: true, imageTimeout: 15000, windowWidth: 1440, windowHeight: 900,
           onclone: (clonedDoc) => {
             const style = clonedDoc.createElement("style");
             style.textContent = allCss + `
@@ -1328,8 +1326,7 @@ try {
             const btn = clonedDoc.getElementById("saveImageButton"); if (btn) btn.style.display = "none";
             const sync = clonedDoc.getElementById("syncStatus"); if (sync) sync.style.display = "none";
             const addRow = clonedDoc.getElementById("addRowButton"); if (addRow) addRow.closest(".add-row-wrap")?.style.setProperty("display", "none");
-            clonedDoc.querySelectorAll(".password-widget").forEach((n) => { n.style.display = "none"; });
-            clonedDoc.querySelectorAll(".desktop-sidebar, .mobile-bottom-nav, .fab").forEach((n) => { n.style.display = "none"; });
+            clonedDoc.querySelectorAll(".password-widget, .desktop-sidebar, .mobile-bottom-nav, .fab, .utilities-row").forEach((n) => { n.style.display = "none"; });
 
             // 1) Explicit list markers (html2canvas doesn't render ::marker)
             clonedDoc.querySelectorAll("td.deliverable-cell ol, td.deliverable-cell ul").forEach((list) => {

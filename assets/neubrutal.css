@@ -121,8 +121,8 @@ body,
 .mn-item:active,
 .sidebar-link:active,
 .fab:active {
-  transform: translate(1px, 1px) !important;
-  box-shadow: 1px 1px 0 var(--shadow) !important;
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--shadow);
 }
 .arc-action:disabled,
 .arc-action-sm:disabled {
@@ -1294,6 +1294,7 @@ html[data-theme="dark"] .settings-infoboard-dialog {
   gap: .4rem;
   min-width: 0;
 }
+.brand-sub .page-subtitle { margin-left: 46px; }
 .password-row {
   width: 100%;
   margin: .8rem 0 0;
@@ -1459,6 +1460,26 @@ html[data-theme="dark"] .password-toggle.arc-action {
 html[data-theme="dark"] .expand-close {
   box-shadow: 2px 2px 0 rgba(255, 255, 255, 0.85);
 }
+.qr-popup-dialog {
+  position: relative;
+}
+.qr-popup-dialog .expand-close {
+  top: 0.75rem;
+  right: 0.75rem;
+  transform: none;
+}
+html[data-theme="dark"] .qr-popup-dialog .expand-close {
+  background: #FFFFFF;
+  color: #111111;
+  border-color: #111111;
+  box-shadow: 2px 2px 0 #111111;
+}
+html[data-theme="dark"] .qr-popup-dialog .expand-close:hover {
+  background: #8b1a2b;
+  color: #fff;
+  border-color: #111111;
+}
+
 html[data-theme="dark"] .qr-reveal-icon svg {
   filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.25));
 }
@@ -1467,6 +1488,16 @@ html[data-theme="dark"] .password-input-inline:focus,
 html[data-theme="dark"] .resource-url-input:focus,
 html[data-theme="dark"] .expand-input:focus {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85);
+}
+.password-input,
+.password-input-inline {
+  font-family: "DM Sans", sans-serif;
+  font-size: 13px;
+}
+.password-input::placeholder,
+.password-input-inline::placeholder {
+  font-family: inherit;
+  color: #8a8a8a;
 }
 html[data-theme="dark"] .arc-wash {
   background: radial-gradient(circle at center, rgba(16, 12, 17, 0.98) 0%, rgba(16, 12, 17, 0.94) 42%, rgba(16, 12, 17, 0.75) 100%);
@@ -1941,7 +1972,7 @@ html[data-theme="dark"] .page-heading {
     position: static;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
   .sidebar-widget-slot .password-panel {
     position: static;
@@ -1956,11 +1987,11 @@ html[data-theme="dark"] .page-heading {
     overflow: hidden;
     opacity: 0;
     visibility: hidden;
-    transform: translateX(-6px);
+    transform: translateX(-8px);
     border: 0;
     background: transparent;
     box-shadow: none;
-    transition: opacity .15s ease-out, transform .15s ease-out, width .24s ease, visibility .15s ease-out;
+    transition: opacity .18s ease-out, transform .22s cubic-bezier(.22,.8,.3,1), width .24s ease, visibility .15s ease-out;
   }
   .sidebar-widget-slot .password-widget.is-open .password-panel,
   .sidebar-widget-slot .pw-tools.is-open .password-panel {
@@ -2105,7 +2136,7 @@ html[data-theme="dark"] .page-heading {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0;
     width: auto;
     min-width: 0;
     max-width: none;
@@ -2149,11 +2180,12 @@ html[data-theme="dark"] .page-heading {
     overflow: hidden;
     opacity: 0;
     visibility: hidden;
-    transform: translateX(-6px);
+    transform: translateX(-8px);
     border: 0;
     background: transparent;
     box-shadow: none;
-    transition: opacity .15s ease-out, transform .15s ease-out, flex .24s ease, visibility .15s ease-out;
+    margin-left: 0;
+    transition: opacity .18s ease-out, transform .22s cubic-bezier(.22,.8,.3,1), flex .24s ease, margin-left .24s ease, visibility .15s ease-out;
   }
   .utilities-row .pw-tools.is-open {
     flex: 1 1 100%;
@@ -2161,7 +2193,7 @@ html[data-theme="dark"] .page-heading {
     max-width: 100%;
   }
   /* REV 86: accept either toggle target — pages key is-open on the widget
-     (NEXUS) or the relocatable pw-tools (feed/core) */
+      (NEXUS) or the relocatable pw-tools (feed/core) */
   .utilities-row .password-widget.is-open .password-panel,
   .utilities-row .pw-tools.is-open .password-panel {
     visibility: visible;
@@ -2169,10 +2201,13 @@ html[data-theme="dark"] .page-heading {
     flex: 1 1 auto;
     width: auto;
     min-width: 0;
+    max-width: 160px;
     transform: translateX(0);
+    margin-left: 6px;
   }
   .utilities-row .pw-tools .password-panel .password-input {
     width: 100%;
+    max-width: 160px;
     height: 32px;
     min-height: 0;
     padding: 0 .6rem;
@@ -2633,9 +2668,9 @@ html[data-theme="dark"] .arc-logo:active {
     border-radius: 50%;
     font-size: 10px;
   }
-  body.nexus-view-pill .qr-card .qr-reveal-icon svg {
-    width: 12px;
-    height: 12px;
+  body.nexus-view-pill .qr-space.is-locked.has-image .qr-reveal-icon svg {
+    width: 26px;
+    height: 26px;
   }
   body.nexus-view-pill .resource-item .capsule-main {
     grid-area: main;
@@ -2827,6 +2862,45 @@ html[data-theme="dark"] .arc-logo:active {
      against the inside edge of the container border: inset:0 + 100% size is
      exactly the overflow clip region of the bordered round parent, so there
      are no perimeter gaps, light leaks, or jagged fringes in either theme. */
+   body.nexus-view-pill .qr-space.is-locked.has-image .qr-reveal-icon {
+    inset: -2px;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #111111;
+    box-shadow: none;
+    color: #4a4a4a;
+    opacity: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  body.nexus-view-pill .qr-space.is-locked.has-image:has(.qr-image.is-revealed) .qr-reveal-icon {
+    opacity: 0;
+  }
+  html[data-theme="dark"] body.nexus-view-pill .qr-space.is-locked.has-image .qr-reveal-icon {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-structural);
+  }
+  /* REV 95: subtle veil hover/click — lighten + micro-scale, respects locked state */
+  body.nexus-view-pill .qr-space.is-locked.has-image:not(:has(.qr-image.is-revealed)):hover .qr-reveal-icon {
+    background: #FEFEFE;
+    transform: scale(1.02);
+    transition: background .18s ease, transform .18s ease, opacity .2s ease-in-out;
+  }
+  body.nexus-view-pill .qr-space.is-locked.has-image:not(:has(.qr-image.is-revealed)):active .qr-reveal-icon {
+    transform: scale(0.98);
+  }
+  .qr-space.is-locked.has-image:not(:has(.qr-image.is-revealed)):hover .qr-reveal-icon {
+    background: #FEFEFE;
+  }
+  .qr-space.is-locked.has-image:not(:has(.qr-image.is-revealed)):active .qr-reveal-icon {
+    transform: scale(0.97);
+  }
 
 }
 
@@ -3318,6 +3392,17 @@ html[data-theme='dark'] .sync-status-capsule .capsule-label { color: #FFFFFF !im
   line-height: 1 !important;
 }
 
+/* ---------- REV 97: tracker-shell top parity + elevation signal — CORE/NEXUS uniform */
+@media (max-width: 1023.98px) {
+  .tracker-shell {
+    padding: 18px 12px calc(2.5rem + 80px) !important;
+  }
+}
+@media (max-width: 1023.98px) {
+  .settings-shell {
+    padding: 18px 12px calc(60px + env(safe-area-inset-bottom)) !important;
+  }
+}
 /* ---------- Mobile utilities bar: flow at top, floating pill on scroll ---------- */
 @media (max-width: 1023.98px) {
   .utilities-row {
@@ -3329,7 +3414,7 @@ html[data-theme='dark'] .sync-status-capsule .capsule-label { color: #FFFFFF !im
     max-width: 92vw;
     /* REV 86: uniform strip-to-sheet separation on every board (user ask;
        supersedes the REV 80c flush decision) */
-    margin: 10px auto 12px;
+    margin: 2px auto 6px;
     z-index: auto;
     gap: 8px !important;
     /* REV 80b: opaque Neobrutalist surface, static + floating */
@@ -3372,7 +3457,9 @@ html[data-theme='dark'] .sync-status-capsule .capsule-label { color: #FFFFFF !im
     z-index: var(--z-dock);
     background: #FBF7EE !important;
     border: 2px solid #111111 !important;
-    box-shadow: 4px 4px 0 rgba(17, 17, 17, 0.85) !important;
+    box-shadow: 2px 2px 0 var(--shadow) !important;
+    opacity: .98;
+    transition: opacity 120ms linear;
   }
   html[data-theme="dark"] .utilities-row #search-toggle {
     background: #2A2A2A !important;
