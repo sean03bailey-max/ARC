@@ -15,6 +15,9 @@
   <script src="utils/spa.js"></script>
   <script src="utils/announcements.js"></script>
   <script src="utils/mobile-nav.js" defer></script>
+  <!-- pushClient: feed + settings only (push subscribe/send surfaces) -->
+  <script src="utils/pushClient.js" defer></script>
+  <link rel="manifest" href="manifest.webmanifest">
   <script>
     /* REV 70/72 synchronous pre-paint hydration. Tier keys:
        arc_auth_tier1 (homepage/base), arc_auth_tier2 (board edit mode).
@@ -1103,7 +1106,15 @@
           id: 'ann-' + Date.now(),
           timestamp: new Date().toISOString()
         }, payload);
-        ArcFeed.addAnnouncement(newItem).then(done);
+        ArcFeed.addAnnouncement(newItem).then((list) => {
+          try {
+            if (window.ArcPush) {
+              var plain = String(newItem.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+              window.ArcPush.sendPush(newItem.title, plain || 'New operational dispatch.', 'feed.html', newItem.category || '').catch(function () {});
+            }
+          } catch (e) {}
+          done(list);
+        });
         // The author obviously read their own post — don't self-badge.
         try {
           const r = ArcFeed.getReadIds();
@@ -1141,6 +1152,14 @@
           var item = allItems.filter(function(it){return it.id===renotifyId;})[0];
           var title = item ? item.title : 'ARC Alert';
           new Notification(title, { body: 'Re-notified: ' + (item ? item.title : '') });
+        }
+      } catch(e) {}
+      // Server fan-out to all push subscribers (background push).
+      try {
+        if (window.ArcPush) {
+          var ri = allItems.filter(function(it){return it.id===renotifyId;})[0];
+          var rplain = ri ? String(ri.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160) : '';
+          window.ArcPush.sendPush(ri ? ri.title : 'ARC Alert', rplain || 'Re-notified dispatch.', 'feed.html', ri ? (ri.category || '') : '').catch(function () {});
         }
       } catch(e) {}
       // toast feedback

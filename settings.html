@@ -12,6 +12,9 @@
   <script src="utils/auth.js"></script>
   <script src="utils/spa.js"></script>
   <script src="utils/mobile-nav.js" defer></script>
+  <!-- pushClient: feed + settings only (push subscribe/send surfaces) -->
+  <script src="utils/pushClient.js" defer></script>
+  <link rel="manifest" href="manifest.webmanifest">
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Poppins:wght@800;900&family=Libre+Franklin:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <script>
     (function () {
@@ -112,6 +115,12 @@
     .notif-banner .banner-bell svg { width: 18px; height: 18px; }
     html[data-theme="dark"] .notif-banner .banner-bell { color: #F87171; }
 
+    .notif-cats { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .notif-cats-label { font: 800 11px "Libre Franklin", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #6c6166; }
+    html[data-theme="dark"] .notif-cats-label { color: #A1A1AA; }
+    .notif-cat { display: inline-flex; align-items: center; gap: 6px; font: 700 12px "DM Sans", sans-serif; color: #111111; background: #FFFDF8; border: 2px solid #111111; border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+    html[data-theme="dark"] .notif-cat { background: #1E1E1E; color: #FBF7EE; border-color: #FFFFFF; }
+    .notif-cat input { accent-color: #8B1A2B; }
     .notif-actions { display: flex; flex-wrap: wrap; gap: 12px; }
     .notif-btn {
       display: inline-flex; align-items: center; gap: 8px;
@@ -194,6 +203,15 @@
                 <p class="notif-sub">Get notified when administrators post new operational dispatches</p>
               </div>
               <span class="status-pill" id="notify-status-pill"><span class="dot"></span><span id="notify-status-text">Enabled</span></span>
+            </div>
+
+            <div class="notif-cats" id="notify-cats" aria-label="Notification categories">
+              <span class="notif-cats-label">Notify me about:</span>
+              <label class="notif-cat"><input type="checkbox" value="Urgent" checked> Urgent</label>
+              <label class="notif-cat"><input type="checkbox" value="Operational Dispatch" checked> Dispatch</label>
+              <label class="notif-cat"><input type="checkbox" value="Deployment" checked> Deployment</label>
+              <label class="notif-cat"><input type="checkbox" value="Training" checked> Training</label>
+              <label class="notif-cat"><input type="checkbox" value="General" checked> General</label>
             </div>
 
             <div class="notif-banner">
@@ -302,11 +320,45 @@
         if (icOff) icOff.style.display = on ? 'none' : '';
       }
       toggleBtn.addEventListener('click', function () {
-        try { localStorage.setItem(KEY, enabled() ? 'false' : 'true'); } catch (e) {}
+        var turningOff = enabled();
+        try { localStorage.setItem(KEY, turningOff ? 'false' : 'true'); } catch (e) {}
         render();
         if (window.SFX) window.SFX.playButtonClick();
+        try {
+          if (!window.ArcPush || !window.ArcPush.supported()) return;
+          if (turningOff) { window.ArcPush.unsubscribe().catch(function () {}); }
+          else { window.ArcPush.ensureSubscription().catch(function () {}); }
+        } catch (e) {}
       });
       render();
+
+      /* category opt-out — shared with pushClient getEnabledCategories */
+      var CATS_KEY = 'arc_notify_cats';
+      var CATS = ['Urgent', 'Operational Dispatch', 'Deployment', 'Training', 'General'];
+      function paintCats() {
+        var on;
+        try {
+          var raw = localStorage.getItem(CATS_KEY);
+          on = raw ? JSON.parse(raw) : CATS.slice();
+          if (!Array.isArray(on)) on = CATS.slice();
+        } catch (e) { on = CATS.slice(); }
+        document.querySelectorAll('#notify-cats input[type="checkbox"]').forEach(function (box) {
+          box.checked = on.indexOf(box.value) !== -1;
+        });
+      }
+      paintCats();
+      document.getElementById('notify-cats').addEventListener('change', function () {
+        var kept = [];
+        document.querySelectorAll('#notify-cats input[type="checkbox"]:checked').forEach(function (box) {
+          if (CATS.indexOf(box.value) !== -1) kept.push(box.value);
+        });
+        try { localStorage.setItem(CATS_KEY, JSON.stringify(kept.length ? kept : CATS.slice())); } catch (e) {}
+        try {
+          if (enabled() && window.ArcPush && window.ArcPush.supported() && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            window.ArcPush.ensureSubscription().catch(function () {});
+          }
+        } catch (e) {}
+      });
 
       /* push toast */
       var toast = document.getElementById('push-toast');
@@ -320,6 +372,11 @@
       };
       document.getElementById('notify-send-test').addEventListener('click', function () {
         showPushToast('Test Notification', 'Local delivery is working. This is what an operational dispatch alert looks like.');
+        try {
+          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            new Notification('Test Notification', { body: 'Local delivery is working.', icon: 'assets/favicon-32.png' });
+          }
+        } catch (e) {}
         if (window.SFX) window.SFX.playUnlockSound();
       });
 

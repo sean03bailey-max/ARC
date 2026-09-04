@@ -12,10 +12,11 @@ const token =
 
 const redis = new Redis({ url, token });
 
-// One Redis database, two namespaced keys — Nexus (QR board) and Core
-// (deliverables tracker) never touch each other's data.
+// One Redis database, three namespaced keys — Nexus (QR board), Core
+// (deliverables tracker), and Feed (announcements) never touch each other's data.
 function stateKeyFor(app) {
   if (app === 'nexus') return 'acrcy-nexus-state';
+  if (app === 'feed') return 'acrcy-feed-state';
   return 'acrcy-tracker-state'; // "core" — keeps the original tracker's key
 }
 
@@ -29,7 +30,8 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const app = (req.query && req.query.app) === 'nexus' ? 'nexus' : 'core';
+  const rawApp = req.query && req.query.app;
+  const app = rawApp === 'nexus' ? 'nexus' : (rawApp === 'feed' ? 'feed' : 'core');
   const STATE_KEY = stateKeyFor(app);
 
   if (req.method === 'GET') {

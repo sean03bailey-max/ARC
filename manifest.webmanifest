@@ -1,0 +1,14 @@
+{
+  "name": "ARC",
+  "short_name": "ARC",
+  "description": "ARC shared boards — Nexus, Core, Alerts.",
+  "display": "standalone",
+  "start_url": "index.html",
+  "scope": "./",
+  "background_color": "#FFFDF8",
+  "theme_color": "#8B1A2B",
+  "icons": [
+    { "src": "assets/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "assets/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
